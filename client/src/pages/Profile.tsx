@@ -56,12 +56,14 @@ const experienceLevels = {
 };
 
 const equipmentOptions = [
+  { id: "bodyweight", label: "Peso corporal" },
   { id: "dumbbells", label: "Halteres" },
   { id: "barbell", label: "Barra" },
   { id: "resistance_bands", label: "Faixas elásticas" },
   { id: "pull_up_bar", label: "Barra de flexão" },
   { id: "kettlebells", label: "Kettlebells" },
-  { id: "bodyweight", label: "Peso corporal" }
+  { id: "gym_access", label: "Academia completa" },
+  { id: "outdoor_gym", label: "Academia ao ar livre (padrão prefeituras)" }
 ];
 
 export default function Profile() {

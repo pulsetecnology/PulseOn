@@ -258,40 +258,42 @@ export default function Onboarding() {
                     <FormItem>
                       <div className="space-y-3">
                         {[
-                          "Peso corporal",
-                          "Halteres",
-                          "Barras",
-                          "Máquinas de musculação",
-                          "Elásticos",
-                          "Kettlebells"
+                          { id: "bodyweight", label: "Peso corporal" },
+                          { id: "dumbbells", label: "Halteres" },
+                          { id: "barbell", label: "Barra" },
+                          { id: "resistance_bands", label: "Faixas elásticas" },
+                          { id: "pull_up_bar", label: "Barra de flexão" },
+                          { id: "kettlebells", label: "Kettlebells" },
+                          { id: "gym_access", label: "Academia completa" },
+                          { id: "outdoor_gym", label: "Academia ao ar livre (padrão prefeituras)" }
                         ].map((equipment) => (
                           <label
-                            key={equipment}
+                            key={equipment.id}
                             className={cn(
                               "flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-colors",
-                              field.value.includes(equipment)
+                              field.value.includes(equipment.id)
                                 ? "border-primary bg-primary/5"
                                 : "border-border hover:border-primary/50"
                             )}
                             onClick={(e) => {
                               e.preventDefault();
-                              const newEquipment = field.value.includes(equipment)
-                                ? field.value.filter(e => e !== equipment)
-                                : [...field.value, equipment];
+                              const newEquipment = field.value.includes(equipment.id)
+                                ? field.value.filter(e => e !== equipment.id)
+                                : [...field.value, equipment.id];
                               field.onChange(newEquipment);
                             }}
                           >
                             <div className={cn(
                               "w-5 h-5 rounded border-2 flex items-center justify-center",
-                              field.value.includes(equipment)
+                              field.value.includes(equipment.id)
                                 ? "border-primary bg-primary"
                                 : "border-border"
                             )}>
-                              {field.value.includes(equipment) && (
+                              {field.value.includes(equipment.id) && (
                                 <Check className="w-3 h-3 text-primary-foreground" />
                               )}
                             </div>
-                            <span className="font-medium">{equipment}</span>
+                            <span className="font-medium">{equipment.label}</span>
                           </label>
                         ))}
                       </div>
