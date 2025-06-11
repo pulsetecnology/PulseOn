@@ -34,12 +34,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         age: userData.age,
         weight: userData.weight,
         height: userData.height,
-        gender: "not_specified",
+        gender: userData.gender || "not_specified",
         fitnessGoal: userData.fitnessGoal,
         experienceLevel: userData.experienceLevel,
         weeklyFrequency: userData.weeklyFrequency,
         availableEquipment: userData.availableEquipment,
         physicalRestrictions: userData.physicalRestrictions || null,
+        onboardingCompleted: true
       });
       
       console.log("User created successfully:", user.email, "ID:", user.id);

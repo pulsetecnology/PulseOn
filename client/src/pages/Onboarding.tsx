@@ -29,12 +29,12 @@ export default function Onboarding() {
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       birthDate: "",
-      weight: 0,
-      height: 0,
-      gender: undefined,
-      fitnessGoal: undefined,
-      experienceLevel: undefined,
-      weeklyFrequency: 0,
+      weight: 30,
+      height: 120,
+      gender: "male",
+      fitnessGoal: "lose_weight",
+      experienceLevel: "beginner",
+      weeklyFrequency: 1,
       availableEquipment: [],
       physicalRestrictions: ""
     }
