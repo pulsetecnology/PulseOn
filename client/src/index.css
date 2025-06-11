@@ -55,11 +55,6 @@
   --destructive: hsl(0, 63%, 31%);
   --destructive-foreground: hsl(210, 20%, 95%);
   --ring: hsl(214, 32%, 18%);
-  
-  /* Variáveis personalizadas para sombras no modo escuro */
-  --shadow-light: rgba(255, 255, 255, 0.1);
-  --shadow-medium: rgba(255, 255, 255, 0.05);
-  --shadow-color: rgba(0, 0, 0, 0.8);
 }
 
 @layer base {
@@ -111,72 +106,6 @@
   
   .bg-error {
     background-color: hsl(351, 95%, 71%);
-  }
-  
-  /* Sombras melhoradas para modo escuro */
-  .dark .shadow-sm {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
-  }
-  
-  .dark .shadow {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.6), 0 1px 2px -1px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
-  }
-  
-  .dark .shadow-md {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
-  }
-  
-  .dark .shadow-lg {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.15);
-  }
-  
-  .dark .shadow-xl {
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.15);
-  }
-  
-  .dark .shadow-2xl {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.15);
-  }
-
-  /* Cards específicos sem bordas */
-  .workout-summary-card,
-  .rest-timer-card {
-    border: none !important;
-  }
-
-  /* Melhor contraste para o card "Treino de Hoje" no modo claro */
-  .workout-card-light {
-    background: linear-gradient(135deg, hsl(247, 84%, 62%) 0%, hsl(260, 70%, 55%) 100%);
-    box-shadow: 0 8px 25px -5px rgba(126, 34, 206, 0.3), 0 4px 10px -2px rgba(126, 34, 206, 0.2);
-    border: 1px solid rgba(126, 34, 206, 0.2);
-  }
-  
-  .workout-card-light .workout-card-text {
-    color: hsl(20, 14.3%, 4.1%) !important;
-    text-shadow: none;
-    font-weight: 600;
-  }
-  
-
-.fixed-footer-shadow {
-  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.2), 0 -2px 4px -2px rgba(0, 0, 0, 0.1);
-}
-
-.dark .fixed-footer-shadow {
-  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.6), 0 -2px 4px -2px rgba(0, 0, 0, 0.5);
-}
-
-  .workout-card-light .workout-card-button {
-    background: white;
-    color: hsl(247, 84%, 62%);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    font-weight: 600;
-  }
-  
-  .workout-card-light .workout-card-button:hover {
-    background: hsl(0, 0%, 98%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 }
 
