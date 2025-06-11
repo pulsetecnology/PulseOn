@@ -36,7 +36,7 @@ export default function Login() {
 
       // Armazenar token e redirecionar
       localStorage.setItem("authToken", data.token);
-      
+
       toast({
         title: "Login realizado com sucesso!",
         description: "Redirecionando...",
@@ -122,7 +122,7 @@ export default function Login() {
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-          
+
           <div className="mt-6 p-4 bg-slate-700/30 rounded-lg border border-slate-600">
             <p className="text-sm text-slate-300 font-medium mb-2">Conta de teste:</p>
             <p className="text-xs text-slate-400">Email: teste@pulseon.com</p>

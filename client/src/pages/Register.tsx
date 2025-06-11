@@ -15,7 +15,7 @@ import Logo from "@/components/Logo";
 export default function Register() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
+
   const form = useForm<RegisterData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -32,18 +32,18 @@ export default function Register() {
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" }
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Erro no cadastro");
       }
-      
+
       return response.json();
     },
     onSuccess: (response) => {
       localStorage.setItem("authToken", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
-      
+
       toast({
         title: "Conta criada com sucesso!",
         description: "Bem-vindo ao PulseOn"

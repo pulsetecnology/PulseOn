@@ -43,19 +43,19 @@ export default function Onboarding() {
   const updateUserMutation = useMutation({
     mutationFn: async (data: OnboardingData) => {
       if (!user?.id) throw new Error("Usuário não autenticado");
-      
+
       // Calcular idade a partir da data de nascimento
       const birthDate = new Date(data.birthDate);
       const today = new Date();
       let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
-      
+
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         age--;
       }
-      
+
       const { birthDate: _, ...restData } = data;
-      
+
       return apiRequest(`/api/users/${user.id}`, "PATCH", { 
         ...restData,
         age,
@@ -65,18 +65,15 @@ export default function Onboarding() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast({
-        title: "Onboarding concluído!",
-        description: "Seu perfil foi configurado com sucesso"
-      });
-      setLocation("/");
+      // Updated here to use showSuccess
+      showSuccess("Perfil configurado com sucesso!");
+      setTimeout(() => {
+        setLocation("/");
+      }, 1500);
     },
     onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao salvar dados",
-        variant: "destructive"
-      });
+      // Updated here to use showError
+      showError("Erro ao configurar perfil. Tente novamente.");
     }
   });
 
@@ -94,7 +91,23 @@ export default function Onboarding() {
     }
   };
 
-
+    // Function to show a success toast with an icon
+    const showSuccess = (message: string) => {
+      toast({
+        title: "Sucesso",
+        description: message,
+        variant: "success" // You might want to define a "success" variant in your toast provider
+      });
+    };
+  
+    // Function to show an error toast with an icon
+    const showError = (message: string) => {
+      toast({
+        title: "Erro",
+        description: message,
+        variant: "destructive"
+      });
+    };
 
   const onSubmit = (data: OnboardingData) => {
     console.log("Final submit with data:", data);
