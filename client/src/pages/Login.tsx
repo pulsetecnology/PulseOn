@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
@@ -24,6 +24,7 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { setToken } = useSimpleAuth();
+  const queryClient = useQueryClient();
   const [isRegisterMode, setIsRegisterMode] = useState(false);
 
   const form = useForm<LoginData>({
@@ -42,11 +43,19 @@ export default function Login() {
       localStorage.setItem("authToken", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
       setToken(response.token);
+      
+      // Invalidar cache e recarregar dados do usuário
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
       toast({
         title: "Login realizado com sucesso!",
         description: "Bem-vindo de volta"
       });
-      setLocation("/");
+      
+      // Pequeno delay para garantir que o estado seja atualizado
+      setTimeout(() => {
+        setLocation("/");
+      }, 100);
     },
     onError: (error: any) => {
       toast({

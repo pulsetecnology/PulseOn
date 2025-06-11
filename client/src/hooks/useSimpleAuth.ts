@@ -13,6 +13,14 @@ export function useSimpleAuth() {
   );
   const queryClient = useQueryClient();
 
+  // Escutar mudanças no localStorage
+  useEffect(() => {
+    const storedToken = localStorage.getItem("authToken");
+    if (storedToken !== token) {
+      setToken(storedToken);
+    }
+  }, [token]);
+
   const { data: user, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
