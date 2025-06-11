@@ -3,15 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Dumbbell, Flame, Play, Check, X, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Home() {
   const { showSuccess, showError, showWarning } = useGlobalNotification();
+  const { user } = useAuth();
 
   return (
     <div className="px-4 py-6 space-y-6">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-2xl font-bold mb-2">Olá, João! 👋</h1>
+        <h1 className="text-2xl font-bold mb-2">Olá, {user?.name?.split(' ')[0] || 'usuário'}! 💪</h1>
         <p className="text-muted-foreground">Pronto para o seu treino de hoje?</p>
       </div>
 
