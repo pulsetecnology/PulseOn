@@ -95,26 +95,52 @@ export default function Profile() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<UserData>) => {
-      // Transform data to match backend expectations
-      const transformedData = {
-        name: data.name,
-        age: data.birthDate ? calculateAge(data.birthDate) : undefined,
-        weight: data.weight,
-        height: data.height,
-        gender: data.gender,
-        fitnessGoal: data.fitnessGoal,
-        experienceLevel: data.experienceLevel,
-        weeklyFrequency: data.weeklyFrequency,
-        availableEquipment: data.availableEquipment,
-        physicalRestrictions: data.physicalRestrictions
-      };
+      // Only send fields that have actual values and are different from original
+      const updatePayload: any = {};
       
-      // Remove undefined values
-      const cleanedData = Object.fromEntries(
-        Object.entries(transformedData).filter(([_, value]) => value !== undefined)
-      );
+      if (data.name && data.name !== user?.name) {
+        updatePayload.name = data.name;
+      }
       
-      return apiRequest("/api/profile/update", "PATCH", cleanedData);
+      if (data.birthDate && data.birthDate !== user?.birthDate) {
+        updatePayload.age = calculateAge(data.birthDate);
+      }
+      
+      if (data.weight && data.weight !== user?.weight) {
+        updatePayload.weight = data.weight;
+      }
+      
+      if (data.height && data.height !== user?.height) {
+        updatePayload.height = data.height;
+      }
+      
+      if (data.gender && data.gender !== user?.gender) {
+        updatePayload.gender = data.gender;
+      }
+      
+      if (data.fitnessGoal && data.fitnessGoal !== user?.fitnessGoal) {
+        updatePayload.fitnessGoal = data.fitnessGoal;
+      }
+      
+      if (data.experienceLevel && data.experienceLevel !== user?.experienceLevel) {
+        updatePayload.experienceLevel = data.experienceLevel;
+      }
+      
+      if (data.weeklyFrequency && data.weeklyFrequency !== user?.weeklyFrequency) {
+        updatePayload.weeklyFrequency = data.weeklyFrequency;
+      }
+      
+      if (data.availableEquipment && JSON.stringify(data.availableEquipment) !== JSON.stringify(user?.availableEquipment)) {
+        updatePayload.availableEquipment = data.availableEquipment;
+      }
+      
+      if (data.physicalRestrictions !== user?.physicalRestrictions) {
+        updatePayload.physicalRestrictions = data.physicalRestrictions;
+      }
+      
+      console.log('Sending update payload:', updatePayload);
+      
+      return apiRequest("/api/profile/update", "PATCH", updatePayload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });

@@ -298,8 +298,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Profile update route
   app.patch("/api/profile/update", authenticateToken, async (req: Request, res: Response) => {
     try {
+      console.log('Profile update request body:', req.body);
+      
       const updateData = profileUpdateSchema.parse(req.body);
       const userId = req.user!.id;
+      
+      console.log('Parsed update data:', updateData);
       
       const updatedUser = await storage.updateUser(userId, updateData);
       
@@ -312,8 +316,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: sanitizeUser(updatedUser)
       });
     } catch (error) {
+      console.error('Profile update error:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+        console.log('Validation errors:', error.errors);
+        return res.status(400).json({ 
+          message: "Dados inválidos", 
+          errors: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message,
+            received: err.received
+          }))
+        });
       }
       res.status(500).json({ message: "Erro interno do servidor" });
     }
