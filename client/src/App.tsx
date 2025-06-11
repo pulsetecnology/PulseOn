@@ -15,6 +15,7 @@ import UserSetup from "./pages/UserSetup";
 import NotFound from "./pages/not-found";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import Onboarding from "@/pages/Onboarding";
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -89,6 +90,7 @@ function Router() {
       </Route>
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/onboarding" component={Onboarding} />
       <Route path="/workout">
         <ProtectedLayout>
           <Workout />
