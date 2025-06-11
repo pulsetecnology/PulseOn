@@ -95,9 +95,7 @@ export const insertWorkoutSessionSchema = createInsertSchema(workoutSessions).om
 export const registerSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  name: z.string().optional(),
-  age: z.number().optional(),
-  gender: z.enum(["male", "female", "other"]).optional()
+  name: z.string().optional()
 });
 
 export const loginSchema = z.object({
@@ -106,9 +104,10 @@ export const loginSchema = z.object({
 });
 
 export const onboardingSchema = z.object({
-  age: z.number().min(16).max(100),
+  birthDate: z.string().min(1, "Data de nascimento é obrigatória"),
   weight: z.number().min(30).max(300),
   height: z.number().min(120).max(250),
+  gender: z.enum(["male", "female", "other"]),
   fitnessGoal: z.enum(["lose_weight", "gain_muscle", "improve_conditioning"]),
   experienceLevel: z.enum(["beginner", "intermediate", "advanced"]),
   weeklyFrequency: z.number().min(1).max(7),

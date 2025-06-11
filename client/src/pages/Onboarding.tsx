@@ -12,10 +12,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { onboardingSchema, type OnboardingData } from "@shared/schema";
-import { Scale, Dumbbell, Heart, Check } from "lucide-react";
+import { Scale, Dumbbell, Heart, Check, User } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -27,9 +28,10 @@ export default function Onboarding() {
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      age: 0,
+      birthDate: "",
       weight: 0,
       height: 0,
+      gender: undefined,
       fitnessGoal: undefined,
       experienceLevel: undefined,
       weeklyFrequency: 0,
@@ -41,8 +43,23 @@ export default function Onboarding() {
   const updateUserMutation = useMutation({
     mutationFn: async (data: OnboardingData) => {
       if (!user?.id) throw new Error("Usuário não autenticado");
+      
+      // Calcular idade a partir da data de nascimento
+      const birthDate = new Date(data.birthDate);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      const { birthDate: _, ...restData } = data;
+      
       return apiRequest(`/api/users/${user.id}`, "PATCH", { 
-        ...data, 
+        ...restData,
+        age,
+        birthDate: data.birthDate,
         onboardingCompleted: true 
       });
     },
@@ -95,7 +112,9 @@ export default function Onboarding() {
       case 4:
         return form.getValues("availableEquipment").length > 0;
       case 5:
-        return form.getValues("age") > 0 && form.getValues("weight") > 0 && form.getValues("height") > 0;
+        return !!form.getValues("birthDate") && !!form.getValues("gender");
+      case 6:
+        return form.getValues("weight") > 0 && form.getValues("height") > 0;
       default:
         return false;
     }
@@ -289,31 +308,69 @@ export default function Onboarding() {
             </Card>
           )}
 
-          {/* Step 5: Informações pessoais */}
+          {/* Step 5: Dados pessoais */}
           {currentStep === 5 && (
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-6">Informações pessoais</h2>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Dados pessoais
+                </h2>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="age"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Idade</FormLabel>
+                  <FormField
+                    control={form.control}
+                    name="birthDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data de Nascimento</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gênero</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="25"
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                            />
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione seu gênero" />
+                            </SelectTrigger>
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          <SelectContent>
+                            <SelectItem value="male">Masculino</SelectItem>
+                            <SelectItem value="female">Feminino</SelectItem>
+                            <SelectItem value="other">Outro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 6: Informações físicas */}
+          {currentStep === 6 && (
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  <Scale className="h-5 w-5" />
+                  Informações físicas
+                </h2>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                     <FormField
                       control={form.control}
