@@ -1,12 +1,91 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertWorkoutSchema, insertWorkoutSessionSchema, onboardingSchema } from "@shared/schema";
+import { insertUserSchema, insertWorkoutSchema, insertWorkoutSessionSchema, onboardingSchema, registerSchema, loginSchema, n8nWorkoutRequestSchema } from "@shared/schema";
 import { z } from "zod";
+import { hashPassword, verifyPassword, generateJWT, sanitizeUser } from "./auth";
+import { authenticateToken } from "./middleware";
+import { requestWorkoutFromAI } from "./n8n-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth routes
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const userData = registerSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email já está em uso" });
+      }
+
+      // Hash password and create user
+      const hashedPassword = await hashPassword(userData.password);
+      const user = await storage.createUser({
+        ...userData,
+        password: hashedPassword
+      });
+
+      // Generate JWT token
+      const token = generateJWT(user);
+      const sanitizedUser = sanitizeUser(user);
+
+      res.status(201).json({
+        message: "Usuário criado com sucesso",
+        user: sanitizedUser,
+        token
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const loginData = loginSchema.parse(req.body);
+      
+      // Find user by email
+      const user = await storage.getUserByEmail(loginData.email);
+      if (!user) {
+        return res.status(401).json({ message: "Email ou senha incorretos" });
+      }
+
+      // Verify password
+      const isValidPassword = await verifyPassword(loginData.password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Email ou senha incorretos" });
+      }
+
+      // Generate JWT token
+      const token = generateJWT(user);
+      const sanitizedUser = sanitizeUser(user);
+
+      res.json({
+        message: "Login realizado com sucesso",
+        user: sanitizedUser,
+        token
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  app.get("/api/auth/me", authenticateToken, async (req, res) => {
+    res.json({ user: req.user });
+  });
+
+  app.post("/api/auth/logout", authenticateToken, async (req, res) => {
+    res.json({ message: "Logout realizado com sucesso" });
+  });
+
   // User routes
-  app.get("/api/users/:id", async (req, res) => {
+  app.get("/api/users/:id", authenticateToken, async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
       const user = await storage.getUser(userId);
@@ -61,24 +140,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Onboarding route
-  app.post("/api/onboarding", async (req, res) => {
+  app.post("/api/onboarding", authenticateToken, async (req, res) => {
     try {
       const onboardingData = onboardingSchema.parse(req.body);
+      const userId = req.user!.id;
       
-      // For demo purposes, update the default user (id: 1)
-      const userId = 1;
-      const user = await storage.updateUser(userId, onboardingData);
+      // Update user with onboarding data
+      const updatedUser = await storage.updateUser(userId, {
+        ...onboardingData,
+        onboardingCompleted: true
+      });
       
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
       }
-      
-      res.json({ message: "Onboarding completed successfully" });
+
+      // Prepare data for AI workout generation
+      const aiRequestData = {
+        userId: updatedUser.id,
+        age: updatedUser.age!,
+        weight: updatedUser.weight!,
+        height: updatedUser.height!,
+        fitnessGoal: updatedUser.fitnessGoal!,
+        experienceLevel: updatedUser.experienceLevel!,
+        weeklyFrequency: updatedUser.weeklyFrequency!,
+        availableEquipment: updatedUser.availableEquipment!,
+        physicalRestrictions: updatedUser.physicalRestrictions
+      };
+
+      // Request workout from AI
+      try {
+        const aiWorkout = await requestWorkoutFromAI(aiRequestData);
+        
+        // Create workout from AI response
+        const workout = await storage.createWorkout({
+          userId: updatedUser.id,
+          name: aiWorkout.workoutName,
+          description: aiWorkout.description,
+          duration: aiWorkout.duration,
+          difficulty: aiWorkout.difficulty,
+          exercises: aiWorkout.exercises
+        });
+
+        res.json({ 
+          message: "Onboarding concluído com sucesso",
+          user: sanitizeUser(updatedUser),
+          firstWorkout: workout
+        });
+      } catch (aiError) {
+        console.error('AI workout generation failed:', aiError);
+        res.json({ 
+          message: "Onboarding concluído com sucesso",
+          user: sanitizeUser(updatedUser),
+          note: "Treino personalizado será gerado em breve"
+        });
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Validation error", errors: error.errors });
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
       }
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
