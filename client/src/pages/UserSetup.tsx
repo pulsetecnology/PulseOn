@@ -21,7 +21,7 @@ const userSetupSchema = z.object({
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   confirmPassword: z.string().min(6, "Confirmação de senha é obrigatória"),
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  age: z.number().min(13, "Idade deve ser maior que 13 anos").max(120, "Idade inválida"),
+  birthDate: z.string().min(1, "Data de nascimento é obrigatória"),
   weight: z.number().min(30, "Peso deve ser maior que 30kg").max(300, "Peso inválido"),
   height: z.number().min(100, "Altura deve ser maior que 100cm").max(250, "Altura inválida"),
   fitnessGoal: z.enum(["lose_weight", "gain_muscle", "improve_conditioning"]),
@@ -48,7 +48,7 @@ export default function UserSetup() {
       password: "",
       confirmPassword: "",
       name: "",
-      age: 18,
+      birthDate: "",
       weight: 70,
       height: 170,
       fitnessGoal: "gain_muscle",
@@ -62,16 +62,20 @@ export default function UserSetup() {
 
   const setupMutation = useMutation({
     mutationFn: async (data: UserSetupData) => {
-      const { confirmPassword, ...registrationData } = data;
-      const response = await apiRequest("/api/auth/register", {
-        method: "POST",
-        body: JSON.stringify(registrationData),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erro ao criar conta");
-      }
-      return response.json();
+      // Calcular idade a partir da data de nascimento
+      const birthDate = new Date(data.birthDate);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear() - 
+        (today.getMonth() < birthDate.getMonth() || 
+         (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate()) ? 1 : 0);
+      
+      const { confirmPassword, birthDate: _, ...registrationData } = data;
+      const payload = {
+        ...registrationData,
+        age: age
+      };
+      
+      return await apiRequest("/api/auth/setup", "POST", payload);
     },
     onSuccess: () => {
       toast({
@@ -224,17 +228,15 @@ export default function UserSetup() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
-                    name="age"
+                    name="birthDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Idade</FormLabel>
+                        <FormLabel>Data de Nascimento</FormLabel>
                         <FormControl>
                           <Input 
-                            type="number"
-                            placeholder="25"
+                            type="date"
                             className="bg-slate-700 border-slate-600 text-white"
-                            onChange={(e) => handleNumericInput(e.target.value, field)}
-                            value={field.value || ''}
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
