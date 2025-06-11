@@ -44,11 +44,9 @@ const formatDate = (dateString: string): string => {
 };
 
 const fitnessGoals = {
-  weight_loss: "Perda de peso",
-  muscle_gain: "Ganho de massa",
-  endurance: "Resistência",
-  strength: "Força",
-  general_fitness: "Condicionamento geral"
+  lose_weight: "Perda de peso",
+  gain_muscle: "Ganho de massa",
+  improve_conditioning: "Condicionamento geral"
 };
 
 const experienceLevels = {
@@ -97,7 +95,26 @@ export default function Profile() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<UserData>) => {
-      return apiRequest("/api/profile/update", "PATCH", data);
+      // Transform data to match backend expectations
+      const transformedData = {
+        name: data.name,
+        age: data.birthDate ? calculateAge(data.birthDate) : undefined,
+        weight: data.weight,
+        height: data.height,
+        gender: data.gender,
+        fitnessGoal: data.fitnessGoal,
+        experienceLevel: data.experienceLevel,
+        weeklyFrequency: data.weeklyFrequency,
+        availableEquipment: data.availableEquipment,
+        physicalRestrictions: data.physicalRestrictions
+      };
+      
+      // Remove undefined values
+      const cleanedData = Object.fromEntries(
+        Object.entries(transformedData).filter(([_, value]) => value !== undefined)
+      );
+      
+      return apiRequest("/api/profile/update", "PATCH", cleanedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
@@ -292,13 +309,14 @@ export default function Profile() {
                   <SelectContent>
                     <SelectItem value="male">Masculino</SelectItem>
                     <SelectItem value="female">Feminino</SelectItem>
-                    <SelectItem value="not_specified">Prefiro não informar</SelectItem>
+                    <SelectItem value="other">Prefiro não informar</SelectItem>
                   </SelectContent>
                 </Select>
               ) : (
                 <p className="text-sm text-muted-foreground">
                   {user.gender === "male" ? "Masculino" : 
-                   user.gender === "female" ? "Feminino" : "Não especificado"}
+                   user.gender === "female" ? "Feminino" : 
+                   user.gender === "other" ? "Prefiro não informar" : "Não especificado"}
                 </p>
               )}
             </div>
