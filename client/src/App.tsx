@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { NotificationProvider } from "./components/NotificationProvider";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Workout from "./pages/Workout";
@@ -120,10 +121,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="pulseon-ui-theme">
-        <TooltipProvider>
-          <Router />
-          <Toaster />
-        </TooltipProvider>
+        <NotificationProvider>
+          <TooltipProvider>
+            <Router />
+            <Toaster />
+          </TooltipProvider>
+        </NotificationProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
