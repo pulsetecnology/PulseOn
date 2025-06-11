@@ -4,17 +4,27 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  email: text("email"),
+  name: text("name"),
   age: integer("age"),
   weight: integer("weight"), // in kg
   height: integer("height"), // in cm
+  gender: text("gender"), // "male", "female", "other"
   fitnessGoal: text("fitness_goal"), // "lose_weight", "gain_muscle", "improve_conditioning"
   experienceLevel: text("experience_level"), // "beginner", "intermediate", "advanced"
   weeklyFrequency: integer("weekly_frequency"), // number of workouts per week
   availableEquipment: jsonb("available_equipment").$type<string[]>(),
   physicalRestrictions: text("physical_restrictions"),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export const sessions = pgTable("sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -60,6 +70,12 @@ export interface CompletedExercise extends Exercise {
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
+  createdAt: true,
+  onboardingCompleted: true
+});
+
+export const insertSessionSchema = createInsertSchema(sessions).omit({
+  id: true,
   createdAt: true
 });
 
@@ -74,6 +90,20 @@ export const insertWorkoutSessionSchema = createInsertSchema(workoutSessions).om
   startedAt: true
 });
 
+// Auth schemas
+export const registerSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  name: z.string().optional(),
+  age: z.number().optional(),
+  gender: z.enum(["male", "female", "other"]).optional()
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(1, "Senha é obrigatória")
+});
+
 export const onboardingSchema = z.object({
   age: z.number().min(16).max(100),
   weight: z.number().min(30).max(300),
@@ -85,10 +115,28 @@ export const onboardingSchema = z.object({
   physicalRestrictions: z.string().optional()
 });
 
+// N8N Integration schema
+export const n8nWorkoutRequestSchema = z.object({
+  userId: z.number(),
+  age: z.number(),
+  weight: z.number(),
+  height: z.number(),
+  fitnessGoal: z.string(),
+  experienceLevel: z.string(),
+  weeklyFrequency: z.number(),
+  availableEquipment: z.array(z.string()),
+  physicalRestrictions: z.string().optional()
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type Session = typeof sessions.$inferSelect;
+export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type InsertWorkout = z.infer<typeof insertWorkoutSchema>;
 export type Workout = typeof workouts.$inferSelect;
 export type InsertWorkoutSession = z.infer<typeof insertWorkoutSessionSchema>;
 export type WorkoutSession = typeof workoutSessions.$inferSelect;
+export type RegisterData = z.infer<typeof registerSchema>;
+export type LoginData = z.infer<typeof loginSchema>;
 export type OnboardingData = z.infer<typeof onboardingSchema>;
+export type N8NWorkoutRequest = z.infer<typeof n8nWorkoutRequestSchema>;

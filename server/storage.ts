@@ -1,11 +1,17 @@
-import { users, workouts, workoutSessions, type User, type InsertUser, type Workout, type InsertWorkout, type WorkoutSession, type InsertWorkoutSession } from "@shared/schema";
+import { users, sessions, workouts, workoutSessions, type User, type InsertUser, type Session, type InsertSession, type Workout, type InsertWorkout, type WorkoutSession, type InsertWorkoutSession } from "@shared/schema";
 
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
+
+  // Session methods
+  createSession(session: InsertSession): Promise<Session>;
+  getSessionByToken(token: string): Promise<Session | undefined>;
+  deleteSession(token: string): Promise<void>;
+  deleteUserSessions(userId: number): Promise<void>;
 
   // Workout methods
   getWorkouts(userId?: number): Promise<Workout[]>;
@@ -21,19 +27,21 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
+  private sessions: Map<string, Session>;
   private workouts: Map<number, Workout>;
   private workoutSessions: Map<number, WorkoutSession>;
   private currentUserId: number;
   private currentWorkoutId: number;
-  private currentSessionId: number;
+  private currentWorkoutSessionId: number;
 
   constructor() {
     this.users = new Map();
+    this.sessions = new Map();
     this.workouts = new Map();
     this.workoutSessions = new Map();
     this.currentUserId = 1;
     this.currentWorkoutId = 1;
-    this.currentSessionId = 1;
+    this.currentWorkoutSessionId = 1;
 
     // Add default user and workouts
     this.seedData();
@@ -43,17 +51,19 @@ export class MemStorage implements IStorage {
     // Create default user
     const defaultUser: User = {
       id: this.currentUserId++,
-      username: "joao",
-      password: "password", // In real app, this would be hashed
       email: "joao@email.com",
+      password: "password", // In real app, this would be hashed
+      name: "João Silva",
       age: 28,
       weight: 75,
       height: 180,
+      gender: "male",
       fitnessGoal: "gain_muscle",
       experienceLevel: "intermediate",
       weeklyFrequency: 4,
       availableEquipment: ["Halteres", "Barras", "Máquinas de musculação"],
       physicalRestrictions: null,
+      onboardingCompleted: true,
       createdAt: new Date()
     };
     this.users.set(defaultUser.id, defaultUser);
@@ -99,9 +109,9 @@ export class MemStorage implements IStorage {
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
+  async getUserByEmail(email: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+      (user) => user.email === email,
     );
   }
 
@@ -110,6 +120,7 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id,
+      onboardingCompleted: false,
       createdAt: new Date()
     };
     this.users.set(id, user);
@@ -123,6 +134,42 @@ export class MemStorage implements IStorage {
     const updatedUser: User = { ...user, ...updates };
     this.users.set(id, updatedUser);
     return updatedUser;
+  }
+
+  // Session methods
+  async createSession(insertSession: InsertSession): Promise<Session> {
+    const session: Session = {
+      id: Date.now(), // Simple ID generation
+      ...insertSession,
+      createdAt: new Date()
+    };
+    this.sessions.set(session.token, session);
+    return session;
+  }
+
+  async getSessionByToken(token: string): Promise<Session | undefined> {
+    const session = this.sessions.get(token);
+    if (!session) return undefined;
+    
+    // Check if session is expired
+    if (session.expiresAt < new Date()) {
+      this.sessions.delete(token);
+      return undefined;
+    }
+    
+    return session;
+  }
+
+  async deleteSession(token: string): Promise<void> {
+    this.sessions.delete(token);
+  }
+
+  async deleteUserSessions(userId: number): Promise<void> {
+    for (const [token, session] of this.sessions.entries()) {
+      if (session.userId === userId) {
+        this.sessions.delete(token);
+      }
+    }
   }
 
   // Workout methods

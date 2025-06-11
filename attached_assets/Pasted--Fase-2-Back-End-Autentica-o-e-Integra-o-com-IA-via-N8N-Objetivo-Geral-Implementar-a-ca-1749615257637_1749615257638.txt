@@ -1,0 +1,128 @@
+🔧 Fase 2 – Back-End, Autenticação e Integração com IA via N8N
+
+🎯 Objetivo Geral:
+
+Implementar a camada de back-end funcional da aplicação PulseOn com foco em autenticação segura, criação de usuários, persistência dos dados do onboarding e treinos, além da primeira integração com o agente de IA externo via N8N, responsável por gerar treinos personalizados.
+
+
+---
+
+🧩 Componentes Obrigatórios:
+
+1. Sistema de Autenticação:
+
+Cadastro de usuário com e-mail e senha (opcionalmente nome, idade e gênero).
+
+Login com autenticação segura (JWT ou Supabase Auth, dependendo da stack usada).
+
+Logout e persistência da sessão.
+
+
+2. Gerenciamento de Usuário:
+
+Cada usuário possui:
+
+Perfil exclusivo
+
+Dados de onboarding
+
+Histórico de treinos
+
+
+Garantir que os dados não sejam compartilhados entre usuários.
+
+
+3. Questionário de Onboarding (Persistência):
+
+Salvar as respostas do usuário ao preencher o onboarding.
+
+Estrutura recomendada:
+
+Objetivo (ex: hipertrofia, emagrecimento)
+
+Frequência semanal
+
+Equipamentos disponíveis
+
+Restrições físicas
+
+Nível de experiência
+
+
+
+4. Integração com N8N (IA):
+
+Após o onboarding, enviar os dados via Webhook para o agente IA no N8N.
+
+Receber a resposta com o primeiro treino completo e armazenar no banco de dados do usuário.
+
+Estrutura do treino gerado:
+
+Nome do treino
+
+Lista de exercícios (nome, séries, repetições, peso sugerido)
+
+ID do usuário relacionado
+
+
+
+5. API RESTful (ou Supabase RPC):
+
+Criar endpoints para:
+
+GET/POST onboarding
+
+GET/POST treino
+
+PUT progresso do treino
+
+GET histórico
+
+
+Utilizar autenticação nesses endpoints.
+
+
+6. Banco de Dados:
+
+Modelo relacional básico (pode ser Supabase ou PostgreSQL):
+
+users: dados do usuário
+
+onboarding: respostas do questionário
+
+trainings: treinos recebidos do N8N
+
+progress: histórico e percepções dos treinos
+
+
+
+
+---
+
+🌐 Tecnologias Sugeridas (em Replit):
+
+Supabase (DB + Auth)
+
+Node.js ou Python FastAPI (se não usar Supabase functions)
+
+N8N (agente de IA)
+
+Axios ou Fetch API para chamadas HTTP
+
+JWT (caso não use Supabase Auth)
+
+
+
+---
+
+🎨 Critérios de Conclusão:
+
+Usuário pode se cadastrar, fazer login e permanecer logado.
+
+Onboarding completo é salvo no banco.
+
+Primeira requisição ao N8N acontece automaticamente após onboarding.
+
+Resposta da IA é salva corretamente como primeiro treino.
+
+Usuário logado consegue visualizar seu treino.
