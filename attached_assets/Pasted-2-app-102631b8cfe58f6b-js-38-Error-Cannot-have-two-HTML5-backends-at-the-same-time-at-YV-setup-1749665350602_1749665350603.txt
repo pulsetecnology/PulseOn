@@ -1,0 +1,403 @@
+2_app-102631b8cfe58f6b.js:38 Error: Cannot have two HTML5 backends at the same time.
+    at YV.setup (9b9329b3.656a9efd03fa738e.js:386:2948)
+    at WU.handleRefCountChange (9b9329b3.656a9efd03fa738e.js:385:47850)
+    at Object.f [as dispatch] (9b9329b3.656a9efd03fa738e.js:385:60327)
+    at W4.addTarget (9b9329b3.656a9efd03fa738e.js:385:53554)
+    at 9b9329b3.656a9efd03fa738e.js:385:74141
+    at 9b9329b3.656a9efd03fa738e.js:385:74188
+    at UV (9b9329b3.656a9efd03fa738e.js:381:14387)
+    at U1 (9b9329b3.656a9efd03fa738e.js:381:20735)
+    at e (9b9329b3.656a9efd03fa738e.js:381:41132)
+    at 9b9329b3.656a9efd03fa738e.js:381:41139
+    at jV (9b9329b3.656a9efd03fa738e.js:381:41632)
+    at jL (9b9329b3.656a9efd03fa738e.js:381:26413)
+    at Mt (9b9329b3.656a9efd03fa738e.js:379:4732)
+    at 9b9329b3.656a9efd03fa738e.js:381:23813
+(anônimo) @ _app-102631b8cfe58f6b.js:38Entenda o erro
+stallwart.build.js:1 stallwart: failed ping 1
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'battery'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.Entenda o aviso
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.Entenda o aviso
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.Entenda o aviso
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.Entenda o aviso
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)Entenda o erro
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/auth/me:1 
+            
+            
+           Failed to load resource: the server responded with a status of 403 (Forbidden)

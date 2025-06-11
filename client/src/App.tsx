@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Layout from "./components/Layout";
-import { useSimpleAuth } from "./hooks/useSimpleAuth";
+import { useAuth } from "./hooks/useAuth";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import UserSetup from "./pages/UserSetup";
@@ -16,7 +16,7 @@ import Profile from "./pages/Profile";
 import NotFound from "@/pages/not-found";
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useSimpleAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
     return (

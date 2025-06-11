@@ -1,33 +1,48 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-type AuthUser = {
+type User = {
   id: number;
   email: string;
-  name: string | null;
+  name: string;
   onboardingCompleted: boolean;
+  weight?: number;
+  height?: number;
+  birthDate?: string;
+  fitnessGoal?: string;
+  experienceLevel?: string;
+  weeklyFrequency?: number;
+  availableEquipment?: string[];
+  gender?: string;
+  physicalRestrictions?: string;
 };
 
-interface AuthContextType {
-  user: AuthUser | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: any) => Promise<void>;
-  logout: () => void;
-  isAuthenticated: boolean;
-}
-
-export function useAuth(): AuthContextType {
-  const [, setLocation] = useLocation();
+export function useAuth() {
+  const [token, setTokenState] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem("authToken");
+    }
+    return null;
+  });
+  
   const queryClient = useQueryClient();
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("authToken")
-  );
 
-  // Check if user is authenticated
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["/api/auth/me"],
+  const setToken = useCallback((newToken: string | null) => {
+    setTokenState(newToken);
+    if (newToken) {
+      localStorage.setItem("authToken", newToken);
+    } else {
+      localStorage.removeItem("authToken");
+    }
+  }, []);
+
+  const { data: user, isLoading, error } = useQuery({
+    queryKey: ["user", token],
+    enabled: !!token,
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
     queryFn: async () => {
       if (!token) return null;
       
@@ -38,93 +53,29 @@ export function useAuth(): AuthContextType {
       });
       
       if (!response.ok) {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("user");
-        setToken(null);
-        return null;
-      }
-      
-      const data = await response.json();
-      return data.user;
-    },
-    enabled: !!token,
-    retry: false
-  });
-
-  const loginMutation = useMutation({
-    mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erro no login");
+        if (response.status === 401 || response.status === 403) {
+          setToken(null);
+          throw new Error("Unauthorized");
+        }
+        throw new Error("Failed to fetch user");
       }
       
       return response.json();
-    },
-    onSuccess: (data) => {
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setToken(data.token);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     }
   });
 
-  const registerMutation = useMutation({
-    mutationFn: async (userData: any) => {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData)
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erro no cadastro");
-      }
-      
-      return response.json();
-    },
-    onSuccess: (data) => {
-      localStorage.setItem("authToken", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setToken(data.token);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-    }
-  });
-
-  const logout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
+  const logout = useCallback(() => {
     setToken(null);
     queryClient.clear();
-    setLocation("/login");
-  };
+  }, [setToken, queryClient]);
 
-  const login = async (email: string, password: string) => {
-    const result = await loginMutation.mutateAsync({ email, password });
-    // Force refresh user data after login
-    queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-    return result;
-  };
-
-  const register = async (data: any) => {
-    const result = await registerMutation.mutateAsync(data);
-    // Force refresh user data after register
-    queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-    return result;
-  };
+  const isAuthenticated = !!token && !!user && !error;
 
   return {
-    user: user || null,
-    isLoading: isLoading || loginMutation.isPending || registerMutation.isPending,
-    login,
-    register,
-    logout,
-    isAuthenticated: !!user && !!token
+    user,
+    isAuthenticated,
+    isLoading: !!token && isLoading,
+    setToken,
+    logout
   };
 }
