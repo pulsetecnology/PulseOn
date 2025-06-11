@@ -148,44 +148,44 @@ export default function ActiveWorkout() {
     <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
       {/* Fixed Header - Always visible */}
       <div className="flex-none bg-slate-900 dark:bg-slate-900 text-white">
-        <div className="px-4 py-6">
-          <div className="text-center space-y-2">
-            <Badge variant="secondary" className="bg-slate-700 text-slate-200">
+        <div className="px-4 py-3">
+          <div className="text-center space-y-1">
+            <Badge variant="secondary" className="bg-slate-700 text-slate-200 text-xs">
               Exercício {currentExerciseIndex + 1} de {totalExercises}
             </Badge>
-            <h1 className="text-2xl font-bold">{currentExercise.name}</h1>
-            <div className="text-3xl font-bold text-cyan-400">
+            <h1 className="text-lg font-bold">{currentExercise.name}</h1>
+            <div className="text-xl font-bold text-cyan-400">
               Série {currentSet} de {currentExercise.sets}
             </div>
-            <p className="text-slate-300 text-lg">{currentExercise.reps} repetições</p>
+            <p className="text-slate-300 text-sm">{currentExercise.reps} repetições</p>
           </div>
           
           {/* Progress Bar */}
-          <div className="mt-4">
-            <Progress value={progressPercentage} className="h-2 bg-slate-700" />
+          <div className="mt-2">
+            <Progress value={progressPercentage} className="h-1.5 bg-slate-700" />
           </div>
         </div>
       </div>
 
       {/* Content Area - Fixed height, no scroll jump */}
-      <div className="flex-1 px-4 py-6 flex items-center justify-center">
+      <div className="flex-1 px-3 py-2 flex items-center justify-center">
         <div className="w-full max-w-md">
           {/* During Exercise Phase */}
           {!isResting && !showSetFeedback && (
             <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-              <CardContent className="p-8 text-center">
-                <Timer className="h-12 w-12 mx-auto mb-4 text-cyan-600" />
-                <h2 className="text-xl font-semibold mb-2">Execute o exercício</h2>
-                <p className="text-muted-foreground mb-6">
+              <CardContent className="p-4 text-center">
+                <Timer className="h-8 w-8 mx-auto mb-2 text-cyan-600" />
+                <h2 className="text-lg font-semibold mb-1">Execute o exercício</h2>
+                <p className="text-muted-foreground mb-3 text-sm">
                   Concentre-se na execução correta dos movimentos
                 </p>
                 
                 <Button 
                   onClick={() => setShowSetFeedback(true)}
-                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
+                  className="w-full py-3 text-base font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
                 >
                   Concluir Série
-                  <CheckCircle2 className="ml-2 h-5 w-5" />
+                  <CheckCircle2 className="ml-2 h-4 w-4" />
                 </Button>
               </CardContent>
             </Card>
@@ -194,40 +194,40 @@ export default function ActiveWorkout() {
           {/* Rest Timer Phase */}
           {isResting && (
             <Card className="bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800">
-              <CardContent className="p-8 text-center">
-                <div className="text-6xl font-bold text-orange-600 dark:text-orange-400 mb-4">
+              <CardContent className="p-4 text-center">
+                <div className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-2">
                   {formatTime(restTime)}
                 </div>
-                <h2 className="text-xl font-semibold mb-2">Tempo de Descanso</h2>
-                <p className="text-muted-foreground mb-6">
+                <h2 className="text-lg font-semibold mb-1">Tempo de Descanso</h2>
+                <p className="text-muted-foreground mb-3 text-sm">
                   Relaxe e prepare-se para a próxima série
                 </p>
                 
-                <div className="flex justify-center space-x-4 mb-6">
+                <div className="flex justify-center space-x-3 mb-3">
                   <Button 
                     variant="outline" 
                     onClick={() => setIsTimerRunning(!isTimerRunning)} 
-                    size="lg"
+                    size="sm"
                     className="border-orange-300 dark:border-orange-700"
                   >
-                    {isTimerRunning ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                    {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </Button>
                   <Button 
                     variant="outline" 
                     onClick={() => setRestTime(currentExercise.restTime)} 
-                    size="lg"
+                    size="sm"
                     className="border-orange-300 dark:border-orange-700"
                   >
-                    <RotateCcw className="h-5 w-5" />
+                    <RotateCcw className="h-4 w-4" />
                   </Button>
                 </div>
 
                 <Button 
                   onClick={startNextSet}
-                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700"
+                  className="w-full py-3 text-base font-semibold bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700"
                 >
                   Começar Próxima Série
-                  <ChevronRight className="ml-2 h-5 w-5" />
+                  <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardContent>
             </Card>
@@ -235,36 +235,36 @@ export default function ActiveWorkout() {
 
           {/* Set Feedback Phase */}
           {showSetFeedback && (
-            <div className="space-y-4 max-h-full overflow-y-auto">
+            <div className="space-y-2 max-h-full overflow-y-auto">
               {/* Weight Input */}
               <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4 text-center text-lg">Peso utilizado</h3>
-                  <div className="flex items-center space-x-4">
+                <CardContent className="p-3">
+                  <h3 className="font-semibold mb-2 text-center text-sm">Peso utilizado</h3>
+                  <div className="flex items-center space-x-3">
                     <Button 
                       variant="outline" 
                       size="icon" 
                       onClick={() => setWeight(Math.max(0, weight - 2.5))}
-                      className="h-12 w-12 border-slate-300 dark:border-slate-600"
+                      className="h-10 w-10 border-slate-300 dark:border-slate-600"
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3" />
                     </Button>
                     <div className="flex-1 text-center">
                       <Input 
                         type="number" 
                         value={weight} 
                         onChange={(e) => setWeight(Number(e.target.value))}
-                        className="text-3xl font-bold text-center border-0 bg-transparent"
+                        className="text-xl font-bold text-center border-0 bg-transparent h-8"
                       />
-                      <span className="text-muted-foreground text-lg">kg</span>
+                      <span className="text-muted-foreground text-sm">kg</span>
                     </div>
                     <Button 
                       variant="outline" 
                       size="icon" 
                       onClick={() => setWeight(weight + 2.5)}
-                      className="h-12 w-12 border-slate-300 dark:border-slate-600"
+                      className="h-10 w-10 border-slate-300 dark:border-slate-600"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                 </CardContent>
@@ -272,10 +272,10 @@ export default function ActiveWorkout() {
 
               {/* Effort Level */}
               <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4 text-center text-lg">Nível de esforço</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <CardContent className="p-3">
+                  <h3 className="font-semibold mb-2 text-center text-sm">Nível de esforço</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>Fácil</span>
                       <span>Intenso</span>
                     </div>
@@ -293,39 +293,39 @@ export default function ActiveWorkout() {
                       ))}
                     </div>
                     <div className="text-center">
-                      <span className="text-xl font-bold text-cyan-600">Esforço: {effortLevel[0]}/10</span>
+                      <span className="text-base font-bold text-cyan-600">Esforço: {effortLevel[0]}/10</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <Button 
                   onClick={completeSet}
-                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
+                  className="w-full py-2.5 text-sm font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
                 >
                   {currentSet < currentExercise.sets ? "Começar próxima série" : 
                    currentExerciseIndex < totalExercises - 1 ? "Próximo exercício" : "Finalizar treino"}
-                  <ChevronRight className="ml-2 h-5 w-5" />
+                  <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <Button 
                     variant="outline" 
                     onClick={skipExercise}
-                    className="py-3 font-semibold border-2 border-slate-300 dark:border-slate-600"
+                    className="py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600"
                   >
-                    <SkipForward className="mr-2 h-4 w-4" />
-                    Pular exercício
+                    <SkipForward className="mr-1 h-3 w-3" />
+                    Pular
                   </Button>
                   <Button 
                     variant="outline" 
                     onClick={() => setShowSetFeedback(false)}
-                    className="py-3 font-semibold border-2 border-slate-300 dark:border-slate-600"
+                    className="py-2 text-xs font-semibold border border-slate-300 dark:border-slate-600"
                   >
-                    <AlertCircle className="mr-2 h-4 w-4" />
-                    Finalizar exercício
+                    <AlertCircle className="mr-1 h-3 w-3" />
+                    Finalizar
                   </Button>
                 </div>
               </div>
