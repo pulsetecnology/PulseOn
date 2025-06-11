@@ -12,10 +12,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/setup", async (req, res) => {
     try {
       const userData = req.body;
+      console.log("Setup attempt for email:", userData.email);
       
       // Check if email already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
+        console.log("User already exists:", existingUser.email);
         return res.status(400).json({ message: "Email já está em uso" });
       }
 
@@ -27,6 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: userData.email,
         password: hashedPassword,
         name: userData.name,
+        birthDate: userData.birthDate,
         age: userData.age,
         weight: userData.weight,
         height: userData.height,
@@ -36,8 +39,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weeklyFrequency: userData.weeklyFrequency,
         availableEquipment: userData.availableEquipment,
         physicalRestrictions: userData.physicalRestrictions || null,
-
       });
+      
+      console.log("User created successfully:", user.email, "ID:", user.id);
 
       // Generate JWT token
       const token = generateJWT(user);
@@ -92,9 +96,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const loginData = loginSchema.parse(req.body);
+      console.log("Login attempt for email:", loginData.email);
       
       // Find user by email
       const user = await storage.getUserByEmail(loginData.email);
+      console.log("User found:", user ? user.email : "not found");
       if (!user) {
         return res.status(401).json({ message: "Email ou senha incorretos" });
       }

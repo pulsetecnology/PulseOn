@@ -44,18 +44,13 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(response.user));
       setToken(response.token);
       
-      // Invalidar cache e recarregar dados do usuário
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      
       toast({
         title: "Login realizado com sucesso!",
         description: "Bem-vindo de volta"
       });
       
-      // Pequeno delay para garantir que o estado seja atualizado
-      setTimeout(() => {
-        setLocation("/");
-      }, 100);
+      // Redirecionar imediatamente
+      window.location.href = "/";
     },
     onError: (error: any) => {
       toast({

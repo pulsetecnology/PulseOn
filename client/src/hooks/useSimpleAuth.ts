@@ -5,6 +5,7 @@ type User = {
   id: number;
   email: string;
   name: string;
+  onboardingCompleted: boolean;
 };
 
 export function useSimpleAuth() {
@@ -15,10 +16,28 @@ export function useSimpleAuth() {
 
   // Escutar mudanças no localStorage
   useEffect(() => {
-    const storedToken = localStorage.getItem("authToken");
-    if (storedToken !== token) {
+    const handleStorageChange = () => {
+      const storedToken = localStorage.getItem("authToken");
       setToken(storedToken);
-    }
+    };
+
+    // Escutar eventos de storage de outras abas
+    window.addEventListener("storage", handleStorageChange);
+    
+    // Verificar mudanças no token atual
+    const checkToken = () => {
+      const storedToken = localStorage.getItem("authToken");
+      if (storedToken !== token) {
+        setToken(storedToken);
+      }
+    };
+
+    const interval = setInterval(checkToken, 100);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
   }, [token]);
 
   const { data: user, isLoading } = useQuery({
@@ -43,7 +62,8 @@ export function useSimpleAuth() {
       return data.user;
     },
     enabled: !!token,
-    retry: false
+    retry: false,
+    refetchOnWindowFocus: false
   });
 
   const logout = () => {
