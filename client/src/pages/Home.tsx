@@ -42,15 +42,15 @@ export default function Home() {
       {/* Today's Workout */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Treino de Hoje</h2>
-        <Card className="bg-gradient-to-r from-primary to-secondary border-0">
+        <Card className="bg-gradient-to-r from-primary to-secondary border-0 dark:bg-gradient-to-r dark:from-primary dark:to-secondary light:workout-card-light">
           <CardContent className="p-6 text-primary-foreground">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xl font-bold">Treino de Pernas</h3>
-              <span className="bg-white/20 px-3 py-1 rounded-full text-sm">45 min</span>
+              <h3 className="text-xl font-bold workout-card-text">Treino de Pernas</h3>
+              <span className="bg-white/20 px-3 py-1 rounded-full text-sm workout-card-text">45 min</span>
             </div>
-            <p className="text-primary-foreground/80 mb-4">5 exercícios • Nível Intermediário</p>
+            <p className="text-primary-foreground/80 mb-4 workout-card-text">5 exercícios • Nível Intermediário</p>
             <Link href="/workout">
-              <Button className="w-full bg-white text-primary hover:bg-white/90 font-semibold">
+              <Button className="w-full bg-white text-primary hover:bg-white/90 font-semibold workout-card-button transition-all duration-200">
                 <Play className="mr-2 h-4 w-4" />
                 Iniciar Treino
               </Button>
