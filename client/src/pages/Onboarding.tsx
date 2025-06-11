@@ -77,13 +77,7 @@ export default function Onboarding() {
     }
   };
 
-  const handleEquipmentToggle = (equipment: string) => {
-    const currentEquipment = form.getValues("availableEquipment");
-    const newEquipment = currentEquipment.includes(equipment)
-      ? currentEquipment.filter(e => e !== equipment)
-      : [...currentEquipment, equipment];
-    form.setValue("availableEquipment", newEquipment);
-  };
+
 
   const onSubmit = (data: OnboardingData) => {
     console.log("Final submit with data:", data);
@@ -243,39 +237,54 @@ export default function Onboarding() {
             <Card>
               <CardContent className="p-6">
                 <h2 className="text-xl font-semibold mb-6">Quais equipamentos você tem acesso?</h2>
-                <div className="space-y-3">
-                  {[
-                    "Peso corporal",
-                    "Halteres",
-                    "Barras",
-                    "Máquinas de musculação",
-                    "Elásticos",
-                    "Kettlebells"
-                  ].map((equipment) => (
-                    <label
-                      key={equipment}
-                      className={cn(
-                        "flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-colors",
-                        form.getValues("availableEquipment").includes(equipment)
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      )}
-                      onClick={() => handleEquipmentToggle(equipment)}
-                    >
-                      <div className={cn(
-                        "w-5 h-5 rounded border-2 flex items-center justify-center",
-                        form.getValues("availableEquipment").includes(equipment)
-                          ? "border-primary bg-primary"
-                          : "border-border"
-                      )}>
-                        {form.getValues("availableEquipment").includes(equipment) && (
-                          <Check className="w-3 h-3 text-primary-foreground" />
-                        )}
+                <FormField
+                  control={form.control}
+                  name="availableEquipment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="space-y-3">
+                        {[
+                          "Peso corporal",
+                          "Halteres",
+                          "Barras",
+                          "Máquinas de musculação",
+                          "Elásticos",
+                          "Kettlebells"
+                        ].map((equipment) => (
+                          <label
+                            key={equipment}
+                            className={cn(
+                              "flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-colors",
+                              field.value.includes(equipment)
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-primary/50"
+                            )}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const newEquipment = field.value.includes(equipment)
+                                ? field.value.filter(e => e !== equipment)
+                                : [...field.value, equipment];
+                              field.onChange(newEquipment);
+                            }}
+                          >
+                            <div className={cn(
+                              "w-5 h-5 rounded border-2 flex items-center justify-center",
+                              field.value.includes(equipment)
+                                ? "border-primary bg-primary"
+                                : "border-border"
+                            )}>
+                              {field.value.includes(equipment) && (
+                                <Check className="w-3 h-3 text-primary-foreground" />
+                              )}
+                            </div>
+                            <span className="font-medium">{equipment}</span>
+                          </label>
+                        ))}
                       </div>
-                      <span className="font-medium">{equipment}</span>
-                    </label>
-                  ))}
-                </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
           )}
