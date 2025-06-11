@@ -1,4 +1,4 @@
-import { Moon, Sun, User } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import Logo from "./Logo";
@@ -23,9 +23,6 @@ export default function Header() {
             ) : (
               <Sun className="h-4 w-4" />
             )}
-          </Button>
-          <Button variant="ghost" size="icon" className="h-10 w-10">
-            <User className="h-4 w-4" />
           </Button>
         </div>
       </div>
