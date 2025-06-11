@@ -22,6 +22,7 @@ interface UserData {
   experienceLevel?: string;
   weeklyFrequency?: number;
   availableEquipment?: string[];
+  customEquipment?: string;
   physicalRestrictions?: string;
   onboardingCompleted: boolean;
 }
@@ -142,6 +143,10 @@ export default function Profile() {
 
       if (data.physicalRestrictions !== user?.physicalRestrictions) {
         updatePayload.physicalRestrictions = data.physicalRestrictions;
+      }
+
+      if (data.customEquipment !== user?.customEquipment) {
+        updatePayload.customEquipment = data.customEquipment;
       }
 
       console.log('Sending update payload:', updatePayload);
@@ -442,25 +447,56 @@ export default function Profile() {
           </CardHeader>
           <CardContent>
             {isEditing ? (
-              <div className="grid grid-cols-2 gap-3">
-                {equipmentOptions.map((equipment) => (
-                  <div key={equipment.id} className="flex items-center space-x-2">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {equipmentOptions.map((equipment) => (
+                    <div key={equipment.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={equipment.id}
+                        checked={(formData.availableEquipment || []).includes(equipment.id)}
+                        onCheckedChange={(checked) => handleEquipmentChange(equipment.id, checked as boolean)}
+                      />
+                      <Label htmlFor={equipment.id} className="text-sm">
+                        {equipment.label}
+                      </Label>
+                    </div>
+                  ))}
+                  <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={equipment.id}
-                      checked={(formData.availableEquipment || []).includes(equipment.id)}
-                      onCheckedChange={(checked) => handleEquipmentChange(equipment.id, checked as boolean)}
+                      id="others"
+                      checked={(formData.availableEquipment || []).includes("others")}
+                      onCheckedChange={(checked) => handleEquipmentChange("others", checked as boolean)}
                     />
-                    <Label htmlFor={equipment.id} className="text-sm">
-                      {equipment.label}
+                    <Label htmlFor="others" className="text-sm">
+                      Outros
                     </Label>
                   </div>
-                ))}
+                </div>
+                
+                {(formData.availableEquipment || []).includes("others") && (
+                  <div className="space-y-2">
+                    <Label htmlFor="customEquipment">Especifique outros equipamentos:</Label>
+                    <Input
+                      id="customEquipment"
+                      placeholder="Ex: Cordas de pular, medicine ball, etc."
+                      value={formData.customEquipment || ""}
+                      onChange={(e) => setFormData({ ...formData, customEquipment: e.target.value })}
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-2">
                 {user.availableEquipment && user.availableEquipment.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2">
                     {user.availableEquipment.map((equipmentId) => {
+                      if (equipmentId === "others") {
+                        return (
+                          <span key={equipmentId} className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
+                            Outros: {user.customEquipment || "Não especificado"}
+                          </span>
+                        );
+                      }
                       const equipment = equipmentOptions.find(eq => eq.id === equipmentId);
                       return equipment ? (
                         <span key={equipmentId} className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
@@ -478,19 +514,33 @@ export default function Profile() {
         </Card>
       </div>
 
-      {user.physicalRestrictions && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Restrições Físicas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">{user.physicalRestrictions}</p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Restrições Físicas */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Restrições Físicas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isEditing ? (
+            <div className="space-y-2">
+              <Label htmlFor="physicalRestrictions">Descreva suas restrições físicas (opcional):</Label>
+              <textarea
+                id="physicalRestrictions"
+                className="w-full p-3 border border-input rounded-md bg-background text-sm resize-none min-h-[100px]"
+                placeholder="Ex: Lesão no joelho direito, problema na coluna, etc."
+                value={formData.physicalRestrictions || ""}
+                onChange={(e) => setFormData({ ...formData, physicalRestrictions: e.target.value })}
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {user.physicalRestrictions || "Nenhuma restrição informada"}
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

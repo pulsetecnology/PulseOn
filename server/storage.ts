@@ -1,4 +1,3 @@
-
 import type { User, InsertUser, Session, InsertSession, Workout, InsertWorkout, WorkoutSession, InsertWorkoutSession } from "@shared/schema";
 import Database from "better-sqlite3";
 
@@ -52,6 +51,7 @@ export class SQLiteStorage implements IStorage {
       experience_level TEXT,
       weekly_frequency INTEGER,
       available_equipment TEXT,
+      custom_equipment TEXT,
       physical_restrictions TEXT,
       onboarding_completed INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -105,13 +105,13 @@ export class SQLiteStorage implements IStorage {
 
   private seedTestUser() {
     const existingUser = this.db.prepare("SELECT id FROM users WHERE email = ?").get("teste@pulseon.com");
-    
+
     if (!existingUser) {
       const insertUser = this.db.prepare(`
-        INSERT INTO users (email, password, name, birth_date, age, weight, height, gender, fitness_goal, experience_level, weekly_frequency, available_equipment, physical_restrictions, onboarding_completed)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO users (email, password, name, birth_date, age, weight, height, gender, fitness_goal, experience_level, weekly_frequency, available_equipment, custom_equipment, physical_restrictions, onboarding_completed)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
-      
+
       insertUser.run(
         "teste@pulseon.com",
         "$2b$12$C2oOEvCLckSf6.DY8n/tq.RB.vkIwSxamZFMbw.Z/W9/EbHXcV6xa", // "123456"
@@ -125,6 +125,7 @@ export class SQLiteStorage implements IStorage {
         "beginner",
         3,
         JSON.stringify(["dumbbells", "resistance_bands"]),
+        null,
         "Nenhuma",
         1
       );
@@ -146,6 +147,7 @@ export class SQLiteStorage implements IStorage {
       experienceLevel: row.experience_level,
       weeklyFrequency: row.weekly_frequency,
       availableEquipment: row.available_equipment ? JSON.parse(row.available_equipment) : null,
+      customEquipment: row.custom_equipment,
       physicalRestrictions: row.physical_restrictions,
       onboardingCompleted: Boolean(row.onboarding_completed),
       createdAt: new Date(row.created_at)
@@ -166,8 +168,8 @@ export class SQLiteStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const stmt = this.db.prepare(`
-      INSERT INTO users (email, password, name, birth_date, age, weight, height, gender, fitness_goal, experience_level, weekly_frequency, available_equipment, physical_restrictions, onboarding_completed)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO users (email, password, name, birth_date, age, weight, height, gender, fitness_goal, experience_level, weekly_frequency, available_equipment, custom_equipment, physical_restrictions, onboarding_completed)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -183,6 +185,7 @@ export class SQLiteStorage implements IStorage {
       insertUser.experienceLevel || null,
       insertUser.weeklyFrequency || null,
       insertUser.availableEquipment ? JSON.stringify(insertUser.availableEquipment) : null,
+      insertUser.customEquipment || null,
       insertUser.physicalRestrictions || null,
       0
     );
@@ -205,11 +208,12 @@ export class SQLiteStorage implements IStorage {
                      key === 'experienceLevel' ? 'experience_level' :
                      key === 'weeklyFrequency' ? 'weekly_frequency' :
                      key === 'availableEquipment' ? 'available_equipment' :
+                     key === 'customEquipment' ? 'custom_equipment':
                      key === 'physicalRestrictions' ? 'physical_restrictions' :
                      key === 'onboardingCompleted' ? 'onboarding_completed' : key;
 
         setParts.push(`${dbKey} = ?`);
-        
+
         if (key === 'availableEquipment' && Array.isArray(value)) {
           values.push(JSON.stringify(value));
         } else if (key === 'onboardingCompleted') {
@@ -231,7 +235,7 @@ export class SQLiteStorage implements IStorage {
         (updates.age || currentUser.age) &&
         (updates.weight || currentUser.weight) &&
         (updates.height || currentUser.height);
-      
+
       if (hasAllRequiredFields && !setParts.includes('onboarding_completed = ?')) {
         setParts.push('onboarding_completed = ?');
         values.push(1);
@@ -271,7 +275,7 @@ export class SQLiteStorage implements IStorage {
   async getSessionByToken(token: string): Promise<Session | undefined> {
     const stmt = this.db.prepare("SELECT * FROM sessions WHERE token = ?");
     const row = stmt.get(token);
-    
+
     if (!row) return undefined;
 
     return {
@@ -298,9 +302,9 @@ export class SQLiteStorage implements IStorage {
     const stmt = userId 
       ? this.db.prepare("SELECT * FROM workouts WHERE user_id = ?")
       : this.db.prepare("SELECT * FROM workouts");
-    
+
     const rows = userId ? stmt.all(userId) : stmt.all();
-    
+
     return rows.map((row: any) => ({
       id: row.id,
       userId: row.user_id,
@@ -317,7 +321,7 @@ export class SQLiteStorage implements IStorage {
   async getWorkout(id: number): Promise<Workout | undefined> {
     const stmt = this.db.prepare("SELECT * FROM workouts WHERE id = ?");
     const row = stmt.get(id);
-    
+
     if (!row) return undefined;
 
     return {
@@ -364,7 +368,7 @@ export class SQLiteStorage implements IStorage {
         const dbKey = key === 'userId' ? 'user_id' : 
                      key === 'completedAt' ? 'completed_at' : key;
         setParts.push(`${dbKey} = ?`);
-        
+
         if (key === 'exercises' && Array.isArray(value)) {
           values.push(JSON.stringify(value));
         } else if (key === 'completedAt' && value instanceof Date) {
@@ -391,7 +395,7 @@ export class SQLiteStorage implements IStorage {
   async getWorkoutSessions(userId: number): Promise<WorkoutSession[]> {
     const stmt = this.db.prepare("SELECT * FROM workout_sessions WHERE user_id = ?");
     const rows = stmt.all(userId);
-    
+
     return rows.map((row: any) => ({
       id: row.id,
       userId: row.user_id,
@@ -438,7 +442,7 @@ export class SQLiteStorage implements IStorage {
                      key === 'completedAt' ? 'completed_at' :
                      key === 'totalDuration' ? 'total_duration' : key;
         setParts.push(`${dbKey} = ?`);
-        
+
         if (key === 'exercises' && Array.isArray(value)) {
           values.push(JSON.stringify(value));
         } else if (key === 'completedAt' && value instanceof Date) {
@@ -452,7 +456,7 @@ export class SQLiteStorage implements IStorage {
     if (setParts.length === 0) {
       const stmt = this.db.prepare("SELECT * FROM workout_sessions WHERE id = ?");
       const row = stmt.get(id);
-      
+
       if (!row) return undefined;
 
       return {
@@ -473,7 +477,7 @@ export class SQLiteStorage implements IStorage {
 
     const updatedStmt = this.db.prepare("SELECT * FROM workout_sessions WHERE id = ?");
     const row = updatedStmt.get(id);
-    
+
     if (!row) return undefined;
 
     return {

@@ -105,7 +105,8 @@ export default function UserSetup() {
     { id: "pull_up_bar", label: "Barra de flexão" },
     { id: "kettlebells", label: "Kettlebells" },
     { id: "gym_access", label: "Academia completa" },
-    { id: "outdoor_gym", label: "Academia ao ar livre (padrão prefeituras)" }
+    { id: "outdoor_gym", label: "Academia ao ar livre (padrão prefeituras)" },
+    { id: "others", label: "Outros" }
   ];
 
   // Função para remover zeros à esquerda

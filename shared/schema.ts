@@ -16,6 +16,7 @@ export const users = pgTable("users", {
   experienceLevel: text("experience_level"), // "beginner", "intermediate", "advanced"
   weeklyFrequency: integer("weekly_frequency"), // number of workouts per week
   availableEquipment: jsonb("available_equipment").$type<string[]>(),
+  customEquipment: text("custom_equipment"),
   physicalRestrictions: text("physical_restrictions"),
   onboardingCompleted: boolean("onboarding_completed").default(false),
   createdAt: timestamp("created_at").defaultNow()
@@ -125,6 +126,7 @@ export const profileUpdateSchema = z.object({
   experienceLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
   weeklyFrequency: z.number().min(1).max(7).optional(),
   availableEquipment: z.array(z.string()).optional(),
+  customEquipment: z.string().optional(),
   gender: z.enum(["male", "female", "other"]).optional(),
   physicalRestrictions: z.string().optional()
 });

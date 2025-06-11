@@ -265,7 +265,8 @@ export default function Onboarding() {
                           { id: "pull_up_bar", label: "Barra de flexão" },
                           { id: "kettlebells", label: "Kettlebells" },
                           { id: "gym_access", label: "Academia completa" },
-                          { id: "outdoor_gym", label: "Academia ao ar livre (padrão prefeituras)" }
+                          { id: "outdoor_gym", label: "Academia ao ar livre (padrão prefeituras)" },
+                          { id: "others", label: "Outros" }
                         ].map((equipment) => (
                           <label
                             key={equipment.id}
