@@ -118,8 +118,19 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
     const user: User = { 
-      ...insertUser, 
       id,
+      email: insertUser.email,
+      password: insertUser.password,
+      name: insertUser.name || null,
+      age: insertUser.age || null,
+      weight: insertUser.weight || null,
+      height: insertUser.height || null,
+      gender: insertUser.gender || null,
+      fitnessGoal: insertUser.fitnessGoal || null,
+      experienceLevel: insertUser.experienceLevel || null,
+      weeklyFrequency: insertUser.weeklyFrequency || null,
+      availableEquipment: Array.isArray(insertUser.availableEquipment) ? insertUser.availableEquipment : null,
+      physicalRestrictions: insertUser.physicalRestrictions || null,
       onboardingCompleted: false,
       createdAt: new Date()
     };
@@ -131,7 +142,12 @@ export class MemStorage implements IStorage {
     const user = this.users.get(id);
     if (!user) return undefined;
 
-    const updatedUser: User = { ...user, ...updates };
+    const updatedUser: User = { 
+      ...user, 
+      ...updates,
+      availableEquipment: Array.isArray(updates.availableEquipment) ? updates.availableEquipment : user.availableEquipment,
+      onboardingCompleted: updates.age && updates.weight && updates.height ? true : user.onboardingCompleted
+    };
     this.users.set(id, updatedUser);
     return updatedUser;
   }

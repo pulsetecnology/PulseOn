@@ -145,11 +145,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const onboardingData = onboardingSchema.parse(req.body);
       const userId = req.user!.id;
       
-      // Update user with onboarding data
-      const updatedUser = await storage.updateUser(userId, {
-        ...onboardingData,
-        onboardingCompleted: true
-      });
+      // Update user with onboarding data  
+      const updatedUser = await storage.updateUser(userId, onboardingData);
       
       if (!updatedUser) {
         return res.status(404).json({ message: "Usuário não encontrado" });
