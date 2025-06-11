@@ -186,7 +186,7 @@ export default function Onboarding() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
+        <form className="space-y-6">
           {/* Step 1: Objective */}
           {currentStep === 1 && (
             <Card>
