@@ -35,7 +35,7 @@ export default function Onboarding() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
@@ -64,23 +64,23 @@ export default function Onboarding() {
           onboardingCompleted: true
         })
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Erro ao atualizar perfil");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       localStorage.removeItem("onboarding-data");
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      
+
       toast({
         title: "Perfil configurado com sucesso!",
         description: "Agora você pode começar seus treinos personalizados"
       });
-      
+
       setLocation("/");
     },
     onError: (error: any) => {
@@ -97,7 +97,7 @@ export default function Onboarding() {
   const nextStep = async () => {
     // Validar campos do passo atual antes de avançar
     let fieldsToValidate: (keyof OnboardingData)[] = [];
-    
+
     switch (currentStep) {
       case 1:
         fieldsToValidate = ['fitnessGoal'];
@@ -115,9 +115,9 @@ export default function Onboarding() {
         // physicalRestrictions é opcional
         break;
     }
-    
+
     const isValid = await form.trigger(fieldsToValidate);
-    
+
     if (isValid && currentStep < TOTAL_STEPS) {
       // Salvar dados do passo atual no localStorage
       const currentData = form.getValues();
@@ -283,7 +283,7 @@ export default function Onboarding() {
                         <FormItem>
                           <FormLabel>Idade</FormLabel>
                           <FormControl>
-                            <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                            <Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -296,7 +296,7 @@ export default function Onboarding() {
                         <FormItem>
                           <FormLabel>Peso (kg)</FormLabel>
                           <FormControl>
-                            <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                            <Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -310,7 +310,7 @@ export default function Onboarding() {
                       <FormItem>
                         <FormLabel>Altura (cm)</FormLabel>
                         <FormControl>
-                          <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                          <Input type="number" {...field} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -323,7 +323,7 @@ export default function Onboarding() {
                       <FormItem>
                         <FormLabel>Quantos dias por semana deseja treinar?</FormLabel>
                         <FormControl>
-                          <Input type="number" min="1" max="7" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                          <Input type="number" min="1" max="7" {...field} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
