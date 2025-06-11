@@ -9,7 +9,7 @@ export function useNotification() {
     toast({
       description: (
         <div className="flex items-center gap-2">
-          <SuccessIcon className="" />
+          <SuccessIcon />
           {message && <span>{message}</span>}
         </div>
       ),
@@ -22,7 +22,7 @@ export function useNotification() {
     toast({
       description: (
         <div className="flex items-center gap-2">
-          <ErrorIcon className="" />
+          <ErrorIcon />
           {message && <span>{message}</span>}
         </div>
       ),
@@ -35,7 +35,7 @@ export function useNotification() {
     toast({
       description: (
         <div className="flex items-center gap-2">
-          <WarningIcon className="" />
+          <WarningIcon />
           {message && <span>{message}</span>}
         </div>
       ),
