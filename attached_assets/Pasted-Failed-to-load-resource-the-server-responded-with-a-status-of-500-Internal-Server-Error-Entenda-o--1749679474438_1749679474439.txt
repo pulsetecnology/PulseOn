@@ -1,0 +1,42 @@
+Failed to load resource: the server responded with a status of 500 (Internal Server Error)Entenda o erro
+Console.js:61 Sending update payload: ObjectavailableEquipment: (3) ['dumbbells', 'resistance_bands', 'others']customEquipment: "Treino em casa sem equipamento especifico."physicalRestrictions: "Dor no ombro direito."[[Prototype]]: Object
+c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/profile/update:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)Entenda o erro
+Console.js:61 Sending update payload: {physicalRestrictions: 'Dor no ombro direito.', customEquipment: 'Treino em casa sem equipamento especifico.'}
+queryClient.ts:26 
+            
+            
+           PATCH https://c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/profile/update 500 (Internal Server Error)
+window.fetch @ Network.js:219
+apiRequest @ queryClient.ts:26
+mutationFn @ Profile.tsx:154
+fn @ @tanstack_react-query.js?v=27ef1255:1189
+run @ @tanstack_react-query.js?v=27ef1255:494
+start @ @tanstack_react-query.js?v=27ef1255:536
+execute @ @tanstack_react-query.js?v=27ef1255:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=27ef1255:2630
+(anônimo) @ @tanstack_react-query.js?v=27ef1255:3295
+handleSubmit @ Profile.tsx:168
+callCallback2 @ chunk-RPCDYKBN.js?v=27ef1255:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=27ef1255:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=27ef1255:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=27ef1255:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=27ef1255:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=27ef1255:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=27ef1255:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=27ef1255:7051
+(anônimo) @ chunk-RPCDYKBN.js?v=27ef1255:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=27ef1255:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=27ef1255:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=27ef1255:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=27ef1255:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=27ef1255:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=27ef1255:5449Entenda o erro
+Console.js:61 Sending update payload: {availableEquipment: Array(3), physicalRestrictions: '', customEquipment: 'Treino em casa sem equipamento especifico.'}
+queryClient.ts:26 
+            
+            
+           PATCH https://c1b68330-75c0-4745-a9b2-4043c1b629b7-00-2lcg58e9vteb3.janeway.replit.dev/api/profile/update 500 (Internal Server Error)
