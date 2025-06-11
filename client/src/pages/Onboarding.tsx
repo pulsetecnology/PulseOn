@@ -390,39 +390,45 @@ export default function Onboarding() {
             </Card>
           )}
 
-          {/* Navigation Buttons */}
-          <div className="flex space-x-3">
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="flex-1" 
-              onClick={prevStep}
-              disabled={currentStep === 1}
-            >
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Voltar
-            </Button>
-            {currentStep < TOTAL_STEPS ? (
-              <Button 
-                type="button" 
-                className="flex-1" 
-                onClick={nextStep}
-              >
-                Próxima
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            ) : (
-              <Button 
-                type="submit" 
-                className="flex-1"
-                disabled={updateUserMutation.isPending}
-              >
-                {updateUserMutation.isPending ? "Finalizando..." : "Finalizar"}
-              </Button>
-            )}
-          </div>
-        </form>
+          </form>
       </Form>
+
+      {/* Navigation Buttons - Outside of form to prevent unwanted submission */}
+      <div className="flex space-x-3">
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="flex-1" 
+          onClick={prevStep}
+          disabled={currentStep === 1}
+        >
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Voltar
+        </Button>
+        {currentStep < TOTAL_STEPS ? (
+          <Button 
+            type="button" 
+            className="flex-1" 
+            onClick={nextStep}
+          >
+            Próxima
+            <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        ) : (
+          <Button 
+            type="button" 
+            className="flex-1"
+            disabled={updateUserMutation.isPending}
+            onClick={() => {
+              const data = form.getValues();
+              console.log("Final submit with data:", data);
+              form.handleSubmit(onSubmit, onError)();
+            }}
+          >
+            {updateUserMutation.isPending ? "Finalizando..." : "Finalizar"}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
