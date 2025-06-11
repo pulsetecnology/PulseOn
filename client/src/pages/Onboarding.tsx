@@ -107,8 +107,19 @@ export default function Onboarding() {
   };
 
   const onSubmit = (data: OnboardingData) => {
+    console.log("Form submitted with data:", data);
+    console.log("Form errors:", form.formState.errors);
     setOnboardingData(data);
     updateUserMutation.mutate(data);
+  };
+
+  const onError = (errors: any) => {
+    console.log("Form validation errors:", errors);
+    toast({
+      title: "Erro de validação",
+      description: "Por favor, verifique os campos obrigatórios",
+      variant: "destructive"
+    });
   };
 
   const handleEquipmentToggle = (equipment: string) => {
@@ -136,7 +147,7 @@ export default function Onboarding() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
           {/* Step 1: Objective */}
           {currentStep === 1 && (
             <Card>
@@ -358,8 +369,12 @@ export default function Onboarding() {
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             ) : (
-              <Button type="submit" className="flex-1">
-                Finalizar
+              <Button 
+                type="submit" 
+                className="flex-1"
+                disabled={updateUserMutation.isPending}
+              >
+                {updateUserMutation.isPending ? "Finalizando..." : "Finalizar"}
               </Button>
             )}
           </div>
