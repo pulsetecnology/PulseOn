@@ -6,11 +6,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
+import { useNotification } from "@/hooks/useNotification";
 import { onboardingSchema, type OnboardingData } from "@shared/schema";
 import { Scale, Dumbbell, Heart, Check, User } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,7 +22,7 @@ export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(1);
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
+  const { showSuccess, showError } = useNotification();
   const queryClient = useQueryClient();
 
   const form = useForm<OnboardingData>({
@@ -65,14 +65,12 @@ export default function Onboarding() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      // Updated here to use showSuccess
       showSuccess("Perfil configurado com sucesso!");
       setTimeout(() => {
         setLocation("/");
       }, 1500);
     },
     onError: (error: any) => {
-      // Updated here to use showError
       showError("Erro ao configurar perfil. Tente novamente.");
     }
   });
@@ -91,23 +89,7 @@ export default function Onboarding() {
     }
   };
 
-    // Function to show a success toast with an icon
-    const showSuccess = (message: string) => {
-      toast({
-        title: "Sucesso",
-        description: message,
-        variant: "success" // You might want to define a "success" variant in your toast provider
-      });
-    };
-  
-    // Function to show an error toast with an icon
-    const showError = (message: string) => {
-      toast({
-        title: "Erro",
-        description: message,
-        variant: "destructive"
-      });
-    };
+    
 
   const onSubmit = (data: OnboardingData) => {
     console.log("Final submit with data:", data);

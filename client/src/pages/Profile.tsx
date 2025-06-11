@@ -31,11 +31,11 @@ const calculateAge = (birthDate: string): number => {
   const birth = new Date(birthDate);
   let age = today.getFullYear() - birth.getFullYear();
   const monthDiff = today.getMonth() - birth.getMonth();
-  
+
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
     age--;
   }
-  
+
   return age;
 };
 
@@ -75,13 +75,13 @@ export default function Profile() {
     queryFn: async () => {
       const token = localStorage.getItem("authToken");
       if (!token) throw new Error("No token");
-      
+
       const response = await fetch("/api/auth/me", {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      
+
       if (!response.ok) throw new Error("Failed to fetch user");
       return response.json();
     }
@@ -97,54 +97,53 @@ export default function Profile() {
     mutationFn: async (data: Partial<UserData>) => {
       // Only send fields that have actual values and are different from original
       const updatePayload: any = {};
-      
+
       if (data.name && data.name !== user?.name) {
         updatePayload.name = data.name;
       }
-      
+
       if (data.birthDate && data.birthDate !== user?.birthDate) {
         updatePayload.age = calculateAge(data.birthDate);
       }
-      
+
       if (data.weight && data.weight !== user?.weight) {
         updatePayload.weight = data.weight;
       }
-      
+
       if (data.height && data.height !== user?.height) {
         updatePayload.height = data.height;
       }
-      
+
       if (data.gender && data.gender !== user?.gender) {
         updatePayload.gender = data.gender;
       }
-      
+
       if (data.fitnessGoal && data.fitnessGoal !== user?.fitnessGoal) {
         updatePayload.fitnessGoal = data.fitnessGoal;
       }
-      
+
       if (data.experienceLevel && data.experienceLevel !== user?.experienceLevel) {
         updatePayload.experienceLevel = data.experienceLevel;
       }
-      
+
       if (data.weeklyFrequency && data.weeklyFrequency !== user?.weeklyFrequency) {
         updatePayload.weeklyFrequency = data.weeklyFrequency;
       }
-      
+
       if (data.availableEquipment && JSON.stringify(data.availableEquipment) !== JSON.stringify(user?.availableEquipment)) {
         updatePayload.availableEquipment = data.availableEquipment;
       }
-      
+
       if (data.physicalRestrictions !== user?.physicalRestrictions) {
         updatePayload.physicalRestrictions = data.physicalRestrictions;
       }
-      
+
       console.log('Sending update payload:', updatePayload);
-      
+
       return apiRequest("/api/profile/update", "PATCH", updatePayload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      setIsEditing(false);
       toast({
         title: "Perfil atualizado!",
         description: "Suas informações foram salvas com sucesso.",
@@ -169,7 +168,7 @@ export default function Profile() {
     const updatedEquipment = checked
       ? [...currentEquipment, equipmentId]
       : currentEquipment.filter((id) => id !== equipmentId);
-    
+
     setFormData({ ...formData, availableEquipment: updatedEquipment });
   };
 
@@ -208,7 +207,7 @@ export default function Profile() {
             <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
           </div>
         </div>
-        
+
         {!isEditing ? (
           <Button onClick={() => setIsEditing(true)} variant="outline">
             <Settings className="h-4 w-4 mr-2" />
