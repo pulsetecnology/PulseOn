@@ -168,7 +168,7 @@ export default function ActiveWorkout() {
       </div>
 
       {/* Content Area - Fixed height, no scroll jump */}
-      <div className="flex-1 px-3 py-2 flex items-center justify-center">
+      <div className="flex-1 px-3 py-1 flex items-start justify-center pt-4">
         <div className="w-full max-w-md">
           {/* During Exercise Phase */}
           {!isResting && !showSetFeedback && (
