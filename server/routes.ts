@@ -8,6 +8,52 @@ import { authenticateToken } from "./middleware";
 import { requestWorkoutFromAI } from "./n8n-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // New simplified auth setup route
+  app.post("/api/auth/setup", async (req, res) => {
+    try {
+      const userData = req.body;
+      
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email já está em uso" });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(userData.password);
+      
+      // Create user with all data
+      const user = await storage.createUser({
+        email: userData.email,
+        password: hashedPassword,
+        name: userData.name,
+        age: userData.age,
+        weight: userData.weight,
+        height: userData.height,
+        gender: "not_specified",
+        fitnessGoal: userData.fitnessGoal,
+        experienceLevel: userData.experienceLevel,
+        weeklyFrequency: userData.weeklyFrequency,
+        availableEquipment: userData.availableEquipment,
+        physicalRestrictions: userData.physicalRestrictions || null,
+
+      });
+
+      // Generate JWT token
+      const token = generateJWT(user);
+      const sanitizedUser = sanitizeUser(user);
+      
+      res.status(201).json({
+        message: "Usuário criado com sucesso",
+        user: sanitizedUser,
+        token
+      });
+    } catch (error: any) {
+      console.error("Setup error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {

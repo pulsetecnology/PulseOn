@@ -5,71 +5,65 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Layout from "./components/Layout";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { useSimpleAuth } from "./hooks/useSimpleAuth";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Onboarding from "./pages/Onboarding";
+import UserSetup from "./pages/UserSetup";
 import Workout from "./pages/Workout";
 import ActiveWorkout from "./pages/ActiveWorkout";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
 import NotFound from "@/pages/not-found";
 
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useSimpleAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    return <UserSetup />;
+  }
+  
+  return <Layout>{children}</Layout>;
+}
+
 function Router() {
   return (
     <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
-      
-      <Route path="/onboarding">
-        <ProtectedRoute>
-          <Layout>
-            <Onboarding />
-          </Layout>
-        </ProtectedRoute>
-      </Route>
-      
+      <Route path="/setup" component={UserSetup} />
       <Route path="/">
-        <ProtectedRoute requireOnboarding>
-          <Layout>
-            <Home />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedLayout>
+          <Home />
+        </ProtectedLayout>
       </Route>
-      
       <Route path="/workout">
-        <ProtectedRoute requireOnboarding>
-          <Layout>
-            <Workout />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedLayout>
+          <Workout />
+        </ProtectedLayout>
       </Route>
-      
       <Route path="/active-workout">
-        <ProtectedRoute requireOnboarding>
-          <Layout>
-            <ActiveWorkout />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedLayout>
+          <ActiveWorkout />
+        </ProtectedLayout>
       </Route>
-      
       <Route path="/history">
-        <ProtectedRoute requireOnboarding>
-          <Layout>
-            <History />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedLayout>
+          <History />
+        </ProtectedLayout>
       </Route>
-      
       <Route path="/profile">
-        <ProtectedRoute requireOnboarding>
-          <Layout>
-            <Profile />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedLayout>
+          <Profile />
+        </ProtectedLayout>
       </Route>
-      
       <Route component={NotFound} />
     </Switch>
   );
