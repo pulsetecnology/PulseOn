@@ -39,7 +39,11 @@ export default function Profile() {
     queryKey: ["/api/auth/me"],
   });
 
-  const user = response?.user;
+  const user = response;
+  
+  // Debug logging
+  console.log("Profile Debug - Response:", response);
+  console.log("Profile Debug - User:", user);
   
   // Calcular idade dinamicamente a partir da data de nascimento
   const calculateAge = (birthDate: string | null) => {

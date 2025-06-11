@@ -42,6 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       console.log("User created successfully:", user.email, "ID:", user.id);
+      console.log("Created user data:", JSON.stringify(user, null, 2));
 
       // Generate JWT token
       const token = generateJWT(user);
@@ -129,7 +130,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/auth/me", authenticateToken, async (req, res) => {
-    res.json({ user: req.user });
+    try {
+      const user = await storage.getUser(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
   });
 
   app.post("/api/auth/logout", authenticateToken, async (req, res) => {
