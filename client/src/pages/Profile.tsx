@@ -150,6 +150,7 @@ export default function Profile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      setIsEditing(false);
       showSuccess();
     },
     onError: (error: Error) => {
