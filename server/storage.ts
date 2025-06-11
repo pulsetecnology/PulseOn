@@ -46,27 +46,27 @@ export class MemStorage implements IStorage {
   }
 
   private seedData() {
-    // Create default user
-    const defaultUser: User = {
+    // Create test user with credentials: teste@pulseon.com / 123456
+    const testUser: User = {
       id: 1,
-      email: "user@example.com",
-      password: "$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lqMrcKdcGfL7DKjNC", // "password"
+      email: "teste@pulseon.com",
+      password: "$2b$12$C2oOEvCLckSf6.DY8n/tq.RB.vkIwSxamZFMbw.Z/W9/EbHXcV6xa", // "123456"
       name: "Usuário Teste",
-      birthDate: "1998-06-11",
-      age: 25,
-      weight: 70,
-      height: 175,
-      gender: "male",
-      fitnessGoal: "gain_muscle",
+      birthDate: "1990-05-15",
+      age: null,
+      weight: 75,
+      height: 180,
+      gender: "not_specified",
+      fitnessGoal: "weight_loss",
       experienceLevel: "beginner",
       weeklyFrequency: 3,
-      availableEquipment: ["weight_training", "full_gym"],
-      physicalRestrictions: null,
+      availableEquipment: ["dumbbells", "resistance_bands"],
+      physicalRestrictions: "Nenhuma",
       onboardingCompleted: true,
       createdAt: new Date()
     };
     
-    this.users.set(1, defaultUser);
+    this.users.set(1, testUser);
     this.currentUserId = 2;
   }
 
