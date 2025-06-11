@@ -1,12 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Flame, Play, Check, X, AlertTriangle } from "lucide-react";
+import { Dumbbell, Flame, Play } from "lucide-react";
 import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Home() {
-  const { showSuccess, showError, showWarning } = useGlobalNotification();
+  
   const { user } = useAuth();
 
   return (
@@ -59,39 +59,7 @@ export default function Home() {
         </Card>
       </div>
 
-      {/* Notification Test Section */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Sistema de Notificações</h2>
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <Button 
-            onClick={() => showSuccess()}
-            variant="outline" 
-            className="flex flex-col items-center p-4 h-auto border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950"
-          >
-            <Check className="h-5 w-5 text-green-600 mb-2" />
-            <span className="text-sm">Sucesso</span>
-          </Button>
-          <Button 
-            onClick={() => showError()}
-            variant="outline" 
-            className="flex flex-col items-center p-4 h-auto border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950"
-          >
-            <X className="h-5 w-5 text-red-600 mb-2" />
-            <span className="text-sm">Erro</span>
-          </Button>
-          <Button 
-            onClick={() => showWarning()}
-            variant="outline" 
-            className="flex flex-col items-center p-4 h-auto border-yellow-200 hover:bg-yellow-50 dark:border-yellow-800 dark:hover:bg-yellow-950"
-          >
-            <AlertTriangle className="h-5 w-5 text-yellow-600 mb-2" />
-            <span className="text-sm">Aviso</span>
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground text-center mb-6">
-          Toque nos botões acima para ver os ícones temporários aparecerem no header
-        </p>
-      </div>
+      
 
       {/* Upcoming Workouts */}
       <div>
