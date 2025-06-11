@@ -44,12 +44,12 @@ export default function UserSetup() {
       password: "",
       confirmPassword: "",
       name: "",
-      age: 0,
-      weight: 0,
-      height: 0,
+      birthDate: "",
+      weight: undefined,
+      height: undefined,
       fitnessGoal: undefined,
       experienceLevel: undefined,
-      weeklyFrequency: 0,
+      weeklyFrequency: undefined,
       availableEquipment: [],
       physicalRestrictions: ""
     }
