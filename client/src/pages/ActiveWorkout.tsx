@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, Pause, Play, RotateCcw, ChevronRight, CheckCircle2, SkipForward, AlertCircle, Timer } from "lucide-react";
 import { sampleExercises } from "@/lib/workouts";
 import { useGlobalNotification } from "@/components/NotificationProvider";
+import { useLocation } from "wouter";
 
 export default function ActiveWorkout() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -22,6 +23,7 @@ export default function ActiveWorkout() {
   const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
   const [completedSets, setCompletedSets] = useState<Array<{exerciseIndex: number, set: number, weight: number, effort: number}>>([]);
   const { showSuccess, showWarning } = useGlobalNotification();
+  const [, setLocation] = useLocation();
 
   const currentExercise = sampleExercises[currentExerciseIndex];
   const totalExercises = sampleExercises.length;
@@ -131,7 +133,10 @@ export default function ActiveWorkout() {
           </CardContent>
         </Card>
 
-        <Button className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+        <Button 
+          onClick={() => setLocation("/workout")}
+          className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+        >
           Finalizar Treino
           <CheckCircle2 className="ml-2 h-5 w-5" />
         </Button>
@@ -140,9 +145,9 @@ export default function ActiveWorkout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
       {/* Fixed Header - Always visible */}
-      <div className="sticky top-0 z-10 bg-slate-900 dark:bg-slate-900 text-white">
+      <div className="flex-none bg-slate-900 dark:bg-slate-900 text-white">
         <div className="px-4 py-6">
           <div className="text-center space-y-2">
             <Badge variant="secondary" className="bg-slate-700 text-slate-200">
@@ -162,10 +167,11 @@ export default function ActiveWorkout() {
         </div>
       </div>
 
-      <div className="px-4 pb-6">
-        {/* During Exercise Phase */}
-        {!isResting && !showSetFeedback && (
-          <div className="space-y-6 pt-6">
+      {/* Content Area - Fixed height, no scroll jump */}
+      <div className="flex-1 px-4 py-6 flex items-center justify-center">
+        <div className="w-full max-w-md">
+          {/* During Exercise Phase */}
+          {!isResting && !showSetFeedback && (
             <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
               <CardContent className="p-8 text-center">
                 <Timer className="h-12 w-12 mx-auto mb-4 text-cyan-600" />
@@ -183,12 +189,10 @@ export default function ActiveWorkout() {
                 </Button>
               </CardContent>
             </Card>
-          </div>
-        )}
+          )}
 
-        {/* Rest Timer Phase */}
-        {isResting && (
-          <div className="space-y-6 pt-6">
+          {/* Rest Timer Phase */}
+          {isResting && (
             <Card className="bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800">
               <CardContent className="p-8 text-center">
                 <div className="text-6xl font-bold text-orange-600 dark:text-orange-400 mb-4">
@@ -227,107 +231,107 @@ export default function ActiveWorkout() {
                 </Button>
               </CardContent>
             </Card>
-          </div>
-        )}
+          )}
 
-        {/* Set Feedback Phase */}
-        {showSetFeedback && (
-          <div className="space-y-6 pt-6">
-            {/* Weight Input */}
-            <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-4 text-center text-lg">Peso utilizado</h3>
-                <div className="flex items-center space-x-4">
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={() => setWeight(Math.max(0, weight - 2.5))}
-                    className="h-12 w-12 border-slate-300 dark:border-slate-600"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <div className="flex-1 text-center">
-                    <Input 
-                      type="number" 
-                      value={weight} 
-                      onChange={(e) => setWeight(Number(e.target.value))}
-                      className="text-3xl font-bold text-center border-0 bg-transparent"
+          {/* Set Feedback Phase */}
+          {showSetFeedback && (
+            <div className="space-y-4 max-h-full overflow-y-auto">
+              {/* Weight Input */}
+              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-4 text-center text-lg">Peso utilizado</h3>
+                  <div className="flex items-center space-x-4">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setWeight(Math.max(0, weight - 2.5))}
+                      className="h-12 w-12 border-slate-300 dark:border-slate-600"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <div className="flex-1 text-center">
+                      <Input 
+                        type="number" 
+                        value={weight} 
+                        onChange={(e) => setWeight(Number(e.target.value))}
+                        className="text-3xl font-bold text-center border-0 bg-transparent"
+                      />
+                      <span className="text-muted-foreground text-lg">kg</span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setWeight(weight + 2.5)}
+                      className="h-12 w-12 border-slate-300 dark:border-slate-600"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Effort Level */}
+              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-4 text-center text-lg">Nível de esforço</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>Fácil</span>
+                      <span>Intenso</span>
+                    </div>
+                    <Slider
+                      value={effortLevel}
+                      onValueChange={setEffortLevel}
+                      max={10}
+                      min={1}
+                      step={1}
+                      className="w-full"
                     />
-                    <span className="text-muted-foreground text-lg">kg</span>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      {Array.from({ length: 10 }, (_, i) => (
+                        <span key={i + 1}>{i + 1}</span>
+                      ))}
+                    </div>
+                    <div className="text-center">
+                      <span className="text-xl font-bold text-cyan-600">Esforço: {effortLevel[0]}/10</span>
+                    </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <Button 
+                  onClick={completeSet}
+                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
+                >
+                  {currentSet < currentExercise.sets ? "Começar próxima série" : 
+                   currentExerciseIndex < totalExercises - 1 ? "Próximo exercício" : "Finalizar treino"}
+                  <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
+                
+                <div className="grid grid-cols-2 gap-3">
                   <Button 
                     variant="outline" 
-                    size="icon" 
-                    onClick={() => setWeight(weight + 2.5)}
-                    className="h-12 w-12 border-slate-300 dark:border-slate-600"
+                    onClick={skipExercise}
+                    className="py-3 font-semibold border-2 border-slate-300 dark:border-slate-600"
                   >
-                    <Plus className="h-4 w-4" />
+                    <SkipForward className="mr-2 h-4 w-4" />
+                    Pular exercício
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowSetFeedback(false)}
+                    className="py-3 font-semibold border-2 border-slate-300 dark:border-slate-600"
+                  >
+                    <AlertCircle className="mr-2 h-4 w-4" />
+                    Finalizar exercício
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Effort Level */}
-            <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-4 text-center text-lg">Nível de esforço</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>Fácil</span>
-                    <span>Intenso</span>
-                  </div>
-                  <Slider
-                    value={effortLevel}
-                    onValueChange={setEffortLevel}
-                    max={10}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    {Array.from({ length: 10 }, (_, i) => (
-                      <span key={i + 1}>{i + 1}</span>
-                    ))}
-                  </div>
-                  <div className="text-center">
-                    <span className="text-xl font-bold text-cyan-600">Esforço: {effortLevel[0]}/10</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <Button 
-                onClick={completeSet}
-                className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
-              >
-                {currentSet < currentExercise.sets ? "Começar próxima série" : 
-                 currentExerciseIndex < totalExercises - 1 ? "Próximo exercício" : "Finalizar treino"}
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <Button 
-                  variant="outline" 
-                  onClick={skipExercise}
-                  className="py-3 font-semibold border-2 border-slate-300 dark:border-slate-600"
-                >
-                  <SkipForward className="mr-2 h-4 w-4" />
-                  Pular exercício
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowSetFeedback(false)}
-                  className="py-3 font-semibold border-2 border-slate-300 dark:border-slate-600"
-                >
-                  <AlertCircle className="mr-2 h-4 w-4" />
-                  Finalizar exercício
-                </Button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
