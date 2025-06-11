@@ -113,12 +113,11 @@ export default function Profile() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("/api/auth/logout", {
-        method: "POST",
-      });
-      return response.json();
+      return apiRequest("/api/auth/logout", "POST", {});
     },
     onSuccess: () => {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
       window.location.href = "/login";
     },
   });
