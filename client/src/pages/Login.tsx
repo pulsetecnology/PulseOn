@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,6 +127,17 @@ export default function Login() {
             <p className="text-sm text-slate-300 font-medium mb-2">Conta de teste:</p>
             <p className="text-xs text-slate-400">Email: teste@pulseon.com</p>
             <p className="text-xs text-slate-400">Senha: 123456</p>
+          </div>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm text-slate-400">
+              Ainda não tem uma conta?{" "}
+              <Link href="/register">
+                <span className="text-cyan-400 hover:text-cyan-300 font-medium cursor-pointer">
+                  Criar conta
+                </span>
+              </Link>
+            </p>
           </div>
         </CardContent>
       </Card>

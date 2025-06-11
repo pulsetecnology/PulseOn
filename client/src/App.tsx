@@ -13,8 +13,8 @@ import History from "./pages/History";
 import Profile from "./pages/Profile";
 import UserSetup from "./pages/UserSetup";
 import NotFound from "./pages/not-found";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
