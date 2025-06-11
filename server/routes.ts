@@ -275,6 +275,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile update route
+  app.patch("/api/profile/update", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const updateData = profileUpdateSchema.parse(req.body);
+      const userId = req.user!.id;
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      res.json({ 
+        message: "Perfil atualizado com sucesso",
+        user: sanitizeUser(updatedUser)
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Workout routes
   app.get("/api/workouts", async (req, res) => {
     try {

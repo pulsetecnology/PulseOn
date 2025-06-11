@@ -115,6 +115,19 @@ export const onboardingSchema = z.object({
   physicalRestrictions: z.string().optional()
 });
 
+export const profileUpdateSchema = z.object({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  age: z.number().min(13, "Idade deve ser maior que 13 anos").max(120, "Idade inválida"),
+  weight: z.number().min(30, "Peso deve ser maior que 30kg").max(300, "Peso inválido"),
+  height: z.number().min(100, "Altura deve ser maior que 100cm").max(250, "Altura inválida"),
+  fitnessGoal: z.enum(["lose_weight", "gain_muscle", "improve_conditioning"]),
+  experienceLevel: z.enum(["beginner", "intermediate", "advanced"]),
+  weeklyFrequency: z.number().min(1).max(7),
+  availableEquipment: z.array(z.string()).min(1, "Selecione pelo menos um equipamento"),
+  gender: z.enum(["male", "female", "other"]),
+  physicalRestrictions: z.string().optional()
+});
+
 // N8N Integration schema
 export const n8nWorkoutRequestSchema = z.object({
   userId: z.number(),

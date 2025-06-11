@@ -1,12 +1,15 @@
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { Scale, Dumbbell, Heart, Check } from "lucide-react";
@@ -25,10 +28,11 @@ const userSetupSchema = z.object({
   experienceLevel: z.enum(["beginner", "intermediate", "advanced"]),
   weeklyFrequency: z.number().min(1).max(7),
   availableEquipment: z.array(z.string()).min(1, "Selecione pelo menos um equipamento"),
+  gender: z.enum(["male", "female", "other"]),
   physicalRestrictions: z.string().optional()
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
-  path: ["confirmPassword"]
+  path: ["confirmPassword"],
 });
 
 type UserSetupData = z.infer<typeof userSetupSchema>;
@@ -44,130 +48,179 @@ export default function UserSetup() {
       password: "",
       confirmPassword: "",
       name: "",
-      birthDate: "",
-      weight: undefined,
-      height: undefined,
-      fitnessGoal: undefined,
-      experienceLevel: undefined,
-      weeklyFrequency: undefined,
+      age: 18,
+      weight: 70,
+      height: 170,
+      fitnessGoal: "gain_muscle",
+      experienceLevel: "beginner",
+      weeklyFrequency: 3,
       availableEquipment: [],
+      gender: "male",
       physicalRestrictions: ""
     }
   });
 
   const setupMutation = useMutation({
     mutationFn: async (data: UserSetupData) => {
-      return apiRequest("/api/auth/setup", "POST", data);
-    },
-    onSuccess: (response) => {
-      localStorage.setItem("authToken", response.token);
-      localStorage.setItem("user", JSON.stringify(response.user));
-      toast({
-        title: "Perfil criado com sucesso!",
-        description: "Bem-vindo ao PulseOn"
+      const { confirmPassword, ...registrationData } = data;
+      const response = await apiRequest("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(registrationData),
       });
-      setLocation("/");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erro ao criar conta");
+      }
+      return response.json();
     },
-    onError: (error: any) => {
+    onSuccess: () => {
       toast({
-        title: "Erro",
-        description: error.message || "Erro ao criar perfil",
-        variant: "destructive"
+        title: "Conta criada com sucesso!",
+        description: "Redirecionando para o dashboard...",
       });
-    }
+      setTimeout(() => setLocation("/"), 1000);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao criar conta",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
-
-  const handleEquipmentToggle = (equipment: string, field: any) => {
-    const newEquipment = field.value.includes(equipment)
-      ? field.value.filter((e: string) => e !== equipment)
-      : [...field.value, equipment];
-    field.onChange(newEquipment);
-  };
 
   const onSubmit = (data: UserSetupData) => {
     setupMutation.mutate(data);
   };
 
+  const equipmentOptions = [
+    { id: "bodyweight", label: "Peso corporal" },
+    { id: "dumbbells", label: "Halteres" },
+    { id: "barbell", label: "Barra" },
+    { id: "resistance_bands", label: "Faixas elásticas" },
+    { id: "gym_access", label: "Academia completa" },
+    { id: "home_gym", label: "Academia em casa" }
+  ];
+
+  // Função para remover zeros à esquerda
+  const handleNumericInput = (value: string, field: any) => {
+    const numericValue = value.replace(/^0+/, '') || '0';
+    const parsed = parseInt(numericValue);
+    if (!isNaN(parsed)) {
+      field.onChange(parsed);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-2xl space-y-6">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Bem-vindo ao PulseOn!</h1>
-          <p className="text-muted-foreground">Configure seu perfil e comece a treinar</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl bg-slate-800/90 border-slate-700 text-white">
+        <CardHeader className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-2">
+            <Heart className="h-8 w-8 text-cyan-400" />
+            <CardTitle className="text-3xl font-bold">
+              Pulse<span className="text-cyan-400">On</span>
+            </CardTitle>
+          </div>
+          <CardDescription className="text-slate-300 text-lg">
+            Crie sua conta e configure seu perfil personalizado
+          </CardDescription>
+        </CardHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Login Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Informações de Acesso</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="seu@email.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <CardContent className="space-y-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Dados de Login */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-cyan-400 flex items-center gap-2">
+                  <Heart className="h-5 w-5" />
+                  Dados de Acesso
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="email"
+                            placeholder="seu@email.com"
+                            className="bg-slate-700 border-slate-600 text-white"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Sua senha" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome Completo</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            placeholder="Seu nome"
+                            className="bg-slate-700 border-slate-600 text-white"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirmar Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Confirme sua senha" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Senha</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="password"
+                            placeholder="Mínimo 6 caracteres"
+                            className="bg-slate-700 border-slate-600 text-white"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Seu nome completo" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirmar Senha</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="password"
+                            placeholder="Repita sua senha"
+                            className="bg-slate-700 border-slate-600 text-white"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
-            {/* Personal Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Informações Pessoais</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              {/* Dados Pessoais */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-cyan-400 flex items-center gap-2">
+                  <Scale className="h-5 w-5" />
+                  Dados Pessoais
+                </h3>
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
@@ -176,11 +229,12 @@ export default function UserSetup() {
                       <FormItem>
                         <FormLabel>Idade</FormLabel>
                         <FormControl>
-                          <Input
+                          <Input 
                             type="number"
                             placeholder="25"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                            className="bg-slate-700 border-slate-600 text-white"
+                            onChange={(e) => handleNumericInput(e.target.value, field)}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -195,11 +249,12 @@ export default function UserSetup() {
                       <FormItem>
                         <FormLabel>Peso (kg)</FormLabel>
                         <FormControl>
-                          <Input
+                          <Input 
                             type="number"
                             placeholder="70"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                            className="bg-slate-700 border-slate-600 text-white"
+                            onChange={(e) => handleNumericInput(e.target.value, field)}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -214,11 +269,12 @@ export default function UserSetup() {
                       <FormItem>
                         <FormLabel>Altura (cm)</FormLabel>
                         <FormControl>
-                          <Input
+                          <Input 
                             type="number"
                             placeholder="175"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                            className="bg-slate-700 border-slate-600 text-white"
+                            onChange={(e) => handleNumericInput(e.target.value, field)}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -226,194 +282,191 @@ export default function UserSetup() {
                     )}
                   />
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Fitness Goal */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Qual é o seu objetivo principal?</CardTitle>
-              </CardHeader>
-              <CardContent>
                 <FormField
                   control={form.control}
-                  name="fitnessGoal"
+                  name="gender"
                   render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <div className="space-y-3">
-                        {[
-                          { value: "lose_weight", label: "Perder peso", description: "Queimar calorias e reduzir gordura", icon: Scale },
-                          { value: "gain_muscle", label: "Ganhar massa muscular", description: "Aumentar força e volume muscular", icon: Dumbbell },
-                          { value: "improve_conditioning", label: "Melhorar condicionamento", description: "Aumentar resistência cardiovascular", icon: Heart },
-                        ].map((goal) => {
-                          const Icon = goal.icon;
-                          return (
-                            <Button
-                              key={goal.value}
-                              type="button"
-                              variant={field.value === goal.value ? "default" : "outline"}
-                              className="w-full justify-start h-auto p-4"
-                              onClick={() => field.onChange(goal.value)}
-                            >
-                              <div className="flex items-center text-left">
-                                <Icon className="mr-3 h-5 w-5" />
-                                <div>
-                                  <div className="font-medium">{goal.label}</div>
-                                  <div className="text-sm opacity-70">{goal.description}</div>
-                                </div>
-                              </div>
-                            </Button>
-                          );
-                        })}
-                      </div>
+                    <FormItem>
+                      <FormLabel>Gênero</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                            <SelectValue placeholder="Selecione seu gênero" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-slate-700 border-slate-600">
+                          <SelectItem value="male">Masculino</SelectItem>
+                          <SelectItem value="female">Feminino</SelectItem>
+                          <SelectItem value="other">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Experience Level */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Qual é o seu nível de experiência?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FormField
-                  control={form.control}
-                  name="experienceLevel"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <div className="space-y-3">
-                        {[
-                          { value: "beginner", label: "Iniciante", description: "Pouca ou nenhuma experiência" },
-                          { value: "intermediate", label: "Intermediário", description: "6 meses a 2 anos de treino" },
-                          { value: "advanced", label: "Avançado", description: "Mais de 2 anos de experiência" },
-                        ].map((level) => (
-                          <Button
-                            key={level.value}
-                            type="button"
-                            variant={field.value === level.value ? "default" : "outline"}
-                            className="w-full justify-start h-auto p-4"
-                            onClick={() => field.onChange(level.value)}
-                          >
-                            <div className="text-left">
-                              <div className="font-medium">{level.label}</div>
-                              <div className="text-sm opacity-70">{level.description}</div>
-                            </div>
-                          </Button>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+              {/* Objetivos de Treino */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-cyan-400 flex items-center gap-2">
+                  <Dumbbell className="h-5 w-5" />
+                  Objetivos de Treino
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="fitnessGoal"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Objetivo Principal</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                              <SelectValue placeholder="Escolha seu objetivo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-slate-700 border-slate-600">
+                            <SelectItem value="lose_weight">Perder peso</SelectItem>
+                            <SelectItem value="gain_muscle">Ganhar massa muscular</SelectItem>
+                            <SelectItem value="improve_conditioning">Melhorar condicionamento</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-            {/* Weekly Frequency */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quantas vezes por semana você quer treinar?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FormField
-                  control={form.control}
-                  name="weeklyFrequency"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <div className="grid grid-cols-3 gap-3">
-                        {[1, 2, 3, 4, 5, 6].map((freq) => (
-                          <Button
-                            key={freq}
-                            type="button"
-                            variant={field.value === freq ? "default" : "outline"}
-                            className="h-16"
-                            onClick={() => field.onChange(freq)}
-                          >
-                            {freq}x por semana
-                          </Button>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+                  <FormField
+                    control={form.control}
+                    name="experienceLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nível de Experiência</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                              <SelectValue placeholder="Seu nível atual" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-slate-700 border-slate-600">
+                            <SelectItem value="beginner">Iniciante</SelectItem>
+                            <SelectItem value="intermediate">Intermediário</SelectItem>
+                            <SelectItem value="advanced">Avançado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-            {/* Available Equipment */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quais equipamentos você tem acesso?</CardTitle>
-              </CardHeader>
-              <CardContent>
+                  <FormField
+                    control={form.control}
+                    name="weeklyFrequency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Frequência Semanal</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number"
+                            min="1"
+                            max="7"
+                            placeholder="3"
+                            className="bg-slate-700 border-slate-600 text-white"
+                            onChange={(e) => handleNumericInput(e.target.value, field)}
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Equipamentos Disponíveis */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-cyan-400">Equipamentos Disponíveis</h3>
                 <FormField
                   control={form.control}
                   name="availableEquipment"
-                  render={({ field }) => (
+                  render={() => (
                     <FormItem>
-                      <div className="space-y-3">
-                        {[
-                          "Peso corporal",
-                          "Halteres",
-                          "Barras",
-                          "Máquinas de musculação",
-                          "Elásticos",
-                          "Kettlebells"
-                        ].map((equipment) => (
-                          <Button
-                            key={equipment}
-                            type="button"
-                            variant={field.value.includes(equipment) ? "default" : "outline"}
-                            className="w-full justify-start h-auto p-4"
-                            onClick={() => handleEquipmentToggle(equipment, field)}
-                          >
-                            <span className="font-medium">{equipment}</span>
-                          </Button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {equipmentOptions.map((equipment) => (
+                          <FormField
+                            key={equipment.id}
+                            control={form.control}
+                            name="availableEquipment"
+                            render={({ field }) => {
+                              return (
+                                <FormItem
+                                  key={equipment.id}
+                                  className="flex flex-row items-start space-x-3 space-y-0"
+                                >
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(equipment.id)}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...field.value, equipment.id])
+                                          : field.onChange(
+                                              field.value?.filter(
+                                                (value) => value !== equipment.id
+                                              )
+                                            )
+                                      }}
+                                      className="border-slate-600 data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500"
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal text-slate-300">
+                                    {equipment.label}
+                                  </FormLabel>
+                                </FormItem>
+                              )
+                            }}
+                          />
                         ))}
                       </div>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Physical Restrictions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Restrições físicas (opcional)</CardTitle>
-              </CardHeader>
-              <CardContent>
+              {/* Restrições Físicas */}
+              <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="physicalRestrictions"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>Restrições Físicas (opcional)</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Ex: Problema no joelho, dor nas costas..."
-                          {...field}
+                        <Input 
+                          {...field} 
+                          placeholder="Descreva qualquer limitação física ou lesão"
+                          className="bg-slate-700 border-slate-600 text-white"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </CardContent>
-            </Card>
+              </div>
 
-            <Button
-              type="submit"
-              className="w-full h-12 text-lg"
-              disabled={setupMutation.isPending}
-            >
-              {setupMutation.isPending ? "Criando perfil..." : "Começar a treinar"}
-            </Button>
-          </form>
-        </Form>
-      </div>
+              <Button
+                type="submit"
+                disabled={setupMutation.isPending}
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-3 text-lg"
+              >
+                {setupMutation.isPending ? "Criando conta..." : "Criar Conta e Começar"}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
