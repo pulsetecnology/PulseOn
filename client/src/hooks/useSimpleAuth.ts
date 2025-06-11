@@ -43,7 +43,7 @@ export function useSimpleAuth() {
     localStorage.removeItem("user");
     setToken(null);
     queryClient.clear();
-    window.location.href = "/setup";
+    window.location.href = "/login";
   };
 
   const isAuthenticated = !!token && !!user;

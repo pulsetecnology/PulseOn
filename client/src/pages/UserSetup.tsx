@@ -16,6 +16,7 @@ import { z } from "zod";
 const userSetupSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string().min(6, "Confirmação de senha é obrigatória"),
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   age: z.number().min(13, "Idade deve ser maior que 13 anos").max(120, "Idade inválida"),
   weight: z.number().min(30, "Peso deve ser maior que 30kg").max(300, "Peso inválido"),
@@ -25,6 +26,9 @@ const userSetupSchema = z.object({
   weeklyFrequency: z.number().min(1).max(7),
   availableEquipment: z.array(z.string()).min(1, "Selecione pelo menos um equipamento"),
   physicalRestrictions: z.string().optional()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"]
 });
 
 type UserSetupData = z.infer<typeof userSetupSchema>;
@@ -38,6 +42,7 @@ export default function UserSetup() {
     defaultValues: {
       email: "",
       password: "",
+      confirmPassword: "",
       name: "",
       age: 0,
       weight: 0,
@@ -121,6 +126,20 @@ export default function UserSetup() {
                       <FormLabel>Senha</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="Sua senha" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar Senha</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Confirme sua senha" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -350,19 +369,7 @@ export default function UserSetup() {
                             className="w-full justify-start h-auto p-4"
                             onClick={() => handleEquipmentToggle(equipment, field)}
                           >
-                            <div className="flex items-center">
-                              <div className={cn(
-                                "w-5 h-5 rounded border-2 flex items-center justify-center mr-3",
-                                field.value.includes(equipment)
-                                  ? "border-primary-foreground bg-primary-foreground"
-                                  : "border-current"
-                              )}>
-                                {field.value.includes(equipment) && (
-                                  <Check className="w-3 h-3 text-primary" />
-                                )}
-                              </div>
-                              <span className="font-medium">{equipment}</span>
-                            </div>
+                            <span className="font-medium">{equipment}</span>
                           </Button>
                         ))}
                       </div>

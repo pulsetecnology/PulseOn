@@ -7,6 +7,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import Layout from "./components/Layout";
 import { useSimpleAuth } from "./hooks/useSimpleAuth";
 import Home from "./pages/Home";
+import Login from "./pages/Login";
 import UserSetup from "./pages/UserSetup";
 import Workout from "./pages/Workout";
 import ActiveWorkout from "./pages/ActiveWorkout";
@@ -29,7 +30,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
   }
   
   if (!isAuthenticated) {
-    return <UserSetup />;
+    return <Login />;
   }
   
   return <Layout>{children}</Layout>;
