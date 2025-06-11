@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -5,7 +6,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Layout from "./components/Layout";
-import { useAuth } from "./hooks/useAuth";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import UserSetup from "./pages/UserSetup";
@@ -16,14 +16,49 @@ import Profile from "./pages/Profile";
 import NotFound from "@/pages/not-found";
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("authToken");
+      
+      if (!token) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem("authToken");
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        localStorage.removeItem("authToken");
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
   
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <p className="text-slate-400">Carregando...</p>
         </div>
       </div>
     );
