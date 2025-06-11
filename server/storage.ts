@@ -75,7 +75,7 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    for (const user of this.users.values()) {
+    for (const user of Array.from(this.users.values())) {
       if (user.email === email) {
         return user;
       }
@@ -90,6 +90,7 @@ export class MemStorage implements IStorage {
       email: insertUser.email,
       password: insertUser.password,
       name: insertUser.name || null,
+      birthDate: insertUser.birthDate || null,
       age: insertUser.age || null,
       weight: insertUser.weight || null,
       height: insertUser.height || null,
@@ -97,7 +98,7 @@ export class MemStorage implements IStorage {
       fitnessGoal: insertUser.fitnessGoal || null,
       experienceLevel: insertUser.experienceLevel || null,
       weeklyFrequency: insertUser.weeklyFrequency || null,
-      availableEquipment: insertUser.availableEquipment || null,
+      availableEquipment: insertUser.availableEquipment as string[] | null,
       physicalRestrictions: insertUser.physicalRestrictions || null,
       onboardingCompleted: false,
       createdAt: new Date()
