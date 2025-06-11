@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,28 +51,60 @@ export default function ActiveWorkout() {
   };
 
   return (
-    <div className="px-4 py-6 space-y-6">
-      {/* Exercise Progress */}
-      <Card>
-        <CardContent className="p-6 text-center">
-          <span className="text-sm text-muted-foreground">Exercício {currentExerciseIndex + 1} de {totalExercises}</span>
+    <div className="px-4 py-6 space-y-4">
+      {/* Exercise Progress - Main Card */}
+      <Card className="bg-gradient-to-r from-primary to-secondary border-0">
+        <CardContent className="p-6 text-primary-foreground text-center">
+          <span className="text-sm opacity-90">Exercício {currentExerciseIndex + 1} de {totalExercises}</span>
           <h1 className="text-2xl font-bold mt-1 mb-4">{currentExercise.name}</h1>
           
           {/* Progress Bar */}
-          <Progress value={progressPercentage} className="h-2 mb-4" />
+          <Progress value={progressPercentage} className="h-2 mb-4 bg-white/20" />
           
           {/* Current Set Info */}
           <div>
             <span className="text-3xl font-bold">Série {currentSet} de {currentExercise.sets}</span>
-            <p className="text-muted-foreground">{currentExercise.reps} repetições</p>
+            <p className="opacity-90 mt-1">{currentExercise.reps} repetições</p>
           </div>
         </CardContent>
       </Card>
 
+      {/* Timer - Prominently displayed */}
+      <Card>
+        <CardContent className="p-6 text-center">
+          <h3 className="font-semibold mb-2 text-lg">
+            {isResting ? "⏰ Tempo de Descanso" : "🏃‍♂️ Tempo de Treino"}
+          </h3>
+          <div className="text-5xl font-bold text-primary mb-4">
+            {formatTime(restTime)}
+          </div>
+          <div className="flex justify-center space-x-4">
+            <Button variant="outline" onClick={() => setIsResting(!isResting)} size="lg">
+              <Pause className="h-5 w-5" />
+            </Button>
+            <Button variant="outline" onClick={() => setRestTime(currentExercise.restTime)} size="lg">
+              <RotateCcw className="h-5 w-5" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Main Action Buttons - Prominently placed */}
+      <div className="space-y-3">
+        <Button className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-success to-primary" onClick={nextSet}>
+          {currentSet < currentExercise.sets ? "Próxima Série" : 
+           currentExerciseIndex < totalExercises - 1 ? "Próximo Exercício" : "Finalizar Treino"}
+          <ChevronRight className="ml-2 h-5 w-5" />
+        </Button>
+        <Button variant="outline" className="w-full py-3 font-semibold border-2">
+          Finalizar Exercício
+        </Button>
+      </div>
+
       {/* Weight Input */}
       <Card>
         <CardContent className="p-6">
-          <h3 className="font-semibold mb-4">Peso utilizado</h3>
+          <h3 className="font-semibold mb-4 text-center">Peso utilizado</h3>
           <div className="flex items-center space-x-4">
             <Button 
               variant="outline" 
@@ -88,7 +121,7 @@ export default function ActiveWorkout() {
                 onChange={(e) => setWeight(Number(e.target.value))}
                 className="text-3xl font-bold text-center border-0 bg-transparent"
               />
-              <span className="text-muted-foreground">kg</span>
+              <span className="text-muted-foreground text-lg">kg</span>
             </div>
             <Button 
               variant="outline" 
@@ -105,7 +138,7 @@ export default function ActiveWorkout() {
       {/* Effort Level */}
       <Card>
         <CardContent className="p-6">
-          <h3 className="font-semibold mb-4">Nível de esforço</h3>
+          <h3 className="font-semibold mb-4 text-center">Nível de esforço</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>Fácil</span>
@@ -125,43 +158,11 @@ export default function ActiveWorkout() {
               ))}
             </div>
             <div className="text-center">
-              <span className="text-lg font-bold text-warning">Esforço: {effortLevel[0]}/10</span>
+              <span className="text-xl font-bold text-warning">Esforço: {effortLevel[0]}/10</span>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* Timer */}
-      <Card>
-        <CardContent className="p-6 text-center">
-          <h3 className="font-semibold mb-2">
-            {isResting ? "Descanso" : "Tempo de treino"}
-          </h3>
-          <div className="text-4xl font-bold text-primary mb-4">
-            {formatTime(restTime)}
-          </div>
-          <div className="flex justify-center space-x-4">
-            <Button variant="outline" onClick={() => setIsResting(!isResting)}>
-              <Pause className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" onClick={() => setRestTime(currentExercise.restTime)}>
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Action Buttons */}
-      <div className="space-y-3">
-        <Button className="w-full py-4 text-lg font-semibold" onClick={nextSet}>
-          {currentSet < currentExercise.sets ? "Próxima Série" : 
-           currentExerciseIndex < totalExercises - 1 ? "Próximo Exercício" : "Finalizar Treino"}
-          <ChevronRight className="ml-2 h-5 w-5" />
-        </Button>
-        <Button variant="outline" className="w-full py-3 font-semibold">
-          Finalizar Exercício
-        </Button>
-      </div>
     </div>
   );
 }
