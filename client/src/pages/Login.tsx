@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,14 +6,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginData } from "@shared/schema";
 import { Link, useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import Logo from "@/components/Logo";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { login, isLoading, user } = useAuth();
   
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -24,24 +23,9 @@ export default function Login() {
     }
   });
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginData) => {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erro no login");
-      }
-      
-      return response.json();
-    },
-    onSuccess: (response) => {
-      localStorage.setItem("authToken", response.token);
-      localStorage.setItem("user", JSON.stringify(response.user));
+  const onSubmit = async (data: LoginData) => {
+    try {
+      await login(data.email, data.password);
       
       toast({
         title: "Login realizado com sucesso!",
@@ -49,23 +33,18 @@ export default function Login() {
       });
 
       // Redirect based on onboarding status
-      if (response.user.onboardingCompleted) {
+      if (user?.onboardingCompleted) {
         setLocation("/");
       } else {
         setLocation("/onboarding");
       }
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       toast({
         title: "Erro no login",
         description: error.message || "Email ou senha incorretos",
         variant: "destructive"
       });
     }
-  });
-
-  const onSubmit = (data: LoginData) => {
-    loginMutation.mutate(data);
   };
 
   return (
@@ -123,9 +102,9 @@ export default function Login() {
                 <Button 
                   type="submit" 
                   className="w-full"
-                  disabled={loginMutation.isPending}
+                  disabled={isLoading}
                 >
-                  {loginMutation.isPending ? "Entrando..." : "Entrar"}
+                  {isLoading ? "Entrando..." : "Entrar"}
                 </Button>
               </form>
             </Form>

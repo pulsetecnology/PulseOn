@@ -1,4 +1,4 @@
-import { users, sessions, workouts, workoutSessions, type User, type InsertUser, type Session, type InsertSession, type Workout, type InsertWorkout, type WorkoutSession, type InsertWorkoutSession } from "@shared/schema";
+import type { User, InsertUser, Session, InsertSession, Workout, InsertWorkout, WorkoutSession, InsertWorkoutSession } from "@shared/schema";
 
 export interface IStorage {
   // User methods
@@ -42,77 +42,44 @@ export class MemStorage implements IStorage {
     this.currentUserId = 1;
     this.currentWorkoutId = 1;
     this.currentWorkoutSessionId = 1;
-
-    // Add default user and workouts
     this.seedData();
   }
 
   private seedData() {
     // Create default user
     const defaultUser: User = {
-      id: this.currentUserId++,
-      email: "joao@email.com",
-      password: "password", // In real app, this would be hashed
-      name: "João Silva",
-      age: 28,
-      weight: 75,
-      height: 180,
-      gender: "male",
-      fitnessGoal: "gain_muscle",
-      experienceLevel: "intermediate",
-      weeklyFrequency: 4,
-      availableEquipment: ["Halteres", "Barras", "Máquinas de musculação"],
+      id: 1,
+      email: "user@example.com",
+      password: "$2a$10$9/0e4k5p1LWw6XEy1V2v8e.8Tr4QrAbIo0TfhVdgRuI0VYlOwz/Ku", // "password"
+      name: "Usuário Teste",
+      age: 25,
+      weight: 70,
+      height: 175,
+      gender: "masculino",
+      fitnessGoal: "ganho_massa",
+      experienceLevel: "iniciante",
+      weeklyFrequency: 3,
+      availableEquipment: ["pesos_livres", "academia"],
       physicalRestrictions: null,
       onboardingCompleted: true,
       createdAt: new Date()
     };
-    this.users.set(defaultUser.id, defaultUser);
-
-    // Create sample workouts
-    const legWorkout: Workout = {
-      id: this.currentWorkoutId++,
-      userId: defaultUser.id,
-      name: "Treino de Pernas",
-      description: "Treino focado em quadriceps, glúteos e panturrilhas",
-      duration: 45,
-      difficulty: "intermediate",
-      exercises: [
-        {
-          id: "1",
-          name: "Agachamento Livre",
-          sets: 3,
-          reps: 12,
-          suggestedWeight: 40,
-          restTime: 90,
-          instructions: "Mantenha os pés afastados na largura dos ombros, desça até os joelhos formarem 90 graus",
-          muscleGroups: ["quadriceps", "glúteos", "core"]
-        },
-        {
-          id: "2",
-          name: "Leg Press",
-          sets: 3,
-          reps: 15,
-          suggestedWeight: 80,
-          restTime: 75,
-          instructions: "Posicione os pés na plataforma, desça controladamente até formar 90 graus",
-          muscleGroups: ["quadriceps", "glúteos"]
-        }
-      ],
-      completedAt: null,
-      createdAt: new Date()
-    };
-    this.workouts.set(legWorkout.id, legWorkout);
+    
+    this.users.set(1, defaultUser);
+    this.currentUserId = 2;
   }
 
-  // User methods
   async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.email === email,
-    );
+    for (const user of this.users.values()) {
+      if (user.email === email) {
+        return user;
+      }
+    }
+    return undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -129,11 +96,12 @@ export class MemStorage implements IStorage {
       fitnessGoal: insertUser.fitnessGoal || null,
       experienceLevel: insertUser.experienceLevel || null,
       weeklyFrequency: insertUser.weeklyFrequency || null,
-      availableEquipment: Array.isArray(insertUser.availableEquipment) ? insertUser.availableEquipment : null,
+      availableEquipment: insertUser.availableEquipment || null,
       physicalRestrictions: insertUser.physicalRestrictions || null,
       onboardingCompleted: false,
       createdAt: new Date()
     };
+    
     this.users.set(id, user);
     return user;
   }
@@ -145,7 +113,6 @@ export class MemStorage implements IStorage {
     const updatedUser: User = { 
       ...user, 
       ...updates,
-      availableEquipment: Array.isArray(updates.availableEquipment) ? updates.availableEquipment : user.availableEquipment,
       onboardingCompleted: updates.age && updates.weight && updates.height ? true : user.onboardingCompleted
     };
     this.users.set(id, updatedUser);
@@ -155,8 +122,10 @@ export class MemStorage implements IStorage {
   // Session methods
   async createSession(insertSession: InsertSession): Promise<Session> {
     const session: Session = {
-      id: Date.now(), // Simple ID generation
-      ...insertSession,
+      id: Date.now(),
+      token: insertSession.token,
+      userId: insertSession.userId,
+      expiresAt: insertSession.expiresAt,
       createdAt: new Date()
     };
     this.sessions.set(session.token, session);
@@ -164,16 +133,7 @@ export class MemStorage implements IStorage {
   }
 
   async getSessionByToken(token: string): Promise<Session | undefined> {
-    const session = this.sessions.get(token);
-    if (!session) return undefined;
-    
-    // Check if session is expired
-    if (session.expiresAt < new Date()) {
-      this.sessions.delete(token);
-      return undefined;
-    }
-    
-    return session;
+    return this.sessions.get(token);
   }
 
   async deleteSession(token: string): Promise<void> {
@@ -188,13 +148,12 @@ export class MemStorage implements IStorage {
     }
   }
 
-  // Workout methods
   async getWorkouts(userId?: number): Promise<Workout[]> {
-    const allWorkouts = Array.from(this.workouts.values());
+    const workouts = Array.from(this.workouts.values());
     if (userId) {
-      return allWorkouts.filter(workout => workout.userId === userId);
+      return workouts.filter(w => w.userId === userId);
     }
-    return allWorkouts;
+    return workouts;
   }
 
   async getWorkout(id: number): Promise<Workout | undefined> {
@@ -204,11 +163,17 @@ export class MemStorage implements IStorage {
   async createWorkout(insertWorkout: InsertWorkout): Promise<Workout> {
     const id = this.currentWorkoutId++;
     const workout: Workout = {
-      ...insertWorkout,
       id,
-      completedAt: null,
-      createdAt: new Date()
+      name: insertWorkout.name,
+      description: insertWorkout.description || null,
+      duration: insertWorkout.duration || null,
+      difficulty: insertWorkout.difficulty || null,
+      exercises: insertWorkout.exercises || null,
+      userId: insertWorkout.userId || null,
+      createdAt: new Date(),
+      completedAt: null
     };
+
     this.workouts.set(id, workout);
     return workout;
   }
@@ -222,20 +187,22 @@ export class MemStorage implements IStorage {
     return updatedWorkout;
   }
 
-  // Workout session methods
   async getWorkoutSessions(userId: number): Promise<WorkoutSession[]> {
-    return Array.from(this.workoutSessions.values()).filter(
-      session => session.userId === userId
-    );
+    return Array.from(this.workoutSessions.values()).filter(s => s.userId === userId);
   }
 
   async createWorkoutSession(insertSession: InsertWorkoutSession): Promise<WorkoutSession> {
-    const id = this.currentSessionId++;
+    const id = this.currentWorkoutSessionId++;
     const session: WorkoutSession = {
-      ...insertSession,
       id,
-      startedAt: new Date()
+      userId: insertSession.userId || null,
+      workoutId: insertSession.workoutId || null,
+      exercises: insertSession.exercises || null,
+      startedAt: new Date(),
+      completedAt: null,
+      totalDuration: null
     };
+
     this.workoutSessions.set(id, session);
     return session;
   }

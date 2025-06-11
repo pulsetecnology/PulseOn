@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Layout from "./components/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -20,12 +21,55 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      <Route path="/" component={Home} />
-      <Route path="/onboarding" component={Onboarding} />
-      <Route path="/workout" component={Workout} />
-      <Route path="/active-workout" component={ActiveWorkout} />
-      <Route path="/history" component={History} />
-      <Route path="/profile" component={Profile} />
+      
+      <Route path="/onboarding">
+        <ProtectedRoute>
+          <Layout>
+            <Onboarding />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/">
+        <ProtectedRoute requireOnboarding>
+          <Layout>
+            <Home />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/workout">
+        <ProtectedRoute requireOnboarding>
+          <Layout>
+            <Workout />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/active-workout">
+        <ProtectedRoute requireOnboarding>
+          <Layout>
+            <ActiveWorkout />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/history">
+        <ProtectedRoute requireOnboarding>
+          <Layout>
+            <History />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/profile">
+        <ProtectedRoute requireOnboarding>
+          <Layout>
+            <Profile />
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+      
       <Route component={NotFound} />
     </Switch>
   );
@@ -36,9 +80,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="pulseon-ui-theme">
         <TooltipProvider>
-          <Layout>
-            <Router />
-          </Layout>
+          <Router />
           <Toaster />
         </TooltipProvider>
       </ThemeProvider>
