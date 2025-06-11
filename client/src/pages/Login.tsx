@@ -43,7 +43,7 @@ export default function Login() {
       });
 
       // Recarregar a página para atualizar o estado de autenticação
-      window.location.href = "/";/";
+      window.location.href = "/";
 
     } catch (error) {
       toast({

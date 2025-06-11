@@ -1,80 +1,65 @@
-import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from 'react';
+import { useToast } from './use-toast';
 
-type User = {
+interface User {
   id: number;
   email: string;
-  name: string;
-  onboardingCompleted: boolean;
-  weight?: number;
-  height?: number;
-  birthDate?: string;
-  fitnessGoal?: string;
-  experienceLevel?: string;
-  weeklyFrequency?: number;
-  availableEquipment?: string[];
-};
+  name?: string;
+}
 
 export function useSimpleAuth() {
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("authToken")
-  );
-  const queryClient = useQueryClient();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  // Escutar mudanças no localStorage apenas para outras abas
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const storedToken = localStorage.getItem("authToken");
-      if (storedToken !== token) {
-        setToken(storedToken);
-      }
-    };
+  const checkAuth = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [token]);
-
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["/api/auth/me"],
-    enabled: !!token,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    retry: 1,
-    refetchOnWindowFocus: false,
-    queryFn: async () => {
-      if (!token) throw new Error("No token");
-      
-      const response = await fetch("/api/auth/me", {
+    try {
+      const response = await fetch('/api/auth/me', {
         headers: {
-          Authorization: `Bearer ${token}`
+          'Authorization': `Bearer ${token}`
         }
       });
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          localStorage.removeItem("authToken");
-          setToken(null);
-          throw new Error("Unauthorized");
-        }
-        throw new Error("Failed to fetch user");
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      } else {
+        localStorage.removeItem('authToken');
+        setUser(null);
       }
-      
-      const data = await response.json();
-      return data;
+    } catch (error) {
+      console.error('Erro ao verificar autenticação:', error);
+      localStorage.removeItem('authToken');
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
-  });
+  };
 
   const logout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    setToken(null);
-    queryClient.clear();
+    localStorage.removeItem('authToken');
+    setUser(null);
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado com sucesso"
+    });
   };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   return {
     user,
-    isAuthenticated: !!token && !!user,
     isLoading,
-    setToken,
-    logout
+    isAuthenticated: !!user,
+    logout,
+    refetch: checkAuth
   };
 }
