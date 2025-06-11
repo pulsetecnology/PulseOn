@@ -97,13 +97,7 @@ export default function Profile() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<UserData>) => {
-      return apiRequest("/api/profile/update", {
-        method: "PATCH",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      return apiRequest("/api/profile/update", "PATCH", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
