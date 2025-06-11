@@ -116,7 +116,8 @@ export const onboardingSchema = z.object({
 });
 
 export const profileUpdateSchema = z.object({
-  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").optional(),
+  name: z.string().optional(),
+  birthDate: z.string().optional(),
   age: z.number().min(13, "Idade deve ser maior que 13 anos").max(120, "Idade inválida").optional(),
   weight: z.number().min(30, "Peso deve ser maior que 30kg").max(300, "Peso inválido").optional(),
   height: z.number().min(100, "Altura deve ser maior que 100cm").max(250, "Altura inválida").optional(),

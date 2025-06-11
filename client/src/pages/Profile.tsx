@@ -105,6 +105,7 @@ export default function Profile() {
       }
 
       if (data.birthDate && data.birthDate !== user?.birthDate) {
+        updatePayload.birthDate = data.birthDate;
         updatePayload.age = calculateAge(data.birthDate);
       }
 
