@@ -99,8 +99,27 @@ export class SQLiteStorage implements IStorage {
     this.db.exec(createWorkoutsTable);
     this.db.exec(createWorkoutSessionsTable);
 
+    // Add migration to add custom_equipment column if it doesn't exist
+    this.addCustomEquipmentColumn();
+
     // Seed test user if it doesn't exist
     this.seedTestUser();
+  }
+
+  private addCustomEquipmentColumn() {
+    try {
+      // Check if custom_equipment column exists
+      const columns = this.db.prepare("PRAGMA table_info(users)").all();
+      const hasCustomEquipment = columns.some((col: any) => col.name === 'custom_equipment');
+      
+      if (!hasCustomEquipment) {
+        console.log('Adding custom_equipment column to users table...');
+        this.db.exec('ALTER TABLE users ADD COLUMN custom_equipment TEXT');
+        console.log('custom_equipment column added successfully');
+      }
+    } catch (error) {
+      console.error('Error adding custom_equipment column:', error);
+    }
   }
 
   private seedTestUser() {
