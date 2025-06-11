@@ -94,14 +94,49 @@ export default function Onboarding() {
 
   const progressPercentage = (currentStep / TOTAL_STEPS) * 100;
 
-  const nextStep = () => {
-    if (currentStep < TOTAL_STEPS) {
+  const nextStep = async () => {
+    // Validar campos do passo atual antes de avançar
+    let fieldsToValidate: (keyof OnboardingData)[] = [];
+    
+    switch (currentStep) {
+      case 1:
+        fieldsToValidate = ['fitnessGoal'];
+        break;
+      case 2:
+        fieldsToValidate = ['experienceLevel'];
+        break;
+      case 3:
+        fieldsToValidate = ['age', 'weight', 'height', 'weeklyFrequency'];
+        break;
+      case 4:
+        fieldsToValidate = ['availableEquipment'];
+        break;
+      case 5:
+        // physicalRestrictions é opcional
+        break;
+    }
+    
+    const isValid = await form.trigger(fieldsToValidate);
+    
+    if (isValid && currentStep < TOTAL_STEPS) {
+      // Salvar dados do passo atual no localStorage
+      const currentData = form.getValues();
+      setOnboardingData(currentData);
       setCurrentStep(currentStep + 1);
+    } else if (!isValid) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha todos os campos obrigatórios antes de continuar",
+        variant: "destructive"
+      });
     }
   };
 
   const prevStep = () => {
     if (currentStep > 1) {
+      // Salvar dados do passo atual antes de voltar
+      const currentData = form.getValues();
+      setOnboardingData(currentData);
       setCurrentStep(currentStep - 1);
     }
   };
@@ -128,6 +163,10 @@ export default function Onboarding() {
       ? currentEquipment.filter(e => e !== equipment)
       : [...currentEquipment, equipment];
     form.setValue("availableEquipment", newEquipment);
+    // Revalidar o campo para limpar erros se houver equipamento selecionado
+    if (newEquipment.length > 0) {
+      form.clearErrors("availableEquipment");
+    }
   };
 
   return (
@@ -364,7 +403,11 @@ export default function Onboarding() {
               Voltar
             </Button>
             {currentStep < TOTAL_STEPS ? (
-              <Button type="button" className="flex-1" onClick={nextStep}>
+              <Button 
+                type="button" 
+                className="flex-1" 
+                onClick={nextStep}
+              >
                 Próxima
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
