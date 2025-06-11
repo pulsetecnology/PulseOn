@@ -25,19 +25,15 @@ export default function Login() {
 
   const onSubmit = async (data: LoginData) => {
     try {
-      await login(data.email, data.password);
+      const result = await login(data.email, data.password);
       
       toast({
         title: "Login realizado com sucesso!",
         description: "Bem-vindo de volta ao PulseOn"
       });
 
-      // Redirect based on onboarding status
-      if (user?.onboardingCompleted) {
-        setLocation("/");
-      } else {
-        setLocation("/onboarding");
-      }
+      // Redirect to home - ProtectedRoute will handle onboarding logic
+      setLocation("/");
     } catch (error: any) {
       toast({
         title: "Erro no login",

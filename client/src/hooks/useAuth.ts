@@ -106,11 +106,17 @@ export function useAuth(): AuthContextType {
   };
 
   const login = async (email: string, password: string) => {
-    await loginMutation.mutateAsync({ email, password });
+    const result = await loginMutation.mutateAsync({ email, password });
+    // Force refresh user data after login
+    queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    return result;
   };
 
   const register = async (data: any) => {
-    await registerMutation.mutateAsync(data);
+    const result = await registerMutation.mutateAsync(data);
+    // Force refresh user data after register
+    queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    return result;
   };
 
   return {
