@@ -13,6 +13,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userData = req.body;
       console.log("Setup attempt for email:", userData.email);
+      console.log("Setup data received:", JSON.stringify(userData, null, 2));
       
       // Check if email already exists
       const existingUser = await storage.getUserByEmail(userData.email);
