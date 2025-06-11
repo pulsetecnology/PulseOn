@@ -2,14 +2,18 @@ import { Moon, Sun, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
+import { useLocation } from "wouter";
 import Logo from "./Logo";
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const { logout } = useSimpleAuth();
+  const [, setLocation] = useLocation();
 
   const handleLogout = () => {
     logout();
+    // Redirect to login page after logout
+    setLocation("/login");
   };
 
   return (
