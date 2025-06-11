@@ -125,7 +125,7 @@ function generatePersonalizedFallback(data: N8NWorkoutRequest): AIWorkoutRespons
     workoutName,
     description: `Treino personalizado para ${fitnessGoal.replace('_', ' ')} - nível ${experienceLevel}`,
     duration: experienceLevel === "beginner" ? 30 : 45,
-    difficulty: experienceLevel,
+    difficulty: experienceLevel as "beginner" | "intermediate" | "advanced",
     exercises
   };
 }

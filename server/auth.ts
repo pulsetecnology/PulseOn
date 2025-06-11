@@ -55,6 +55,6 @@ export function sanitizeUser(user: User): AuthUser {
     id: user.id,
     email: user.email,
     name: user.name,
-    onboardingCompleted: user.onboardingCompleted
+    onboardingCompleted: user.onboardingCompleted ?? false
   };
 }

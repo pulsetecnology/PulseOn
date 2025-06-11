@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Onboarding from "./pages/Onboarding";
 import Workout from "./pages/Workout";
 import ActiveWorkout from "./pages/ActiveWorkout";
@@ -16,6 +18,8 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <Switch>
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
       <Route path="/" component={Home} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/workout" component={Workout} />

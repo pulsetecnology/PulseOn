@@ -25,12 +25,20 @@ export default function Login() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (data: LoginData) => 
-      apiRequest("/api/auth/login", {
+    mutationFn: async (data: LoginData) => {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" }
-      }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erro no login");
+      }
+      
+      return response.json();
+    },
     onSuccess: (response) => {
       localStorage.setItem("authToken", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));

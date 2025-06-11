@@ -165,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         experienceLevel: updatedUser.experienceLevel!,
         weeklyFrequency: updatedUser.weeklyFrequency!,
         availableEquipment: updatedUser.availableEquipment!,
-        physicalRestrictions: updatedUser.physicalRestrictions
+        physicalRestrictions: updatedUser.physicalRestrictions || undefined
       };
 
       // Request workout from AI

@@ -28,12 +28,20 @@ export default function Register() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: (data: RegisterData) => 
-      apiRequest("/api/auth/register", {
+    mutationFn: async (data: RegisterData) => {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" }
-      }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erro no cadastro");
+      }
+      
+      return response.json();
+    },
     onSuccess: (response) => {
       localStorage.setItem("authToken", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
