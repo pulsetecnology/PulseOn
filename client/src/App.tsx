@@ -7,13 +7,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import UserSetup from "./pages/UserSetup";
 import Workout from "./pages/Workout";
 import ActiveWorkout from "./pages/ActiveWorkout";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
-import NotFound from "@/pages/not-found";
+import UserSetup from "./pages/UserSetup";
+import NotFound from "./pages/not-found";
+import Layout from "./components/Layout";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -22,7 +24,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("authToken");
-      
+
       if (!token) {
         setIsAuthenticated(false);
         setIsLoading(false);
@@ -52,7 +54,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
     checkAuth();
   }, []);
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
@@ -63,11 +65,11 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <Login />;
   }
-  
+
   return <Layout>{children}</Layout>;
 }
 
@@ -80,6 +82,8 @@ function Router() {
           <Home />
         </ProtectedLayout>
       </Route>
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
       <Route path="/workout">
         <ProtectedLayout>
           <Workout />
