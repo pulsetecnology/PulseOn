@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,28 +35,45 @@ export default function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
   });
+
+  const user = response?.user;
+  
+  // Calcular idade dinamicamente a partir da data de nascimento
+  const calculateAge = (birthDate: string | null) => {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const userAge = user?.birthDate ? calculateAge(user.birthDate) : user?.age || 0;
 
   const form = useForm<ProfileUpdateData>({
     resolver: zodResolver(profileUpdateSchema),
     defaultValues: {
-      name: user?.name || "",
-      age: user?.age || 25,
-      weight: user?.weight || 70,
-      height: user?.height || 175,
-      fitnessGoal: user?.fitnessGoal || "gain_muscle",
-      experienceLevel: user?.experienceLevel || "beginner",
-      weeklyFrequency: user?.weeklyFrequency || 3,
-      availableEquipment: user?.availableEquipment || [],
-      gender: user?.gender || "male",
-      physicalRestrictions: user?.physicalRestrictions || ""
+      name: "",
+      age: 25,
+      weight: 70,
+      height: 175,
+      fitnessGoal: "gain_muscle",
+      experienceLevel: "beginner",
+      weeklyFrequency: 3,
+      availableEquipment: [],
+      gender: "male",
+      physicalRestrictions: ""
     }
   });
 
   // Atualizar form quando os dados do usuário carregarem
-  useState(() => {
+  useEffect(() => {
     if (user) {
       form.reset({
         name: user.name || "",
@@ -75,15 +92,7 @@ export default function Profile() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileUpdateData) => {
-      const response = await apiRequest("/api/profile/update", {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erro ao atualizar perfil");
-      }
-      return response.json();
+      return apiRequest("/api/profile/update", "PATCH", data);
     },
     onSuccess: () => {
       toast({
@@ -189,7 +198,7 @@ export default function Profile() {
               <div className="text-slate-400">Altura</div>
             </div>
             <div className="text-center">
-              <div className="font-bold text-white">{user?.age || 0}</div>
+              <div className="font-bold text-white">{userAge}</div>
               <div className="text-slate-400">Idade</div>
             </div>
           </div>
