@@ -10,6 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { onboardingSchema, type OnboardingData } from "@shared/schema";
 import { Scale, Dumbbell, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 const TOTAL_STEPS = 5;
 
@@ -27,18 +31,64 @@ const equipmentOptions = [
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(1);
   const [onboardingData, setOnboardingData] = useLocalStorage<Partial<OnboardingData>>("onboarding-data", {});
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      age: onboardingData.age || 25,
-      weight: onboardingData.weight || 70,
-      height: onboardingData.height || 175,
+      age: onboardingData.age || undefined,
+      weight: onboardingData.weight || undefined,
+      height: onboardingData.height || undefined,
       fitnessGoal: onboardingData.fitnessGoal || "gain_muscle",
       experienceLevel: onboardingData.experienceLevel || "intermediate",
       weeklyFrequency: onboardingData.weeklyFrequency || 3,
       availableEquipment: onboardingData.availableEquipment || [],
       physicalRestrictions: onboardingData.physicalRestrictions || ""
+    }
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: OnboardingData) => {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(`/api/users/${user?.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...data,
+          onboardingCompleted: true
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erro ao atualizar perfil");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      localStorage.removeItem("onboarding-data");
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      toast({
+        title: "Perfil configurado com sucesso!",
+        description: "Agora você pode começar seus treinos personalizados"
+      });
+      
+      setLocation("/");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao finalizar configuração",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   });
 
@@ -58,8 +108,7 @@ export default function Onboarding() {
 
   const onSubmit = (data: OnboardingData) => {
     setOnboardingData(data);
-    // Here you would submit to your API
-    console.log("Onboarding completed:", data);
+    updateUserMutation.mutate(data);
   };
 
   const handleEquipmentToggle = (equipment: string) => {

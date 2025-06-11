@@ -102,6 +102,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/users/:id", authenticateToken, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Ensure user can only update their own profile
+      if (req.user!.id !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+      
+      const updateData = req.body;
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      const sanitizedUser = sanitizeUser(updatedUser);
+      res.json({ 
+        message: "Perfil atualizado com sucesso",
+        user: sanitizedUser 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+      }
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   app.post("/api/users", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
