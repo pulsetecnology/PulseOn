@@ -1,7 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Flame, Play } from "lucide-react";
+import { Dumbbell, Flame, Play, Check, X, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
+import { useGlobalNotification } from "@/components/NotificationProvider";
 
 export default function Home() {
   return (

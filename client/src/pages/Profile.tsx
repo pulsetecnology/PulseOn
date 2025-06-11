@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
+import { useGlobalNotification } from "@/components/NotificationProvider";
 import { User, Settings, Calendar, Activity, Target, Dumbbell } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -67,7 +67,7 @@ const equipmentOptions = [
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<UserData>>({});
-  const { toast } = useToast();
+  const { showSuccess, showError } = useGlobalNotification();
   const queryClient = useQueryClient();
 
   const { data: user, isLoading } = useQuery<UserData>({
@@ -144,17 +144,10 @@ export default function Profile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast({
-        title: "Perfil atualizado!",
-        description: "Suas informações foram salvas com sucesso.",
-      });
+      showSuccess();
     },
     onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Erro ao atualizar perfil",
-        description: error.message,
-      });
+      showError();
     },
   });
 

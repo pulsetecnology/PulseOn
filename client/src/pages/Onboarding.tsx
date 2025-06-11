@@ -10,7 +10,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { useToast } from "@/hooks/use-toast";
+import { useGlobalNotification } from "@/components/NotificationProvider";
 import { onboardingSchema, type OnboardingData } from "@shared/schema";
 import { Scale, Dumbbell, Heart, Check, User } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,7 +22,7 @@ export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(1);
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
+  const { showSuccess, showError } = useGlobalNotification();
   const queryClient = useQueryClient();
 
   const form = useForm<OnboardingData>({
@@ -65,20 +65,13 @@ export default function Onboarding() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      toast({
-        title: "Sucesso!",
-        description: "Perfil configurado com sucesso!",
-      });
+      showSuccess();
       setTimeout(() => {
         setLocation("/");
       }, 1500);
     },
     onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao configurar perfil. Tente novamente.",
-        variant: "destructive",
-      });
+      showError();
     }
   });
 
