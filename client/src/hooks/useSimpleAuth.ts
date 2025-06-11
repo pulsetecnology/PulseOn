@@ -6,6 +6,13 @@ type User = {
   email: string;
   name: string;
   onboardingCompleted: boolean;
+  weight?: number;
+  height?: number;
+  birthDate?: string;
+  fitnessGoal?: string;
+  experienceLevel?: string;
+  weeklyFrequency?: number;
+  availableEquipment?: string[];
 };
 
 export function useSimpleAuth() {
@@ -14,36 +21,27 @@ export function useSimpleAuth() {
   );
   const queryClient = useQueryClient();
 
-  // Escutar mudanças no localStorage
+  // Escutar mudanças no localStorage apenas para outras abas
   useEffect(() => {
     const handleStorageChange = () => {
-      const storedToken = localStorage.getItem("authToken");
-      setToken(storedToken);
-    };
-
-    // Escutar eventos de storage de outras abas
-    window.addEventListener("storage", handleStorageChange);
-    
-    // Verificar mudanças no token atual
-    const checkToken = () => {
       const storedToken = localStorage.getItem("authToken");
       if (storedToken !== token) {
         setToken(storedToken);
       }
     };
 
-    const interval = setInterval(checkToken, 100);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      clearInterval(interval);
-    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [token]);
 
   const { data: user, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    retry: 1,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
-      if (!token) return null;
+      if (!token) throw new Error("No token");
       
       const response = await fetch("/api/auth/me", {
         headers: {
@@ -52,18 +50,17 @@ export function useSimpleAuth() {
       });
       
       if (!response.ok) {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("user");
-        setToken(null);
-        return null;
+        if (response.status === 401) {
+          localStorage.removeItem("authToken");
+          setToken(null);
+          throw new Error("Unauthorized");
+        }
+        throw new Error("Failed to fetch user");
       }
       
       const data = await response.json();
-      return data.user;
-    },
-    enabled: !!token,
-    retry: false,
-    refetchOnWindowFocus: false
+      return data;
+    }
   });
 
   const logout = () => {
@@ -71,16 +68,13 @@ export function useSimpleAuth() {
     localStorage.removeItem("user");
     setToken(null);
     queryClient.clear();
-    window.location.href = "/login";
   };
 
-  const isAuthenticated = !!token && !!user;
-
   return {
-    user: user || null,
+    user,
+    isAuthenticated: !!token && !!user,
     isLoading,
-    isAuthenticated,
-    logout,
-    setToken
+    setToken,
+    logout
   };
 }
