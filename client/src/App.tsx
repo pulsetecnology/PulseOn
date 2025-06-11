@@ -13,7 +13,6 @@ import History from "./pages/History";
 import Profile from "./pages/Profile";
 import UserSetup from "./pages/UserSetup";
 import NotFound from "./pages/not-found";
-import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -39,7 +38,13 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
         });
 
         if (response.ok) {
-          setIsAuthenticated(true);
+          const userData = await response.json();
+          if (userData) {
+            setIsAuthenticated(true);
+          } else {
+            localStorage.removeItem("authToken");
+            setIsAuthenticated(false);
+          }
         } else {
           localStorage.removeItem("authToken");
           setIsAuthenticated(false);
