@@ -93,9 +93,9 @@ export default function Onboarding() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return form.getValues("fitnessGoal") !== "";
+        return !!form.getValues("fitnessGoal");
       case 2:
-        return form.getValues("experienceLevel") !== "";
+        return !!form.getValues("experienceLevel");
       case 3:
         return form.getValues("weeklyFrequency") > 0;
       case 4:
