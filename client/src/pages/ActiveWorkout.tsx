@@ -156,22 +156,22 @@ export default function ActiveWorkout() {
   return (
     <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
       {/* Fixed Header - Always visible */}
-      <div className="flex-none bg-slate-900 dark:bg-slate-900 light:bg-white text-white dark:text-white light:text-slate-900 shadow-lg dark:shadow-2xl dark:shadow-black/50 light:shadow-lg border-b border-slate-700 dark:border-slate-700 light:border-slate-200">
+      <div className="flex-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-lg dark:shadow-2xl dark:shadow-black/50 border-b border-slate-200 dark:border-slate-700"></div>
         <div className="px-4 py-6">
           <div className="text-center space-y-2">
-            <Badge variant="secondary" className="bg-slate-700 dark:bg-slate-700 light:bg-slate-200 text-slate-200 dark:text-slate-200 light:text-slate-700">
+            <Badge variant="secondary" className="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200"></Badge>
               Exercício {currentExerciseIndex + 1}/{totalExercises}
             </Badge>
             <h1 className="text-2xl font-bold">{currentExercise.name}</h1>
-            <div className="text-3xl font-bold text-cyan-400 dark:text-cyan-400 light:text-cyan-600">
+            <div className="text-3xl font-bold text-cyan-600 dark:text-cyan-400"></div>
               Série {currentSet} de {currentExercise.sets}
             </div>
-            <p className="text-slate-300 dark:text-slate-300 light:text-slate-600 text-lg">{currentExercise.reps} repetições</p>
+            <p className="text-slate-600 dark:text-slate-300 text-lg">{currentExercise.reps} repetições</p>
           </div>
 
           {/* Progress Bar */}
           <div className="mt-4">
-            <Progress value={progressPercentage} className="h-2 bg-slate-700 dark:bg-slate-700 light:bg-slate-300" />
+            <Progress value={progressPercentage} className="h-2 bg-slate-300 dark:bg-slate-700" />
           </div>
         </div>
       </div>
