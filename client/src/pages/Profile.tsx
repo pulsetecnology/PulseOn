@@ -271,7 +271,7 @@ export default function Profile() {
       {/* Profile Header */}
       <Card className="w-full">
         <CardContent className="p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
+          <div className="flex flex-row items-start space-x-4">
             <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0">
               <AvatarImage 
                 src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
@@ -280,10 +280,10 @@ export default function Profile() {
                 {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 text-center sm:text-left min-w-0">
+            <div className="flex-1 text-left min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold truncate">{user.name || 'Usuário'}</h1>
               <p className="text-muted-foreground text-sm sm:text-base truncate">{user.email}</p>
-              <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-muted-foreground mt-1">
+              <div className="flex items-center justify-start gap-2 text-sm text-muted-foreground mt-1">
                 <User className="h-4 w-4 flex-shrink-0" />
                 <span>{userAge} anos • {user.gender === 'female' ? 'Feminino' : user.gender === 'male' ? 'Masculino' : 'Não informado'}</span>
               </div>
