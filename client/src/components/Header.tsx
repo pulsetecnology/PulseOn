@@ -54,17 +54,6 @@ export default function Header() {
             )}
           </Button>
           
-          {user && (
-            <Avatar className="h-8 w-8 animate-pulse-icon cursor-pointer" onClick={() => setLocation("/profile")}>
-              <AvatarImage 
-                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=32`} 
-              />
-              <AvatarFallback className="text-xs">
-                {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
-              </AvatarFallback>
-            </Avatar>
-          )}
-          
           <Button
             variant="ghost"
             size="icon"
@@ -73,6 +62,17 @@ export default function Header() {
           >
             <LogOut className="h-4 w-4" />
           </Button>
+          
+          {user && (
+            <Avatar className="h-8 w-8 cursor-pointer" onClick={() => setLocation("/profile")}>
+              <AvatarImage 
+                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=32`} 
+              />
+              <AvatarFallback className="text-xs">
+                {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
+              </AvatarFallback>
+            </Avatar>
+          )}
         </div>
       </div>
     </header>
