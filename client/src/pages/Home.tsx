@@ -14,7 +14,9 @@ export default function Home() {
       {/* Welcome Section */}
       <div>
         <h1 className="text-2xl font-bold mb-2">Olá, {user?.name?.split(' ')[0] || 'usuário'}!</h1>
-        <p className="text-muted-foreground">Pronto para o seu treino de hoje?</p>
+        <p className="text-muted-foreground">
+          {user?.gender === "female" ? "Pronta" : "Pronto"} para o seu treino de hoje?
+        </p>
       </div>
 
       {/* Quick Stats */}
