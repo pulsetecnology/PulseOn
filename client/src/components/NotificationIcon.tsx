@@ -29,12 +29,12 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
       textColor: "text-white"
     },
     set_completion: { // Add configuration for set_completion
-      icon: () => <HeartRateIcon className="w-4 h-4" />,
+      icon: () => <HeartRateIcon className="w-4 h-4" animated={true} />,
       bgColor: "bg-transparent",
       textColor: "text-blue-400"
     },
     workout_progress: { // Add configuration for workout progress
-      icon: () => <HeartRateIcon className="w-4 h-4" />,
+      icon: () => <HeartRateIcon className="w-4 h-4" animated={true} />,
       bgColor: "bg-transparent",
       textColor: "text-blue-400"
     }

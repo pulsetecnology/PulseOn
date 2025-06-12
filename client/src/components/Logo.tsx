@@ -6,8 +6,8 @@ export default function Logo({ className = "text-xl" }: { className?: string }) 
   const { notification } = useGlobalNotification();
   
   return (
-    <div className={`flex items-center space-x-3 ${className}`}>
-      <div className="w-10 h-10 relative flex items-center justify-center">
+    <div className={`flex items-center space-x-2 ${className}`}>
+      <div className="w-12 h-12 relative flex items-center justify-center">
         {notification.type && notification.isVisible ? (
           <NotificationIcon
             type={notification.type}
@@ -15,7 +15,7 @@ export default function Logo({ className = "text-xl" }: { className?: string }) 
             className="w-8 h-8"
           />
         ) : (
-          <HeartRateIcon className="h-6 w-6 text-brand-cyan" />
+          <HeartRateIcon className="h-8 w-8 text-brand-cyan" animated={false} />
         )}
       </div>
       <div className="flex items-center">

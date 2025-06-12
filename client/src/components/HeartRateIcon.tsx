@@ -1,5 +1,5 @@
 
-export default function HeartRateIcon({ className = "w-4 h-4" }: { className?: string }) {
+export default function HeartRateIcon({ className = "w-4 h-4", animated = false }: { className?: string; animated?: boolean }) {
   return (
     <div className={`relative ${className}`}>
       <svg
@@ -14,7 +14,7 @@ export default function HeartRateIcon({ className = "w-4 h-4" }: { className?: s
           stroke="currentColor" 
           strokeWidth="2" 
           fill="none"
-          className="animate-heartbeat-line"
+          className={animated ? "animate-heartbeat-line" : ""}
         />
         {/* Ponto pulsante no final */}
         <circle 
@@ -22,7 +22,7 @@ export default function HeartRateIcon({ className = "w-4 h-4" }: { className?: s
           cy="12" 
           r="2" 
           fill="currentColor"
-          className="animate-pulse"
+          className={animated ? "animate-pulse" : ""}
         />
       </svg>
       
