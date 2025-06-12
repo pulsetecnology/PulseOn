@@ -168,12 +168,12 @@ export default function ActiveWorkout() {
       </div>
 
       {/* Content Area - Fixed height, no scroll jump */}
-      <div className="flex-1 px-4 py-6 flex items-center justify-center">
+      <div className="flex-1 px-4 py-3 flex items-center justify-center">
         <div className="w-full max-w-md">
           {/* During Exercise Phase */}
           {!isResting && !showSetFeedback && (
             <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-              <CardContent className="p-8 text-center">
+              <CardContent className="p-6 text-center">
                 <Timer className="h-12 w-12 mx-auto mb-4 text-cyan-600" />
                 <h2 className="text-xl font-semibold mb-2">Execute o exercício</h2>
                 <p className="text-muted-foreground mb-6">
@@ -194,7 +194,7 @@ export default function ActiveWorkout() {
           {/* Rest Timer Phase */}
           {isResting && (
             <Card className="bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-              <CardContent className="p-8 text-center">
+              <CardContent className="p-6 text-center">
                 <div className="text-6xl font-bold text-orange-600 dark:text-orange-400 mb-4">
                   {formatTime(restTime)}
                 </div>
@@ -235,11 +235,11 @@ export default function ActiveWorkout() {
 
           {/* Set Feedback Phase */}
           {showSetFeedback && (
-            <div className="space-y-4 max-h-full overflow-y-auto">
+            <div className="space-y-3 max-h-full overflow-y-auto">
               {/* Weight Input */}
               <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4 text-center text-lg">Peso utilizado</h3>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold mb-3 text-center">Peso utilizado</h3>
                   <div className="flex items-center space-x-4">
                     <Button 
                       variant="outline" 
@@ -272,9 +272,9 @@ export default function ActiveWorkout() {
 
               {/* Effort Level */}
               <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4 text-center text-lg">Nível de esforço</h3>
-                  <div className="space-y-4">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold mb-3 text-center">Nível de esforço</h3>
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <span>Fácil</span>
                       <span>Intenso</span>
