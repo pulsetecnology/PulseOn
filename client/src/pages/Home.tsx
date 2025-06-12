@@ -12,8 +12,8 @@ export default function Home() {
   // Simulate user onboarding status and workout data
   const hasCompletedOnboarding = user?.onboardingCompleted || false;
   const hasWorkoutsAvailable = true; // This would come from API
-  const completedWorkouts = 24;
-  const currentStreak = 7;
+  const completedWorkouts = hasCompletedOnboarding ? 24 : 0;
+  const currentStreak = hasCompletedOnboarding ? 7 : 0;
 
   return (
     <div className="px-4 py-4 space-y-4">
@@ -87,22 +87,32 @@ export default function Home() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <Card>
+        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">Treinos Concluídos</span>
               <Dumbbell className="h-3 w-3 text-primary" />
             </div>
-            <span className="text-xl font-bold">24</span>
+            <span className="text-xl font-bold">{completedWorkouts}</span>
+            {completedWorkouts > 0 && (
+              <Badge variant="secondary" className="mt-1 text-xs">
+                +3 esta semana
+              </Badge>
+            )}
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">Sequência Atual</span>
-              <Flame className="h-3 w-3 text-error" />
+              <Flame className="h-3 w-3 text-orange-500" />
             </div>
-            <span className="text-xl font-bold">7 dias</span>
+            <span className="text-xl font-bold">{currentStreak} dias</span>
+            {currentStreak >= 7 && (
+              <Badge variant="destructive" className="mt-1 text-xs">
+                Em chamas!
+              </Badge>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -118,7 +128,7 @@ export default function Home() {
             </div>
             <p className="text-muted-foreground mb-3 text-sm">5 exercícios • Nível Intermediário</p>
             <Link href="/active-workout">
-              <Button className="w-full py-2 bg-primary hover:bg-primary/90 font-semibold">
+              <Button className="w-full py-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 font-semibold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
                 <Play className="mr-2 h-4 w-4" />
                 Iniciar Treino
               </Button>

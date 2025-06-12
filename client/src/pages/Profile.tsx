@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { User, Settings, Calendar, Activity, Target, Dumbbell } from "lucide-react";
+import { User, Settings, Calendar, Activity, Target, Dumbbell, Camera } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { apiRequest } from "@/lib/queryClient";
 
 interface UserData {
@@ -202,14 +203,82 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto p-4 space-y-6 max-w-4xl">
+      {/* Profile Header with Avatar */}
+      <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
+        <CardContent className="p-6">
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <Avatar className="h-20 w-20 border-4 border-primary/20">
+                <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                  {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <Button
+                size="icon"
+                variant="secondary"
+                className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full"
+              >
+                <Camera className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold">{user.name || 'Usuário'}</h1>
+              <p className="text-muted-foreground">{user.email}</p>
+              {userAge && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {userAge} anos • {user.gender === 'female' ? 'Feminino' : user.gender === 'male' ? 'Masculino' : 'Não informado'}
+                </p>
+              )}
+            </div>
+            <div className="text-right">
+              {!isEditing ? (
+                <Button 
+                  onClick={() => setIsEditing(true)} 
+                  variant="outline"
+                  className="transition-all duration-200 hover:scale-105 active:scale-95"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
+              ) : (
+                <div className="space-x-2">
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={updateMutation.isPending}
+                    className="transition-all duration-200 hover:scale-105 active:scale-95"
+                  >
+                    {updateMutation.isPending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Salvando...
+                      </>
+                    ) : (
+                      "Salvar"
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={() => setIsEditing(false)} 
+                    variant="outline"
+                    className="transition-all duration-200 hover:scale-105 active:scale-95"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500">
             <User className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Perfil</h1>
-            <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
+            <h2 className="text-xl font-semibold">Informações Detalhadas</h2>
+            <p className="text-muted-foreground">Configure seu perfil para treinos personalizados</p>
           </div>
         </div>
 
