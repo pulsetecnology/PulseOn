@@ -12,7 +12,7 @@ export default function HeartRateIcon({ className = "w-4 h-4", animated = false 
         <path 
           d="M2 12h4l2-4 2 4 2-6 2 6 2-3 2 3h4" 
           stroke="currentColor" 
-          strokeWidth="2" 
+          strokeWidth="1.5" 
           fill="none"
           className={animated ? "animate-heartbeat-line" : ""}
         />
