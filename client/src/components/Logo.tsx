@@ -15,7 +15,7 @@ export default function Logo({ className = "text-xl" }: { className?: string }) 
             className="w-10 h-10"
           />
         ) : (
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center animate-pulse-icon">
             <svg
               className="w-6 h-6 text-white"
               viewBox="0 0 24 24"
