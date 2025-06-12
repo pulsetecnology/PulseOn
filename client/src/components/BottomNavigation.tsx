@@ -2,13 +2,6 @@ import { Home, Dumbbell, BarChart3, User } from "lucide-react";
 import { useLocation } from "wouter";
 import { Link } from "wouter";
 
-const navItems = [
-  { path: "/", icon: Home, label: "Início" },
-  { path: "/workout", icon: Dumbbell, label: "Treino" },
-  { path: "/history", icon: BarChart3, label: "Histórico" },
-  { path: "/profile", icon: User, label: "Perfil" },
-];
-
 export default function BottomNavigation() {
   const [location] = useLocation();
 
@@ -24,11 +17,11 @@ export default function BottomNavigation() {
     style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-around py-2">
         {navItems.map((item) => {
-          const isActive = location === item.path;
+          const isActive = item.exact ? location === item.href : location.startsWith(item.href);
           const Icon = item.icon;
 
           return (
-            <Link key={item.path} href={item.path}>
+            <Link key={item.href} href={item.href}>
               <button
                 className={`flex flex-col items-center py-2 px-4 transition-colors ${
                   isActive ? "text-primary" : "text-muted-foreground"
