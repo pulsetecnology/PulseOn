@@ -4,14 +4,11 @@ import { useTheme } from "./ThemeProvider";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 import { useLocation } from "wouter";
 import Logo from "./Logo";
-import { NotificationIcon } from "./NotificationIcon";
-import { useGlobalNotification } from "./NotificationProvider";
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const { logout } = useSimpleAuth();
   const [, setLocation] = useLocation();
-  const { notification } = useGlobalNotification();
 
   const handleLogout = () => {
     logout();
@@ -25,12 +22,6 @@ export default function Header() {
         <Logo />
 
         <div className="flex items-center space-x-3">
-          {notification.type && (
-            <NotificationIcon
-              type={notification.type}
-              isVisible={notification.isVisible}
-            />
-          )}
           <Button
             variant="ghost"
             size="icon"

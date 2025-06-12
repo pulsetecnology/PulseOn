@@ -35,14 +35,14 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
   return (
     <div 
       className={cn(
-        "flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 ease-in-out",
+        "flex items-center justify-center rounded-full transition-all duration-300 ease-in-out",
         config.bgColor,
         config.textColor,
         isVisible ? "animate-in fade-in-50 zoom-in-95" : "animate-out fade-out-50 zoom-out-95",
-        className
+        className || "w-8 h-8"
       )}
     >
-      <IconComponent className="w-4 h-4" />
+      <IconComponent className={className?.includes("w-8") ? "w-4 h-4" : "w-4 h-4"} />
     </div>
   );
 }

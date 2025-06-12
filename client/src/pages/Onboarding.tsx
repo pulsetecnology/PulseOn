@@ -12,9 +12,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
 import { onboardingSchema, type OnboardingData } from "@shared/schema";
-import { Scale, Dumbbell, Heart, Check, User } from "lucide-react";
+import { Scale, Dumbbell, Heart, Check, User, Moon, Sun } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/ThemeProvider";
 
 const TOTAL_STEPS = 6;
 
@@ -24,6 +25,7 @@ export default function Onboarding() {
   const [, setLocation] = useLocation();
   const { showSuccess, showError } = useGlobalNotification();
   const queryClient = useQueryClient();
+  const { theme, setTheme } = useTheme();
 
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
@@ -117,9 +119,23 @@ export default function Onboarding() {
 
   return (
     <div className="px-4 py-6">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold mb-2">Vamos personalizar seu treino!</h1>
-        <p className="text-muted-foreground">Responda algumas perguntas para criarmos o plano perfeito</p>
+      <div className="flex justify-between items-center mb-8">
+        <div className="text-center flex-1">
+          <h1 className="text-2xl font-bold mb-2">Vamos personalizar seu treino!</h1>
+          <p className="text-muted-foreground">Responda algumas perguntas para criarmos o plano perfeito</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          className="h-10 w-10"
+        >
+          {theme === "light" ? (
+            <Moon className="h-4 w-4" />
+          ) : (
+            <Sun className="h-4 w-4" />
+          )}
+        </Button>
       </div>
 
       {/* Progress Bar */}
