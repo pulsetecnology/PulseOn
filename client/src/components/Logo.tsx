@@ -4,7 +4,7 @@ import HeartRateIcon from "./HeartRateIcon";
 
 export default function Logo({ className = "text-xl" }: { className?: string }) {
   const { notification } = useGlobalNotification();
-  
+
   return (
     <div className={`flex items-center space-x-1 ${className}`}>
       <div className="w-14 h-14 relative flex items-center justify-center">
