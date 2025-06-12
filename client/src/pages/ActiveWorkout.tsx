@@ -156,14 +156,14 @@ export default function ActiveWorkout() {
   return (
     <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
       {/* Fixed Header - Always visible */}
-      <div className="flex-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-lg dark:shadow-2xl dark:shadow-black/50 border-b border-slate-200 dark:border-slate-700"></div>
+      <div className="flex-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-lg dark:shadow-2xl dark:shadow-black/50 border-b border-slate-200 dark:border-slate-700">
         <div className="px-4 py-6">
           <div className="text-center space-y-2">
-            <Badge variant="secondary" className="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200"></Badge>
+            <Badge variant="secondary" className="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
               Exercício {currentExerciseIndex + 1}/{totalExercises}
             </Badge>
             <h1 className="text-2xl font-bold">{currentExercise.name}</h1>
-            <div className="text-3xl font-bold text-cyan-600 dark:text-cyan-400"></div>
+            <div className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">
               Série {currentSet} de {currentExercise.sets}
             </div>
             <p className="text-slate-600 dark:text-slate-300 text-lg">{currentExercise.reps} repetições</p>
