@@ -31,6 +31,16 @@ export default function Workout() {
         </CardContent>
       </Card>
 
+      {/* Start Complete Workout Button */}
+      <div className="pt-4">
+        <Link href="/active-workout">
+          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 text-lg font-semibold">
+            <Play className="mr-2 h-5 w-5" />
+            Iniciar treino completo
+          </Button>
+        </Link>
+      </div>
+
       {/* Exercise List */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Exercícios</h2>
@@ -77,16 +87,6 @@ export default function Workout() {
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      {/* Start Workout Button */}
-      <div className="pt-4">
-        <Link href="/active-workout">
-          <Button className="w-full bg-gradient-to-r from-success to-primary text-white py-4 text-lg font-semibold">
-            <Play className="mr-2 h-5 w-5" />
-            Começar Treino
-          </Button>
-        </Link>
       </div>
     </div>
   );
