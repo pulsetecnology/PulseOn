@@ -101,6 +101,9 @@ export class SQLiteStorage implements IStorage {
 
     // Add migration to add custom_equipment column if it doesn't exist
     this.addCustomEquipmentColumn();
+    
+    // Add migration to add avatar_url column if it doesn't exist
+    this.addAvatarUrlColumn();
 
     // Seed test user if it doesn't exist
     this.seedTestUser();
@@ -119,6 +122,22 @@ export class SQLiteStorage implements IStorage {
       }
     } catch (error) {
       console.error('Error adding custom_equipment column:', error);
+    }
+  }
+
+  private addAvatarUrlColumn() {
+    try {
+      // Check if avatar_url column exists
+      const columns = this.db.prepare("PRAGMA table_info(users)").all();
+      const hasAvatarUrl = columns.some((col: any) => col.name === 'avatar_url');
+      
+      if (!hasAvatarUrl) {
+        console.log('Adding avatar_url column to users table...');
+        this.db.exec('ALTER TABLE users ADD COLUMN avatar_url TEXT');
+        console.log('avatar_url column added successfully');
+      }
+    } catch (error) {
+      console.error('Error adding avatar_url column:', error);
     }
   }
 
@@ -169,6 +188,7 @@ export class SQLiteStorage implements IStorage {
       customEquipment: row.custom_equipment,
       physicalRestrictions: row.physical_restrictions,
       onboardingCompleted: Boolean(row.onboarding_completed),
+      avatarUrl: row.avatar_url,
       createdAt: new Date(row.created_at)
     };
   }
@@ -229,7 +249,8 @@ export class SQLiteStorage implements IStorage {
                      key === 'availableEquipment' ? 'available_equipment' :
                      key === 'customEquipment' ? 'custom_equipment':
                      key === 'physicalRestrictions' ? 'physical_restrictions' :
-                     key === 'onboardingCompleted' ? 'onboarding_completed' : key;
+                     key === 'onboardingCompleted' ? 'onboarding_completed' :
+                     key === 'avatarUrl' ? 'avatar_url' : key;
 
         setParts.push(`${dbKey} = ?`);
 

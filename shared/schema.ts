@@ -130,7 +130,7 @@ export const onboardingSchema = z.object({
 });
 
 export const profileUpdateSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório").optional(),
+  name: z.string().optional(),
   birthDate: z.string().optional(),
   age: z.number().optional(),
   weight: z.number().optional(),
