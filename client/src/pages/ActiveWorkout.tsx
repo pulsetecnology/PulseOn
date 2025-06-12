@@ -36,7 +36,7 @@ export default function ActiveWorkout() {
     if (restTime === 0 && isTimerRunning) {
       setIsTimerRunning(false);
       setIsResting(false);
-      showSuccess();
+      showWorkoutSuccess();
     }
   }, [isTimerRunning, restTime, showSuccess]);
 
@@ -52,7 +52,7 @@ export default function ActiveWorkout() {
     setShowSetFeedback(true);
 
     // Show workout progress notification
-    showSuccess();
+    showWorkoutSuccess();
 
     setTimeout(() => {
       setShowSetFeedback(false);
@@ -63,7 +63,7 @@ export default function ActiveWorkout() {
         setRestTime(currentExercise.restTime);
         setIsTimerRunning(true);
         // Show set completion notification
-        showSuccess();
+        showWorkoutSuccess();
       } else {
         // Move to next exercise or complete workout
         if (currentExerciseIndex < sampleExercises.length - 1) {
@@ -71,10 +71,10 @@ export default function ActiveWorkout() {
           setCurrentSet(1);
           setWeight(sampleExercises[currentExerciseIndex + 1].suggestedWeight || 40);
           setEffortLevel([7]);
-          showSuccess();
+          showWorkoutSuccess();
         } else {
           setIsWorkoutComplete(true);
-          showSuccess();
+          showWorkoutSuccess();
         }
       }
     }, 2000);
@@ -87,7 +87,7 @@ export default function ActiveWorkout() {
       setWeight(sampleExercises[currentExerciseIndex + 1].suggestedWeight || 40);
       setEffortLevel([7]);
       setShowSetFeedback(false);
-      showWarning();
+      showWorkoutWarning();
     } else {
       setIsWorkoutComplete(true);
     }
