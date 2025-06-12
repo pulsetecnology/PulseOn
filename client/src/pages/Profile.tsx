@@ -25,6 +25,7 @@ interface UserData {
   availableEquipment?: string[];
   customEquipment?: string;
   physicalRestrictions?: string;
+  profilePhoto?: string;
   onboardingCompleted: boolean;
 }
 
@@ -99,6 +100,32 @@ export default function Profile() {
       setFormData(user);
     }
   }, [user]);
+
+  const photoUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('photo', file);
+      
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/profile/photo", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error("Failed to upload photo");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      showSuccess();
+    },
+    onError: () => {
+      showError();
+    }
+  });
 
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<UserData>) => {
@@ -178,6 +205,13 @@ export default function Profile() {
     setFormData({ ...formData, availableEquipment: updatedEquipment });
   };
 
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      photoUploadMutation.mutate(file);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -209,17 +243,34 @@ export default function Profile() {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Avatar className="h-20 w-20 border-4 border-primary/20">
-                <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} />
+                <AvatarImage src={
+                  user.profilePhoto 
+                    ? user.profilePhoto 
+                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`
+                } />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xl">
                   {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
                 </AvatarFallback>
               </Avatar>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+                id="photo-upload"
+              />
               <Button
                 size="icon"
                 variant="secondary"
                 className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full"
+                onClick={() => document.getElementById('photo-upload')?.click()}
+                disabled={photoUploadMutation.isPending}
               >
-                <Camera className="h-4 w-4" />
+                {photoUploadMutation.isPending ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
               </Button>
             </div>
             <div className="flex-1">

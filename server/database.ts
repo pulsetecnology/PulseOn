@@ -1,4 +1,3 @@
-
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
@@ -78,14 +77,14 @@ export function initializeDatabase() {
 
     // Check if test user exists
     const existingUser = sqlite.prepare("SELECT id FROM users WHERE email = ?").get("teste@pulseon.com");
-    
+
     if (!existingUser) {
       // Insert test user
       const insertUser = sqlite.prepare(`
         INSERT INTO users (email, password, name, birth_date, age, weight, height, gender, fitness_goal, experience_level, weekly_frequency, available_equipment, physical_restrictions, onboarding_completed)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
-      
+
       insertUser.run(
         "teste@pulseon.com",
         "$2b$12$C2oOEvCLckSf6.DY8n/tq.RB.vkIwSxamZFMbw.Z/W9/EbHXcV6xa", // "123456"
@@ -102,7 +101,7 @@ export function initializeDatabase() {
         "Nenhuma",
         1
       );
-      
+
       console.log("Test user created in database");
     }
 

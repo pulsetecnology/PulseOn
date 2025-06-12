@@ -53,10 +53,10 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
         className || "w-8 h-8"
       )}
     >
-      {typeof IconComponent === 'function' && (type === 'workout_progress' || type === 'set_completion') ? (
-        <IconComponent />
+      {type === 'workout_progress' || type === 'set_completion' ? (
+        <FitnessIcon className="w-4 h-4" animated={true} />
       ) : (
-        <IconComponent className={className?.includes("w-8") ? "w-4 h-4" : "w-4 h-4"} />
+        <IconComponent className="w-4 h-4" />
       )}
     </div>
   );

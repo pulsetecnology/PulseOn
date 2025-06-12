@@ -6,6 +6,15 @@ import { z } from "zod";
 import { hashPassword, verifyPassword, generateJWT, sanitizeUser } from "./auth";
 import { authenticateToken } from "./middleware";
 import { requestWorkoutFromAI } from "./n8n-service";
+import { Request, Response } from "express";
+import { db } from "./database";
+import { users } from "./database";
+import { eq } from "drizzle-orm";
+import { requireAuth } from "./middleware";
+import { generateWorkout } from "./n8n-service";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // New simplified auth setup route
@@ -14,7 +23,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = req.body;
       console.log("Setup attempt for email:", userData.email);
       console.log("Setup data received:", JSON.stringify(userData, null, 2));
-      
+
       // Check if email already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
@@ -24,7 +33,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Hash password
       const hashedPassword = await hashPassword(userData.password);
-      
+
       // Create user with all data
       const user = await storage.createUser({
         email: userData.email,
@@ -42,14 +51,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         physicalRestrictions: userData.physicalRestrictions || null,
         onboardingCompleted: true
       });
-      
+
       console.log("User created successfully:", user.email, "ID:", user.id);
       console.log("Created user data:", JSON.stringify(user, null, 2));
 
       // Generate JWT token
       const token = generateJWT(user);
       const sanitizedUser = sanitizeUser(user);
-      
+
       res.status(201).json({
         message: "Usuário criado com sucesso",
         user: sanitizedUser,
@@ -65,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const userData = registerSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
@@ -100,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const loginData = loginSchema.parse(req.body);
       console.log("Login attempt for email:", loginData.email);
-      
+
       // Find user by email
       const user = await storage.getUserByEmail(loginData.email);
       console.log("User found:", user ? user.email : "not found");
@@ -137,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: "Usuário não encontrado" });
       }
-      
+
       // Remove password from response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
@@ -156,11 +165,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.id);
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Don't send password
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
@@ -172,19 +181,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/users/:id", authenticateToken, async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      
+
       // Ensure user can only update their own profile
       if (req.user!.id !== userId) {
         return res.status(403).json({ message: "Acesso negado" });
       }
-      
+
       const updateData = req.body;
       const updatedUser = await storage.updateUser(userId, updateData);
-      
+
       if (!updatedUser) {
         return res.status(404).json({ message: "Usuário não encontrado" });
       }
-      
+
       const sanitizedUser = sanitizeUser(updatedUser);
       res.json({ 
         message: "Perfil atualizado com sucesso",
@@ -202,7 +211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userData = insertUserSchema.parse(req.body);
       const user = await storage.createUser(userData);
-      
+
       // Don't send password
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
@@ -218,12 +227,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.id);
       const updates = insertUserSchema.partial().parse(req.body);
-      
+
       const user = await storage.updateUser(userId, updates);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Don't send password
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
@@ -240,10 +249,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const onboardingData = onboardingSchema.parse(req.body);
       const userId = req.user!.id;
-      
+
       // Update user with onboarding data  
       const updatedUser = await storage.updateUser(userId, onboardingData);
-      
+
       if (!updatedUser) {
         return res.status(404).json({ message: "Usuário não encontrado" });
       }
@@ -264,7 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Request workout from AI
       try {
         const aiWorkout = await requestWorkoutFromAI(aiRequestData);
-        
+
         // Create workout from AI response
         const workout = await storage.createWorkout({
           userId: updatedUser.id,
@@ -300,14 +309,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/profile/update", authenticateToken, async (req: Request, res: Response) => {
     try {
       console.log('Profile update request body:', req.body);
-      
+
       const updateData = profileUpdateSchema.parse(req.body);
       const userId = req.user!.id;
-      
+
       console.log('Parsed update data:', updateData);
-      
+
       const updatedUser = await storage.updateUser(userId, updateData);
-      
+
       if (!updatedUser) {
         return res.status(404).json({ message: "Usuário não encontrado" });
       }
@@ -348,11 +357,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const workoutId = parseInt(req.params.id);
       const workout = await storage.getWorkout(workoutId);
-      
+
       if (!workout) {
         return res.status(404).json({ message: "Workout not found" });
       }
-      
+
       res.json(workout);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
@@ -379,7 +388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(400).json({ message: "userId is required" });
       }
-      
+
       const sessions = await storage.getWorkoutSessions(userId);
       res.json(sessions);
     } catch (error) {
@@ -404,18 +413,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const sessionId = parseInt(req.params.id);
       const updates = insertWorkoutSessionSchema.partial().parse(req.body);
-      
+
       const session = await storage.updateWorkoutSession(sessionId, updates);
       if (!session) {
         return res.status(404).json({ message: "Workout session not found" });
       }
-      
+
       res.json(session);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Configure multer for file uploads
+  const storageConfig = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = path.join(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      const userId = (req as any).userId;
+      const extension = path.extname(file.originalname);
+      cb(null, `profile-${userId}-${Date.now()}${extension}`);
+    }
+  });
+
+  const upload = multer({ 
+    storage: storageConfig,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Tipo de arquivo não permitido'));
+      }
+    }
+  });
+
+  // Health check endpoint
+  app.get("/api/health", (req: Request, res: Response) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // Upload profile photo
+  app.post("/api/profile/photo", authenticateToken, upload.single('photo'), async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user!.id;
+
+      if (!req.file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      const photoUrl = `/api/uploads/${req.file.filename}`;
+
+      // Update user's profile photo in database
+      await db.update(users)
+        .set({ profilePhoto: photoUrl })
+        .where(eq(users.id, userId));
+
+      res.json({ 
+        message: "Foto de perfil atualizada com sucesso",
+        photoUrl 
+      });
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Serve uploaded files
+  app.get("/api/uploads/:filename", (req: Request, res: Response) => {
+    const filename = req.params.filename;
+    const filepath = path.join(process.cwd(), 'uploads', filename);
+
+    if (fs.existsSync(filepath)) {
+      res.sendFile(filepath);
+    } else {
+      res.status(404).json({ message: "Arquivo não encontrado" });
     }
   });
 
