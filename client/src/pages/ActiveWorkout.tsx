@@ -300,21 +300,21 @@ export default function ActiveWorkout() {
               </Card>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <Button 
                   onClick={completeSet}
-                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
+                  className="w-full py-3 font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
                 >
                   {currentSet < currentExercise.sets ? "Começar próxima série" : 
                    currentExerciseIndex < totalExercises - 1 ? "Próximo exercício" : "Finalizar treino"}
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <Button 
                     variant="outline" 
                     onClick={skipExercise}
-                    className="py-3 font-semibold border-2 border-slate-300 dark:border-slate-600"
+                    className="py-2 font-semibold border-2 border-slate-300 dark:border-slate-600"
                   >
                     <SkipForward className="mr-2 h-4 w-4" />
                     Pular exercício
@@ -322,7 +322,7 @@ export default function ActiveWorkout() {
                   <Button 
                     variant="outline" 
                     onClick={() => setShowSetFeedback(false)}
-                    className="py-3 font-semibold border-2 border-slate-300 dark:border-slate-600"
+                    className="py-2 font-semibold border-2 border-slate-300 dark:border-slate-600"
                   >
                     <AlertCircle className="mr-2 h-4 w-4" />
                     Finalizar exercício
