@@ -9,6 +9,9 @@ const sqlite = new Database("pulseon.db");
 // Create drizzle instance
 export const db = drizzle(sqlite, { schema });
 
+// Export tables from schema
+export const { users, workouts, workoutSessions } = schema;
+
 // Initialize database with test user
 export function initializeDatabase() {
   try {
