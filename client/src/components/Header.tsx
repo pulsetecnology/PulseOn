@@ -3,12 +3,31 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Logo from "./Logo";
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const { logout } = useSimpleAuth();
   const [, setLocation] = useLocation();
+
+  const { data: user } = useQuery({
+    queryKey: ["/api/auth/me"],
+    queryFn: async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) throw new Error("No token");
+
+      const response = await fetch("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch user");
+      return response.json();
+    }
+  });
 
   const handleLogout = () => {
     logout();
@@ -34,6 +53,18 @@ export default function Header() {
               <Sun className="h-4 w-4" />
             )}
           </Button>
+          
+          {user && (
+            <Avatar className="h-8 w-8 animate-pulse-icon cursor-pointer" onClick={() => setLocation("/profile")}>
+              <AvatarImage 
+                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=32`} 
+              />
+              <AvatarFallback className="text-xs">
+                {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
+              </AvatarFallback>
+            </Avatar>
+          )}
+          
           <Button
             variant="ghost"
             size="icon"
