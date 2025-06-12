@@ -1,6 +1,6 @@
-import { Heart } from "lucide-react";
 import { NotificationIcon } from "./NotificationIcon";
 import { useGlobalNotification } from "./NotificationProvider";
+import HeartRateIcon from "./HeartRateIcon";
 
 export default function Logo({ className = "text-xl" }: { className?: string }) {
   const { notification } = useGlobalNotification();
@@ -16,7 +16,7 @@ export default function Logo({ className = "text-xl" }: { className?: string }) 
               className="w-8 h-8"
             />
           ) : (
-            <Heart className="h-4 w-4 text-slate-900 fill-current" />
+            <HeartRateIcon className="h-4 w-4 text-slate-900" />
           )}
         </div>
       </div>

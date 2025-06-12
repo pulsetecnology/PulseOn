@@ -1,7 +1,8 @@
 import { Check, X, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationType } from "@/hooks/useNotification";
-import DumbbellIcon from "./DumbbellIcon"; // Import the DumbbellIcon component
+import DumbbellIcon from "./DumbbellIcon";
+import PulsingHeartIcon from "./PulsingHeartIcon";
 
 interface NotificationIconProps {
   type: NotificationType;
@@ -32,6 +33,11 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
       icon: DumbbellIcon,
       bgColor: "bg-blue-500",
       textColor: "text-white"
+    },
+    workout_progress: { // Add configuration for workout progress
+      icon: PulsingHeartIcon,
+      bgColor: "bg-transparent",
+      textColor: "text-red-500"
     }
   };
 

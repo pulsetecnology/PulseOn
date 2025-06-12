@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-export type NotificationType = "success" | "error" | "warning";
+export type NotificationType = 'success' | 'error' | 'warning' | 'set_completion' | 'workout_progress';
 
 interface NotificationState {
   type: NotificationType | null;
@@ -15,7 +15,7 @@ export function useNotification() {
 
   const showNotification = useCallback((type: NotificationType, duration = 3000) => {
     setNotification({ type, isVisible: true });
-    
+
     setTimeout(() => {
       setNotification({ type: null, isVisible: false });
     }, duration);
