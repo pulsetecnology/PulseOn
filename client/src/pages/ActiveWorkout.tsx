@@ -200,17 +200,15 @@ export default function ActiveWorkout() {
                   
                   <div className="grid grid-cols-2 gap-2">
                     <Button 
-                      variant="outline" 
                       onClick={skipExercise}
-                      className="py-2 text-sm font-semibold border-2 border-orange-400 dark:border-orange-500 bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900"
+                      className="py-2 text-sm font-semibold bg-orange-500 dark:bg-orange-600 text-white hover:bg-orange-600 dark:hover:bg-orange-700"
                     >
                       <SkipForward className="mr-1 h-4 w-4" />
                       Pular Exercício
                     </Button>
                     <Button 
-                      variant="outline" 
                       onClick={() => setIsWorkoutComplete(true)}
-                      className="py-2 text-sm font-semibold border-2 border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900"
+                      className="py-2 text-sm font-semibold bg-red-500 dark:bg-red-600 text-white hover:bg-red-600 dark:hover:bg-red-700"
                     >
                       <AlertCircle className="mr-1 h-4 w-4" />
                       Finalizar Treino
@@ -336,17 +334,15 @@ export default function ActiveWorkout() {
 
                 <div className="grid grid-cols-2 gap-1">
                   <Button 
-                    variant="outline" 
                     onClick={skipExercise}
-                    className="py-1 text-sm font-semibold border-2 border-orange-400 dark:border-orange-500 bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900"
+                    className="py-1 text-sm font-semibold bg-orange-500 dark:bg-orange-600 text-white hover:bg-orange-600 dark:hover:bg-orange-700"
                   >
                     <SkipForward className="mr-1 h-3 w-3" />
                     Pular
                   </Button>
                   <Button 
-                    variant="outline" 
                     onClick={() => setIsWorkoutComplete(true)}
-                    className="py-1 text-sm font-semibold border-2 border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900"
+                    className="py-1 text-sm font-semibold bg-red-500 dark:bg-red-600 text-white hover:bg-red-600 dark:hover:bg-red-700"
                   >
                     <AlertCircle className="mr-1 h-3 w-3" />
                     Finalizar
