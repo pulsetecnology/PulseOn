@@ -21,7 +21,7 @@ export default function ActiveWorkout() {
   const [showSetFeedback, setShowSetFeedback] = useState(false);
   const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
   const [completedSets, setCompletedSets] = useState<Array<{exerciseIndex: number, set: number, weight: number, effort: number}>>([]);
-  const { showSuccess, showWarning } = useGlobalNotification();
+  const { showSuccess, showWarning, showWorkoutSuccess, showWorkoutError, showWorkoutWarning } = useGlobalNotification();
   const [, setLocation] = useLocation();
 
   const currentExercise = sampleExercises[currentExerciseIndex];

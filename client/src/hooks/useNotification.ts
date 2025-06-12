@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-export type NotificationType = 'success' | 'error' | 'warning' | 'set_completion' | 'workout_progress';
+export type NotificationType = 'success' | 'error' | 'warning' | 'set_completion' | 'workout_progress' | 'workout_success' | 'workout_error' | 'workout_warning';
 
 interface NotificationState {
   type: NotificationType | null;
@@ -41,6 +41,18 @@ export function useNotification() {
     showNotification("set_completion", duration);
   }, [showNotification]);
 
+  const showWorkoutSuccess = useCallback((duration?: number) => {
+    showNotification("workout_success", duration);
+  }, [showNotification]);
+
+  const showWorkoutError = useCallback((duration?: number) => {
+    showNotification("workout_error", duration);
+  }, [showNotification]);
+
+  const showWorkoutWarning = useCallback((duration?: number) => {
+    showNotification("workout_warning", duration);
+  }, [showNotification]);
+
   return {
     notification,
     showSuccess,
@@ -48,5 +60,8 @@ export function useNotification() {
     showWarning,
     showWorkoutProgress,
     showSetCompletion,
+    showWorkoutSuccess,
+    showWorkoutError,
+    showWorkoutWarning,
   };
 }

@@ -1,7 +1,8 @@
 import { Check, X, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NotificationType } from "@/hooks/useNotification";
 import FitnessIcon from "./FitnessIcon";
+import WorkoutDumbbellIcon from "./WorkoutDumbbellIcon";
+import type { NotificationType } from "@/hooks/useNotification";
 
 interface NotificationIconProps {
   type: NotificationType;

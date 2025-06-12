@@ -9,6 +9,9 @@ interface NotificationContextType {
   showSuccess: (duration?: number) => void;
   showError: (duration?: number) => void;
   showWarning: (duration?: number) => void;
+  showWorkoutSuccess: (duration?: number) => void;
+  showWorkoutError: (duration?: number) => void;
+  showWorkoutWarning: (duration?: number) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -31,4 +34,4 @@ export function useGlobalNotification() {
   return context;
 }
 
-export type NotificationType = 'success' | 'error' | 'warning' | 'info' | 'set_completion';
+export type NotificationType = 'success' | 'error' | 'warning' | 'info' | 'set_completion' | 'workout_progress' | 'workout_success' | 'workout_error' | 'workout_warning';
