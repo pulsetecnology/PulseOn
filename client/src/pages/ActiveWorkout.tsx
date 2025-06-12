@@ -189,13 +189,34 @@ export default function ActiveWorkout() {
                   Concentre-se na execução correta dos movimentos
                 </p>
 
-                <Button 
-                  onClick={() => setShowSetFeedback(true)}
-                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
-                >
-                  Concluir Série
-                  <CheckCircle2 className="ml-2 h-5 w-5" />
-                </Button>
+                <div className="space-y-2">
+                  <Button 
+                    onClick={() => setShowSetFeedback(true)}
+                    className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
+                  >
+                    Concluir Série
+                    <CheckCircle2 className="ml-2 h-5 w-5" />
+                  </Button>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={skipExercise}
+                      className="py-2 text-sm font-semibold border-2 border-orange-400 dark:border-orange-500 bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900"
+                    >
+                      <SkipForward className="mr-1 h-4 w-4" />
+                      Pular Exercício
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsWorkoutComplete(true)}
+                      className="py-2 text-sm font-semibold border-2 border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900"
+                    >
+                      <AlertCircle className="mr-1 h-4 w-4" />
+                      Finalizar Treino
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -317,15 +338,15 @@ export default function ActiveWorkout() {
                   <Button 
                     variant="outline" 
                     onClick={skipExercise}
-                    className="py-1 text-sm font-semibold border-2 border-slate-300 dark:border-slate-600"
+                    className="py-1 text-sm font-semibold border-2 border-orange-400 dark:border-orange-500 bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900"
                   >
                     <SkipForward className="mr-1 h-3 w-3" />
                     Pular
                   </Button>
                   <Button 
                     variant="outline" 
-                    onClick={() => setShowSetFeedback(false)}
-                    className="py-1 text-sm font-semibold border-2 border-slate-300 dark:border-slate-600"
+                    onClick={() => setIsWorkoutComplete(true)}
+                    className="py-1 text-sm font-semibold border-2 border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900"
                   >
                     <AlertCircle className="mr-1 h-3 w-3" />
                     Finalizar
