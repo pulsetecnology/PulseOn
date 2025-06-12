@@ -1,14 +1,47 @@
 
 export default function HeartRateIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-      <path d="M8 10h1l1-2 1 2h1l1-2 1 2h1" stroke="currentColor" strokeWidth="1" fill="none"/>
-    </svg>
+    <div className={`relative ${className}`}>
+      <svg
+        className="w-full h-full text-blue-400"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Linha base da frequência cardíaca */}
+        <path 
+          d="M2 12h4l2-4 2 4 2-6 2 6 2-3 2 3h4" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          fill="none"
+          className="animate-heartbeat-line"
+        />
+        {/* Ponto pulsante no final */}
+        <circle 
+          cx="20" 
+          cy="12" 
+          r="2" 
+          fill="currentColor"
+          className="animate-pulse"
+        />
+      </svg>
+      
+      <style jsx>{`
+        @keyframes heartbeat-line {
+          0%, 100% { 
+            stroke-dasharray: 0, 100;
+            stroke-dashoffset: 0;
+          }
+          50% { 
+            stroke-dasharray: 50, 100;
+            stroke-dashoffset: -25;
+          }
+        }
+        
+        .animate-heartbeat-line {
+          animation: heartbeat-line 1.5s ease-in-out infinite;
+        }
+      `}</style>
+    </div>
   );
 }
