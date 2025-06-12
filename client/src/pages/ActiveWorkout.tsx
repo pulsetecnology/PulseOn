@@ -21,7 +21,7 @@ export default function ActiveWorkout() {
   const [showSetFeedback, setShowSetFeedback] = useState(false);
   const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
   const [completedSets, setCompletedSets] = useState<Array<{exerciseIndex: number, set: number, weight: number, effort: number}>>([]);
-  const { showSuccess, showWarning, showWorkoutProgress, showSetCompletion } = useGlobalNotification();
+  const { showSuccess, showWarning } = useGlobalNotification();
   const [, setLocation] = useLocation();
 
   const currentExercise = sampleExercises[currentExerciseIndex];
@@ -51,8 +51,8 @@ export default function ActiveWorkout() {
     setCompletedSets([...completedSets, newCompletedSet]);
     setShowSetFeedback(true);
 
-    // Show workout progress notification (pulsing heart)
-    showWorkoutProgress(2000);
+    // Show workout progress notification
+    showSuccess();
 
     setTimeout(() => {
       setShowSetFeedback(false);
@@ -63,7 +63,7 @@ export default function ActiveWorkout() {
         setRestTime(currentExercise.restTime);
         setIsTimerRunning(true);
         // Show set completion notification
-        showSetCompletion(1500);
+        showSuccess();
       } else {
         // Move to next exercise or complete workout
         if (currentExerciseIndex < sampleExercises.length - 1) {
@@ -71,10 +71,10 @@ export default function ActiveWorkout() {
           setCurrentSet(1);
           setWeight(sampleExercises[currentExerciseIndex + 1].suggestedWeight || 40);
           setEffortLevel([7]);
-          showWorkoutProgress(2000);
+          showSuccess();
         } else {
           setIsWorkoutComplete(true);
-          showSuccess("Treino concluído com sucesso!");
+          showSuccess();
         }
       }
     }, 2000);

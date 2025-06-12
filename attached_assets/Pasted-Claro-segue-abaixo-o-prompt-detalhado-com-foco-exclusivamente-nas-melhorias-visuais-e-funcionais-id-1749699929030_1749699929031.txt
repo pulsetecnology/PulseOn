@@ -1,0 +1,130 @@
+Claro, segue abaixo o prompt detalhado com foco exclusivamente nas melhorias visuais e funcionais identificadas na interface atual do PulseOn. Ele está no formato ideal para ser enviado ao Replit ou a qualquer colaborador responsável pela implementação:
+
+
+---
+
+🛠️ Prompt de Ajustes para o Projeto PulseOn – Fase de Refinamento Visual
+
+Olá! Este prompt reúne pontos de melhoria identificados na interface atual do PulseOn, com o objetivo de elevar a experiência visual, funcional e de usabilidade antes de avançarmos para a próxima fase.
+
+🎯 Objetivo Geral:
+
+Refinar a interface do PulseOn com foco em:
+
+Melhor feedback visual ao usuário,
+
+Consistência visual entre telas,
+
+Melhor direcionamento inicial ao abrir o app,
+
+Estrutura clara para o onboarding.
+
+
+
+---
+
+🔧 Ajustes Solicitados
+
+1. Feedback Visual em Botões e Abas
+
+Adicionar estados visuais claros para elementos interativos (botões, abas, cards), como:
+
+Hover (em versão desktop),
+
+Ativo/inativo (ex: botão da aba atual com cor diferente),
+
+Loading mínimo onde aplicável.
+
+
+Isso dá clareza ao usuário sobre onde ele está e o que está clicando.
+
+
+
+---
+
+2. Dashboard Inicial / Tela de Abertura
+
+Criar uma tela de boas-vindas ou painel inicial (Home) com conteúdo dinâmico.
+
+Exibir cards ou alertas como:
+
+"Complete seu onboarding",
+
+"Nenhum treino disponível ainda. Aguarde a IA.",
+
+"Seu progresso: 0 treinos iniciados".
+
+
+Isso orienta o usuário ao abrir o app pela primeira vez.
+
+
+
+---
+
+3. Consistência Visual Entre Telas
+
+Unificar o espaçamento entre os elementos.
+
+Garantir que todos os títulos, subtítulos, ícones e botões sigam o mesmo padrão de:
+
+padding e margin,
+
+font-size,
+
+align-items e justify.
+
+
+
+
+---
+
+4. Tela de Perfil e Onboarding
+
+Melhorar visualmente a tela de perfil, inserindo:
+
+Foto ou avatar do usuário,
+
+Informações básicas: nome, idade, objetivo.
+
+
+Estruturar o formulário de onboarding com seções separadas por categoria:
+
+Experiência com treino,
+
+Tempo disponível por semana,
+
+Condições médicas,
+
+Objetivos principais (emagrecimento, hipertrofia, etc.).
+
+
+Opcional: usar formulário em etapas (step-form) com barra de progresso.
+
+
+
+---
+
+5. Microinterações e Navegação
+
+Validar se há algum efeito visual na troca de telas ou abas (transições suaves são bem-vindas).
+
+Verificar se os ícones do menu inferior estão destacados corretamente conforme a aba selecionada.
+
+
+
+---
+
+📌 Observações Finais
+
+Seguir a paleta de cores escolhida anteriormente: Escura Premium (tons de preto, cinza-grafite, azul elétrico, roxo, branco puro).
+
+O app será utilizado principalmente no mobile, então priorizar responsividade e acessibilidade tátil.
+
+Após ajustes, gerar novo vídeo para revisão final.
+
+
+
+---
+
+Se desejar, posso converter esse prompt em PDF ou adicionar ele ao documento geral do projeto. Deseja isso também?
+

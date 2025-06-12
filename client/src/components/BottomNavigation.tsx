@@ -23,12 +23,14 @@ export default function BottomNavigation() {
           return (
             <Link key={item.href} href={item.href}>
               <button
-                className={`flex flex-col items-center py-2 px-4 transition-colors ${
-                  isActive ? "text-primary" : "text-muted-foreground"
+                className={`flex flex-col items-center py-2 px-4 rounded-lg transition-all duration-200 ${
+                  isActive 
+                    ? "text-primary bg-primary/10 dark:bg-primary/20" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
               >
-                <Icon className="h-5 w-5 mb-1" />
-                <span className="text-xs">{item.label}</span>
+                <Icon className={`h-5 w-5 mb-1 ${isActive ? "scale-110" : ""}`} />
+                <span className="text-xs font-medium">{item.label}</span>
               </button>
             </Link>
           );

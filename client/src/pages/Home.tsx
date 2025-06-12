@@ -1,13 +1,19 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Flame, Play } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Dumbbell, Flame, Play, AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Home() {
-  
   const { user } = useAuth();
+  
+  // Simulate user onboarding status and workout data
+  const hasCompletedOnboarding = user?.onboardingCompleted || false;
+  const hasWorkoutsAvailable = true; // This would come from API
+  const completedWorkouts = 24;
+  const currentStreak = 7;
 
   return (
     <div className="px-4 py-4 space-y-4">
@@ -18,6 +24,66 @@ export default function Home() {
           {user?.gender === "female" ? "Pronta" : "Pronto"} para o seu treino de hoje?
         </p>
       </div>
+
+      {/* Status Alerts */}
+      {!hasCompletedOnboarding && (
+        <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
+          <CardContent className="p-4">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-orange-800 dark:text-orange-200">
+                  Complete seu perfil
+                </h3>
+                <p className="text-sm text-orange-700 dark:text-orange-300 mb-3">
+                  Finalize suas informações para receber treinos personalizados pela IA.
+                </p>
+                <Link href="/profile">
+                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
+                    Completar Onboarding
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {hasCompletedOnboarding && !hasWorkoutsAvailable && (
+        <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+          <CardContent className="p-4">
+            <div className="flex items-start space-x-3">
+              <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-800 dark:text-blue-200">
+                  IA preparando seus treinos
+                </h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Aguarde enquanto nossa IA cria treinos personalizados baseados no seu perfil.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {completedWorkouts === 0 && hasCompletedOnboarding && (
+        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+          <CardContent className="p-4">
+            <div className="flex items-start space-x-3">
+              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-green-800 dark:text-green-200">
+                  Bem-vindo ao PulseOn!
+                </h3>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Seu primeiro treino personalizado está pronto. Vamos começar!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-3">
