@@ -70,10 +70,23 @@ export interface CompletedExercise extends Exercise {
   notes?: string;
 }
 
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-  onboardingCompleted: true
+export const insertUserSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  name: z.string().min(1, "Nome é obrigatório"),
+  birthDate: z.string().optional(),
+  age: z.number().optional(),
+  weight: z.number().optional(),
+  height: z.number().optional(),
+  gender: z.enum(["male", "female", "other", "not_specified"]).optional(),
+  fitnessGoal: z.enum(["lose_weight", "gain_muscle", "improve_conditioning"]).optional(),
+  experienceLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  weeklyFrequency: z.number().min(1).max(7).optional(),
+  availableEquipment: z.array(z.string()).optional(),
+  customEquipment: z.string().optional(),
+  physicalRestrictions: z.string().optional(),
+  onboardingCompleted: z.boolean().default(false),
+  avatarUrl: z.string().optional()
 });
 
 export const insertSessionSchema = createInsertSchema(sessions).omit({
@@ -117,18 +130,19 @@ export const onboardingSchema = z.object({
 });
 
 export const profileUpdateSchema = z.object({
-  name: z.string().optional(),
+  name: z.string().min(1, "Nome é obrigatório").optional(),
   birthDate: z.string().optional(),
-  age: z.number().min(13, "Idade deve ser maior que 13 anos").max(120, "Idade inválida").optional(),
-  weight: z.number().min(30, "Peso deve ser maior que 30kg").max(300, "Peso inválido").optional(),
-  height: z.number().min(100, "Altura deve ser maior que 100cm").max(250, "Altura inválida").optional(),
+  age: z.number().optional(),
+  weight: z.number().optional(),
+  height: z.number().optional(),
+  gender: z.enum(["male", "female", "other", "not_specified"]).optional(),
   fitnessGoal: z.enum(["lose_weight", "gain_muscle", "improve_conditioning"]).optional(),
   experienceLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
   weeklyFrequency: z.number().min(1).max(7).optional(),
   availableEquipment: z.array(z.string()).optional(),
   customEquipment: z.string().optional(),
-  gender: z.enum(["male", "female", "other"]).optional(),
-  physicalRestrictions: z.string().optional()
+  physicalRestrictions: z.string().optional(),
+  avatarUrl: z.string().optional()
 });
 
 // N8N Integration schema

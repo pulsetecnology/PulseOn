@@ -1,6 +1,6 @@
 import { NotificationIcon } from "./NotificationIcon";
 import { useGlobalNotification } from "./NotificationProvider";
-import HeartRateIcon from "./HeartRateIcon";
+import FitnessIcon from "./FitnessIcon";
 
 export default function Logo({ className = "text-xl" }: { className?: string }) {
   const { notification } = useGlobalNotification();
@@ -15,12 +15,12 @@ export default function Logo({ className = "text-xl" }: { className?: string }) 
             className="w-10 h-10"
           />
         ) : (
-          <HeartRateIcon className="h-10 w-10 text-brand-cyan" animated={false} />
+          <FitnessIcon className="h-10 w-10 text-primary" animated={false} />
         )}
       </div>
       <div className="flex items-center">
-        <span className="font-bold brand-cyan">Pulse</span>
-        <span className="font-bold brand-blue">On</span>
+        <span className="font-bold text-primary">Pulse</span>
+        <span className="font-bold text-secondary">On</span>
       </div>
     </div>
   );

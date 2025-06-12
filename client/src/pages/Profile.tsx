@@ -25,8 +25,8 @@ interface UserData {
   availableEquipment?: string[];
   customEquipment?: string;
   physicalRestrictions?: string;
-  profilePhoto?: string;
   onboardingCompleted: boolean;
+  avatarUrl?: string;
 }
 
 const calculateAge = (birthDate: string): number => {
@@ -105,7 +105,7 @@ export default function Profile() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('photo', file);
-      
+
       const token = localStorage.getItem("authToken");
       const response = await fetch("/api/profile/photo", {
         method: "POST",
@@ -235,6 +235,39 @@ export default function Profile() {
 
   const userAge = user.birthDate ? calculateAge(user.birthDate) : null;
 
+    const avatarUploadMutation = useMutation({
+        mutationFn: async (file: File) => {
+            const formData = new FormData();
+            formData.append('avatar', file);
+
+            const token = localStorage.getItem("authToken");
+            const response = await fetch("/api/profile/avatar", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) throw new Error("Failed to upload avatar");
+            return response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+            showSuccess();
+        },
+        onError: () => {
+            showError();
+        }
+    });
+
+    const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            avatarUploadMutation.mutate(file);
+        }
+    };
+
   return (
     <div className="container mx-auto p-4 space-y-6 max-w-4xl">
       {/* Profile Header with Avatar */}
@@ -243,11 +276,9 @@ export default function Profile() {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Avatar className="h-20 w-20 border-4 border-primary/20">
-                <AvatarImage src={
-                  user.profilePhoto 
-                    ? user.profilePhoto 
-                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`
-                } />
+                <AvatarImage 
+                  src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
+                />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xl">
                   {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
                 </AvatarFallback>
@@ -255,23 +286,26 @@ export default function Profile() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={handlePhotoUpload}
+                onChange={handleAvatarUpload}
                 className="hidden"
-                id="photo-upload"
+                id="avatar-upload"
               />
-              <Button
-                size="icon"
-                variant="secondary"
-                className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full"
-                onClick={() => document.getElementById('photo-upload')?.click()}
-                disabled={photoUploadMutation.isPending}
-              >
-                {photoUploadMutation.isPending ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                ) : (
-                  <Camera className="h-4 w-4" />
-                )}
-              </Button>
+              <label htmlFor="avatar-upload">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full cursor-pointer"
+                  asChild
+                >
+                  <div>
+                    {avatarUploadMutation.isPending ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    ) : (
+                      <Camera className="h-4 w-4" />
+                    )}
+                  </div>
+                </Button>
+              </label>
             </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold">{user.name || 'Usuário'}</h1>
@@ -282,7 +316,7 @@ export default function Profile() {
                 </p>
               )}
             </div>
-            
+
           </div>
         </CardContent>
       </Card>
@@ -557,7 +591,7 @@ export default function Profile() {
                     </Label>
                   </div>
                 </div>
-                
+
                 {(formData.availableEquipment || []).includes("others") && (
                   <div className="space-y-2">
                     <Label htmlFor="customEquipment">Especifique outros equipamentos:</Label>

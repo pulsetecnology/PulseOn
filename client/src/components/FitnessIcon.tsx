@@ -1,12 +1,19 @@
 
-export default function FitnessIcon({ className = "w-4 h-4", animated = false }: { className?: string; animated?: boolean }) {
+import React from 'react';
+
+interface FitnessIconProps {
+  className?: string;
+  animated?: boolean;
+}
+
+export default function FitnessIcon({ className = "w-6 h-6", animated = false }: FitnessIconProps) {
   return (
-    <div className={`relative ${className}`}>
+    <div className={`${className} ${animated ? 'animate-pulse' : ''}`}>
       <svg
-        className="w-full h-full text-primary"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full"
       >
         {/* Círculo externo */}
         <circle 

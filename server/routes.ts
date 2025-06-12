@@ -342,6 +342,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Avatar upload route
+  app.post("/api/profile/avatar", authenticateToken, upload.single('avatar'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+
+      const userId = req.user!.id;
+      const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+
+      // Update user with new avatar URL
+      const updatedUser = await storage.updateUser(userId, { avatarUrl });
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      res.json({
+        message: "Avatar atualizado com sucesso",
+        avatarUrl,
+        user: sanitizeUser(updatedUser)
+      });
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      res.status(500).json({ message: "Erro ao fazer upload do avatar" });
+    }
+  });
+
   // Workout routes
   app.get("/api/workouts", async (req, res) => {
     try {
