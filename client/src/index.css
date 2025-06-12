@@ -127,7 +127,7 @@
 
   /* Enhanced shadows for cards */
   .card-shadow {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
   .dark .card-shadow {
@@ -136,7 +136,7 @@
 
   /* Header shadow - stronger for both modes */
   .header-shadow {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
 
   .dark .header-shadow {
@@ -145,7 +145,7 @@
 
   /* Bottom navigation shadow - stronger for both modes */
   .bottom-nav-shadow {
-    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.25), 0 -2px 4px -1px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
   .dark .bottom-nav-shadow {
