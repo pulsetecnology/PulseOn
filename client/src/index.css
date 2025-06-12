@@ -68,6 +68,12 @@
 }
 
 @layer components {
+  @media (max-width: 768px) {
+    .card-container {
+      margin-bottom: 0;
+      padding: 0;
+    }
+  }
   .brand-cyan {
     color: hsl(175, 93%, 48%);
   }
