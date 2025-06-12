@@ -132,7 +132,7 @@ export default function Workout() {
 
       {/* Active Exercise Timer */}
       {activeExercise && (
-        <Card className="bg-gradient-to-r from-primary to-secondary border-0">
+        <Card className="bg-primary border-0">
           <CardContent className="p-6 text-primary-foreground">
             <div className="text-center">
               <h2 className="text-lg font-semibold mb-2">
