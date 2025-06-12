@@ -4,11 +4,27 @@ import { useTheme } from "./ThemeProvider";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 import { useLocation } from "wouter";
 import Logo from "./Logo";
+import { useEffect, useState } from "react";
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const { logout } = useSimpleAuth();
   const [, setLocation] = useLocation();
+  const [showBlueIcon, setShowBlueIcon] = useState(false);
+
+  // Listener para quando uma série é concluída
+  useEffect(() => {
+    const handleSetCompleted = () => {
+      setShowBlueIcon(true);
+    };
+
+    // Escutar evento customizado de série concluída
+    window.addEventListener('setCompleted', handleSetCompleted);
+    
+    return () => {
+      window.removeEventListener('setCompleted', handleSetCompleted);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -16,10 +32,17 @@ export default function Header() {
     setLocation("/login");
   };
 
+  const handleAnimationComplete = () => {
+    setShowBlueIcon(false);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border header-shadow">
       <div className="flex items-center justify-between px-4 py-3">
-        <Logo />
+        <Logo 
+          showBlueIcon={showBlueIcon} 
+          onAnimationComplete={handleAnimationComplete}
+        />
 
         <div className="flex items-center space-x-3">
           <Button
