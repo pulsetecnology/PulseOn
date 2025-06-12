@@ -204,7 +204,7 @@ export default function Profile() {
   return (
     <div className="container mx-auto p-4 space-y-6 max-w-4xl">
       {/* Profile Header with Avatar */}
-      <Card className="bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
+      <Card className="bg-primary/5 border-primary/20">
         <CardContent className="p-6">
           <div className="flex items-center space-x-4">
             <div className="relative">
@@ -231,49 +231,14 @@ export default function Profile() {
                 </p>
               )}
             </div>
-            <div className="text-right">
-              {!isEditing ? (
-                <Button 
-                  onClick={() => setIsEditing(true)} 
-                  variant="outline"
-                  className="transition-all duration-200 hover:scale-105 active:scale-95"
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Editar
-                </Button>
-              ) : (
-                <div className="space-x-2">
-                  <Button 
-                    onClick={handleSubmit} 
-                    disabled={updateMutation.isPending}
-                    className="transition-all duration-200 hover:scale-105 active:scale-95"
-                  >
-                    {updateMutation.isPending ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Salvando...
-                      </>
-                    ) : (
-                      "Salvar"
-                    )}
-                  </Button>
-                  <Button 
-                    onClick={() => setIsEditing(false)} 
-                    variant="outline"
-                    className="transition-all duration-200 hover:scale-105 active:scale-95"
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              )}
-            </div>
+            
           </div>
         </CardContent>
       </Card>
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500">
+          <div className="p-2 rounded-full bg-primary">
             <User className="h-6 w-6 text-white" />
           </div>
           <div>

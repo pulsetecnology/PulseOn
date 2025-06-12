@@ -5,6 +5,7 @@ import { Dumbbell, Flame, Play, AlertCircle, CheckCircle, Clock } from "lucide-r
 import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
 import { useAuth } from "@/hooks/useAuth";
+import FitnessIcon from "@/components/FitnessIcon";
 
 export default function Home() {
   const { user } = useAuth();
@@ -21,7 +22,7 @@ export default function Home() {
       <div>
         <h1 className="text-2xl font-bold mb-2">Olá, {user?.name?.split(' ')[0] || 'usuário'}!</h1>
         <p className="text-muted-foreground">
-          {user?.gender === "female" ? "Pronta" : "Pronto"} para o seu treino de hoje?
+          {user?.gender === "female" ? "Pronta" : "Pronto"} para iniciar seu treino?
         </p>
       </div>
 
@@ -91,7 +92,7 @@ export default function Home() {
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">Treinos Concluídos</span>
-              <Dumbbell className="h-3 w-3 text-primary" />
+              <FitnessIcon className="h-3 w-3" />
             </div>
             <span className="text-xl font-bold">{completedWorkouts}</span>
             {completedWorkouts > 0 && (
@@ -128,7 +129,7 @@ export default function Home() {
             </div>
             <p className="text-muted-foreground mb-3 text-sm">5 exercícios • Nível Intermediário</p>
             <Link href="/active-workout">
-              <Button className="w-full py-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 font-semibold transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
+              <Button className="w-full py-2 bg-primary hover:bg-primary/90 font-semibold">
                 <Play className="mr-2 h-4 w-4" />
                 Iniciar Treino
               </Button>
