@@ -15,6 +15,35 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+// Configure multer for file uploads
+const storageConfig = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const userId = (req as any).user?.id || 'unknown';
+    const extension = path.extname(file.originalname);
+    cb(null, `profile-${userId}-${Date.now()}${extension}`);
+  }
+});
+
+const upload = multer({ 
+  storage: storageConfig,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo não permitido'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // New simplified auth setup route
   app.post("/api/auth/setup", async (req, res) => {
@@ -341,33 +370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Avatar upload route
-  app.post("/api/profile/avatar", authenticateToken, upload.single('avatar'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "Nenhum arquivo enviado" });
-      }
-
-      const userId = req.user!.id;
-      const avatarUrl = `/uploads/avatars/${req.file.filename}`;
-
-      // Update user with new avatar URL
-      const updatedUser = await storage.updateUser(userId, { avatarUrl });
-
-      if (!updatedUser) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
-      }
-
-      res.json({
-        message: "Avatar atualizado com sucesso",
-        avatarUrl,
-        user: sanitizeUser(updatedUser)
-      });
-    } catch (error) {
-      console.error('Avatar upload error:', error);
-      res.status(500).json({ message: "Erro ao fazer upload do avatar" });
-    }
-  });
+  
 
   // Workout routes
   app.get("/api/workouts", async (req, res) => {
@@ -455,35 +458,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Configure multer for file uploads
-  const storageConfig = multer.diskStorage({
-    destination: (req, file, cb) => {
-      const uploadDir = path.join(process.cwd(), 'uploads');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-      const userId = (req as any).userId;
-      const extension = path.extname(file.originalname);
-      cb(null, `profile-${userId}-${Date.now()}${extension}`);
-    }
-  });
-
-  const upload = multer({ 
-    storage: storageConfig,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-    fileFilter: (req, file, cb) => {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-      if (allowedTypes.includes(file.mimetype)) {
-        cb(null, true);
-      } else {
-        cb(new Error('Tipo de arquivo não permitido'));
-      }
-    }
-  });
-
   // Health check endpoint
   app.get("/api/health", (req: Request, res: Response) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -492,7 +466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload profile photo
   app.post("/api/profile/photo", authenticateToken, upload.single('photo'), async (req: Request, res: Response) => {
     try {
-      const userId = (req as any).user!.id;
+      const userId = req.user!.id;
 
       if (!req.file) {
         return res.status(400).json({ message: "Nenhum arquivo enviado" });
@@ -500,14 +474,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const photoUrl = `/api/uploads/${req.file.filename}`;
 
-      // Update user's profile photo in database
-      await db.update(users)
-        .set({ profilePhoto: photoUrl })
-        .where(eq(users.id, userId));
+      // Update user's profile photo in database using storage
+      const updatedUser = await storage.updateUser(userId, { avatarUrl: photoUrl });
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
 
       res.json({ 
         message: "Foto de perfil atualizada com sucesso",
-        photoUrl 
+        photoUrl,
+        user: sanitizeUser(updatedUser)
       });
     } catch (error) {
       console.error("Error uploading photo:", error);
