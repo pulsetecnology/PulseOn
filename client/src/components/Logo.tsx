@@ -20,7 +20,7 @@ export default function Logo({ className = "text-xl" }: { className?: string }) 
       </div>
       <div className="flex items-center">
         <span className="font-bold text-primary">Pulse</span>
-        <span className="font-bold text-secondary">On</span>
+        <span className="font-bold logo-on">On</span>
       </div>
     </div>
   );

@@ -219,15 +219,20 @@ export default function Profile() {
         body: formData
       });
 
-      if (!response.ok) throw new Error("Failed to upload avatar");
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Avatar upload error:', errorText);
+        throw new Error(`Failed to upload avatar: ${response.status}`);
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      showSuccess();
+      showSuccess("Avatar atualizado com sucesso!");
     },
-    onError: () => {
-      showError();
+    onError: (error: Error) => {
+      console.error('Avatar upload mutation error:', error);
+      showError("Erro ao fazer upload da imagem. Tente novamente.");
     }
   });
 
