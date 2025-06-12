@@ -1,7 +1,7 @@
 import { Check, X, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationType } from "@/hooks/useNotification";
-import HeartRateIcon from "./HeartRateIcon";
+import FitnessIcon from "./FitnessIcon";
 
 interface NotificationIconProps {
   type: NotificationType;
@@ -29,14 +29,14 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
       textColor: "text-white"
     },
     set_completion: { // Add configuration for set_completion
-      icon: () => <HeartRateIcon className="w-4 h-4" animated={true} />,
+      icon: () => <FitnessIcon className="w-4 h-4" animated={true} />,
       bgColor: "bg-transparent",
-      textColor: "text-blue-400"
+      textColor: "text-primary"
     },
     workout_progress: { // Add configuration for workout progress
-      icon: () => <HeartRateIcon className="w-4 h-4" animated={true} />,
+      icon: () => <FitnessIcon className="w-4 h-4" animated={true} />,
       bgColor: "bg-transparent",
-      textColor: "text-blue-400"
+      textColor: "text-primary"
     }
   };
 
