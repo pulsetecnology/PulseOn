@@ -3,11 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { User, Settings, Calendar, Activity, Target, Dumbbell, Camera } from "lucide-react";
+import { User, Settings, Calendar, Activity, Target, Dumbbell, Camera, Scale } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -267,54 +267,27 @@ export default function Profile() {
   const userAge = user.birthDate ? calculateAge(user.birthDate) : null;
 
   return (
-    <div className="container mx-auto p-4 space-y-6 max-w-4xl">
-      {/* Profile Header with Avatar */}
-      <Card className="bg-primary/5 border-primary/20">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Avatar className="h-20 w-20 border-4 border-primary/20">
-                <AvatarImage 
-                  src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
-                />
-                <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                  {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                className="hidden"
-                id="avatar-upload"
+    <div className="container mx-auto px-4 py-4 space-y-4 max-w-4xl">
+      {/* Profile Header */}
+      <Card className="w-full">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0">
+              <AvatarImage 
+                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
               />
-              <label htmlFor="avatar-upload">
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full cursor-pointer"
-                  asChild
-                >
-                  <div>
-                    {avatarUploadMutation.isPending ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                    ) : (
-                      <Camera className="h-4 w-4" />
-                    )}
-                  </div>
-                </Button>
-              </label>
+              <AvatarFallback className="text-xl sm:text-2xl">
+                {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 text-center sm:text-left min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold truncate">{user.name || 'Usuário'}</h1>
+              <p className="text-muted-foreground text-sm sm:text-base truncate">{user.email}</p>
+              <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-muted-foreground mt-1">
+                <User className="h-4 w-4 flex-shrink-0" />
+                <span>{userAge} anos • {user.gender === 'female' ? 'Feminino' : user.gender === 'male' ? 'Masculino' : 'Não informado'}</span>
+              </div>
             </div>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold">{user.name || 'Usuário'}</h1>
-              <p className="text-muted-foreground">{user.email}</p>
-              {userAge && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  {userAge} anos • {user.gender === 'female' ? 'Feminino' : user.gender === 'male' ? 'Masculino' : 'Não informado'}
-                </p>
-              )}
-            </div>
-
           </div>
         </CardContent>
       </Card>
@@ -354,118 +327,122 @@ export default function Profile() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Informações Pessoais */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Informações Pessoais
+        {/* Personal Information */}
+        <Card className="w-full">
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <User className="h-5 w-5 flex-shrink-0" />
+              <span>Informações Pessoais</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nome</Label>
-              {isEditing ? (
-                <Input
-                  value={formData.name || ""}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              ) : (
-                <p className="text-sm text-muted-foreground">{user.name || "Não informado"}</p>
-              )}
-            </div>
+          <CardContent className="px-4 sm:px-6 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nome</Label>
+                {isEditing ? (
+                  <Input
+                    value={formData.name || ""}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">{user.name || "Não informado"}</p>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
-            </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+              </div>
 
-            <div className="space-y-2">
-              <Label>Data de Nascimento</Label>
-              {isEditing ? (
-                <Input
-                  type="date"
-                  value={formData.birthDate || ""}
-                  onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                />
-              ) : (
+              <div className="space-y-2">
+                <Label>Data de Nascimento</Label>
+                {isEditing ? (
+                  <Input
+                    type="date"
+                    value={formData.birthDate || ""}
+                    onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.birthDate ? formatDate(user.birthDate) : "Não informado"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Idade</Label>
                 <p className="text-sm text-muted-foreground">
-                  {user.birthDate ? formatDate(user.birthDate) : "Não informado"}
+                  {userAge ? `${userAge} anos` : "Não calculável"}
                 </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Idade</Label>
-              <p className="text-sm text-muted-foreground">
-                {userAge ? `${userAge} anos` : "Não calculável"}
-              </p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Dados Físicos */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Dados Físicos
+        {/* Physical Data */}
+        <Card className="w-full">
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Scale className="h-5 w-5 flex-shrink-0" />
+              <span>Dados Físicos</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Peso (kg)</Label>
-              {isEditing ? (
-                <Input
-                  type="number"
-                  value={formData.weight || ""}
-                  onChange={(e) => setFormData({ ...formData, weight: Number(e.target.value) })}
-                />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {user.weight ? `${user.weight} kg` : "Não informado"}
-                </p>
-              )}
-            </div>
+          <CardContent className="px-4 sm:px-6 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Peso (kg)</Label>
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    value={formData.weight || ""}
+                    onChange={(e) => setFormData({ ...formData, weight: Number(e.target.value) })}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.weight ? `${user.weight} kg` : "Não informado"}
+                  </p>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <Label>Altura (cm)</Label>
-              {isEditing ? (
-                <Input
-                  type="number"
-                  value={formData.height || ""}
-                  onChange={(e) => setFormData({ ...formData, height: Number(e.target.value) })}
-                />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {user.height ? `${user.height} cm` : "Não informado"}
-                </p>
-              )}
-            </div>
+              <div className="space-y-2">
+                <Label>Altura (cm)</Label>
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    value={formData.height || ""}
+                    onChange={(e) => setFormData({ ...formData, height: Number(e.target.value) })}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.height ? `${user.height} cm` : "Não informado"}
+                  </p>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <Label>Gênero</Label>
-              {isEditing ? (
-                <Select 
-                  value={formData.gender || ""} 
-                  onValueChange={(value) => setFormData({ ...formData, gender: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Masculino</SelectItem>
-                    <SelectItem value="female">Feminino</SelectItem>
-                    <SelectItem value="other">Prefiro não informar</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {user.gender === "male" ? "Masculino" : 
-                   user.gender === "female" ? "Feminino" : 
-                   user.gender === "other" ? "Prefiro não informar" : "Não especificado"}
-                </p>
-              )}
+              <div className="space-y-2">
+                <Label>Gênero</Label>
+                {isEditing ? (
+                  <Select 
+                    value={formData.gender || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Masculino</SelectItem>
+                      <SelectItem value="female">Feminino</SelectItem>
+                      <SelectItem value="other">Prefiro não informar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.gender === "male" ? "Masculino" : 
+                     user.gender === "female" ? "Feminino" : 
+                     user.gender === "other" ? "Prefiro não informar" : "Não especificado"}
+                  </p>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
