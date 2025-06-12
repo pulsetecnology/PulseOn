@@ -1,6 +1,7 @@
 import { Check, X, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationType } from "@/hooks/useNotification";
+import DumbbellIcon from "./DumbbellIcon"; // Import the DumbbellIcon component
 
 interface NotificationIconProps {
   type: NotificationType;
@@ -25,6 +26,11 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
     warning: {
       icon: AlertTriangle,
       bgColor: "bg-yellow-500",
+      textColor: "text-white"
+    },
+    set_completion: { // Add configuration for set_completion
+      icon: DumbbellIcon,
+      bgColor: "bg-blue-500",
       textColor: "text-white"
     }
   };

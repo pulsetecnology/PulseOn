@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Heart, Moon, Sun } from "lucide-react";
+import { Eye, EyeOff, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -62,28 +62,13 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 light:from-slate-50 light:via-slate-100 light:to-slate-200 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-slate-800/50 dark:bg-slate-800/50 light:bg-white/90 backdrop-blur-sm border-slate-700 dark:border-slate-700 light:border-slate-200 shadow-lg dark:shadow-2xl dark:shadow-black/30">
         <CardHeader className="text-center space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1" />
-            <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-2">
             <div className="p-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500">
-                <Heart className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                PulseOn
-              </h1>
+              <Heart className="h-6 w-6 text-white" />
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              className="h-8 w-8"
-            >
-              {theme === "light" ? (
-                <Moon className="h-4 w-4" />
-              ) : (
-                <Sun className="h-4 w-4" />
-              )}
-            </Button>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              PulseOn
+            </h1>
           </div>
           <CardTitle className="text-xl text-slate-100">Entrar na sua conta</CardTitle>
           <CardDescription className="text-slate-400">

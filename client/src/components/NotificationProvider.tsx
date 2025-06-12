@@ -30,3 +30,5 @@ export function useGlobalNotification() {
   }
   return context;
 }
+
+export type NotificationType = 'success' | 'error' | 'warning' | 'info' | 'set_completion';
