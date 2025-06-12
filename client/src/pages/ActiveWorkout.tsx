@@ -238,22 +238,15 @@ export default function ActiveWorkout() {
 
           {/* Set Feedback Phase */}
           {showSetFeedback && (
-            
-            <div className="space-y-3">
+            <div className="space-y-1">
               {/* Exercise Progress */}
               <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-                <CardHeader className="text-center py-3">
-                  <div className="text-xs text-muted-foreground mb-1">
-                    {currentExercise?.name}
+                <CardContent className="p-2">
+                  <div className="text-center mb-2">
+                    <div className="text-sm font-semibold">{currentExercise?.name}</div>
+                    <div className="text-lg font-bold">Série {currentSet} de {currentExercise?.sets}</div>
+                    <div className="text-sm text-muted-foreground">{currentExercise?.reps} repetições</div>
                   </div>
-                  <CardTitle className="text-2xl font-bold">
-                    Série {currentSet} de {currentExercise?.sets}
-                  </CardTitle>
-                  <CardDescription className="text-base">
-                    {currentExercise?.reps} repetições
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="py-2">
                   <div className="w-full bg-secondary rounded-full h-2">
                     <div 
                       className="bg-cyan-600 h-2 rounded-full transition-all duration-500"
@@ -265,31 +258,29 @@ export default function ActiveWorkout() {
 
               {/* Weight Selection */}
               <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-                <CardHeader className="text-center py-2">
-                  <CardTitle className="text-lg">Peso utilizado</CardTitle>
-                </CardHeader>
-                <CardContent className="py-3">
-                  <div className="flex items-center justify-center space-x-4">
+                <CardContent className="p-2">
+                  <h3 className="font-semibold mb-2 text-center text-sm">Peso utilizado</h3>
+                  <div className="flex items-center justify-center space-x-3">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setWeight(Math.max(0, weight - 2.5))}
                       disabled={weight <= 2.5}
-                      className="h-10 w-10 border-slate-300 dark:border-slate-600"
+                      className="h-8 w-8"
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3" />
                     </Button>
                     <div className="text-center">
-                      <div className="text-3xl font-bold">{weight}</div>
-                      <div className="text-sm text-muted-foreground">kg</div>
+                      <div className="text-2xl font-bold">{weight}</div>
+                      <div className="text-xs text-muted-foreground">kg</div>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setWeight(weight + 2.5)}
-                      className="h-10 w-10 border-slate-300 dark:border-slate-600"
+                      className="h-8 w-8"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                 </CardContent>
@@ -297,62 +288,57 @@ export default function ActiveWorkout() {
 
               {/* Effort Level */}
               <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-                <CardHeader className="text-center py-2">
-                  <CardTitle className="text-lg">Nível de esforço</CardTitle>
-                </CardHeader>
-                <CardContent className="py-3 space-y-3">
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Fácil</span>
-                    <span>Intenso</span>
-                  </div>
-                  <Slider
-                    value={effortLevel}
-                    onValueChange={setEffortLevel}
-                    max={10}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    {Array.from({ length: 10 }, (_, i) => (
-                      <span key={i}>{i + 1}</span>
-                    ))}
-                  </div>
-                  <div className="text-center">
-                    <span className="text-base font-semibold text-cyan-600">
-                      Esforço: {effortLevel[0]}/10
-                    </span>
+                <CardContent className="p-2">
+                  <h3 className="font-semibold mb-2 text-center text-sm">Nível de esforço</h3>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Fácil</span>
+                      <span>Intenso</span>
+                    </div>
+                    <Slider
+                      value={effortLevel}
+                      onValueChange={setEffortLevel}
+                      max={10}
+                      min={1}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="text-center">
+                      <span className="text-base font-semibold text-cyan-600">
+                        Esforço: {effortLevel[0]}/10
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <Button 
                   onClick={completeSet}
-                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
+                  className="w-full py-2 font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
                 >
                   {currentSet < currentExercise.sets ? "Começar próxima série" : 
                    currentExerciseIndex < totalExercises - 1 ? "Próximo exercício" : "Finalizar treino"}
-                  <ChevronRight className="ml-2 h-5 w-5" />
+                  <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-1">
                   <Button 
                     variant="outline" 
                     onClick={skipExercise}
-                    className="py-3 font-semibold border-2 border-slate-300 dark:border-slate-600"
+                    className="py-1 text-sm font-semibold border-2 border-slate-300 dark:border-slate-600"
                   >
-                    <SkipForward className="mr-2 h-4 w-4" />
-                    Pular exercício
+                    <SkipForward className="mr-1 h-3 w-3" />
+                    Pular
                   </Button>
                   <Button 
                     variant="outline" 
                     onClick={() => setShowSetFeedback(false)}
-                    className="py-3 font-semibold border-2 border-slate-300 dark:border-slate-600"
+                    className="py-1 text-sm font-semibold border-2 border-slate-300 dark:border-slate-600"
                   >
-                    <AlertCircle className="mr-2 h-4 w-4" />
-                    Finalizar exercício
+                    <AlertCircle className="mr-1 h-3 w-3" />
+                    Finalizar
                   </Button>
                 </div>
               </div>
