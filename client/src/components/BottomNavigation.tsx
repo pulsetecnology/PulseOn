@@ -12,13 +12,21 @@ const navItems = [
 export default function BottomNavigation() {
   const [location] = useLocation();
 
+  const navItems = [
+    { href: "/", icon: Home, label: "Início", exact: true },
+    { href: "/workout", icon: Dumbbell, label: "Treino" },
+    { href: "/history", icon: BarChart3, label: "Histórico" },
+    { href: "/profile", icon: User, label: "Perfil" },
+  ];
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-lg dark:shadow-2xl dark:shadow-black/50">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border px-4 py-2 bottom-nav-shadow"
+    style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-around py-2">
         {navItems.map((item) => {
           const isActive = location === item.path;
           const Icon = item.icon;
-          
+
           return (
             <Link key={item.path} href={item.path}>
               <button
