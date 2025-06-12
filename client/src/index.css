@@ -120,7 +120,7 @@
   }
 
   .brand-blue {
-    color: hsl(216, 58%, 86%);
+    color: hsl(216, 58%, 70%);
   }
 
   /* Light mode brand colors with better visibility */
@@ -130,6 +130,15 @@
 
   .light .brand-blue {
     color: hsl(216, 100%, 45%);
+  }
+
+  /* Dark mode specific brand colors */
+  .dark .brand-cyan {
+    color: hsl(175, 93%, 55%);
+  }
+
+  .dark .brand-blue {
+    color: hsl(216, 80%, 75%);
   }
 
   .bg-brand-cyan {

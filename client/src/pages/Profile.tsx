@@ -205,10 +205,36 @@ export default function Profile() {
     setFormData({ ...formData, availableEquipment: updatedEquipment });
   };
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const avatarUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/profile/avatar", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error("Failed to upload avatar");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      showSuccess();
+    },
+    onError: () => {
+      showError();
+    }
+  });
+
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      photoUploadMutation.mutate(file);
+      avatarUploadMutation.mutate(file);
     }
   };
 
@@ -234,39 +260,6 @@ export default function Profile() {
   }
 
   const userAge = user.birthDate ? calculateAge(user.birthDate) : null;
-
-    const avatarUploadMutation = useMutation({
-        mutationFn: async (file: File) => {
-            const formData = new FormData();
-            formData.append('avatar', file);
-
-            const token = localStorage.getItem("authToken");
-            const response = await fetch("/api/profile/avatar", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`
-                },
-                body: formData
-            });
-
-            if (!response.ok) throw new Error("Failed to upload avatar");
-            return response.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-            showSuccess();
-        },
-        onError: () => {
-            showError();
-        }
-    });
-
-    const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            avatarUploadMutation.mutate(file);
-        }
-    };
 
   return (
     <div className="container mx-auto p-4 space-y-6 max-w-4xl">
