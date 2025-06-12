@@ -18,7 +18,7 @@ export default function Workout() {
             <Badge variant="secondary">{todaysWorkout.duration} min</Badge>
           </div>
           <p className="text-muted-foreground mb-4">{todaysWorkout.description}</p>
-          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+          <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-4">
             <span className="flex items-center">
               <List className="mr-1 h-4 w-4" />
               {todaysWorkout.exercises?.length} exercícios
@@ -28,18 +28,14 @@ export default function Workout() {
               {todaysWorkout.difficulty === "intermediate" ? "Intermediário" : todaysWorkout.difficulty}
             </span>
           </div>
+          <Link href="/active-workout">
+            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold">
+              <Play className="mr-2 h-5 w-5" />
+              Iniciar treino completo
+            </Button>
+          </Link>
         </CardContent>
       </Card>
-
-      {/* Start Complete Workout Button */}
-      <div className="pt-4">
-        <Link href="/active-workout">
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 text-lg font-semibold">
-            <Play className="mr-2 h-5 w-5" />
-            Iniciar treino completo
-          </Button>
-        </Link>
-      </div>
 
       {/* Exercise List */}
       <div className="space-y-4">
@@ -72,17 +68,10 @@ export default function Workout() {
               </div>
               <Button 
                 className="w-full" 
-                variant={index === 0 ? "default" : "secondary"}
-                disabled={index !== 0}
+                variant="default"
               >
-                {index === 0 ? (
-                  <>
-                    <Play className="mr-2 h-4 w-4" />
-                    Iniciar Exercício
-                  </>
-                ) : (
-                  "Aguardando"
-                )}
+                <Play className="mr-2 h-4 w-4" />
+                Iniciar este exercício
               </Button>
             </CardContent>
           </Card>
