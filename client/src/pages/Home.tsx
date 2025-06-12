@@ -108,12 +108,14 @@ export default function Home() {
               <span className="text-xs text-muted-foreground">Sequência Atual</span>
               <Flame className="h-3 w-3 text-orange-500" />
             </div>
-            <span className="text-xl font-bold">{currentStreak} dias</span>
-            {currentStreak >= 7 && (
-              <Badge variant="destructive" className="mt-1 text-xs">
-                Em chamas!
-              </Badge>
-            )}
+            <div className="flex items-center justify-between">
+              <span className="text-xl font-bold">{currentStreak} dias</span>
+              {currentStreak >= 7 && (
+                <Badge variant="destructive" className="text-xs">
+                  Em chamas!
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
