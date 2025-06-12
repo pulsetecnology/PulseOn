@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
 import { onboardingSchema, type OnboardingData } from "@shared/schema";
-import { Scale, Dumbbell, Heart, Check, User, Moon, Sun } from "lucide-react";
+import { Scale, Dumbbell, Heart, Check, User, Moon, Sun, ChevronRight, ChevronLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
@@ -138,20 +138,38 @@ export default function Onboarding() {
         </Button>
       </div>
 
-      {/* Progress Bar */}
+      {/* Enhanced Progress Bar */}
       <div className="mb-8">
-        <div className="flex justify-between text-sm text-muted-foreground mb-2">
-          <span>Pergunta {currentStep} de {TOTAL_STEPS}</span>
-          <span>{Math.round(progressPercentage)}%</span>
+        <div className="flex justify-between text-sm mb-3">
+          <span className="text-muted-foreground">Pergunta {currentStep} de {TOTAL_STEPS}</span>
+          <span className="font-medium text-primary">{Math.round(progressPercentage)}%</span>
         </div>
-        <Progress value={progressPercentage} className="h-2" />
+        <div className="relative">
+          <Progress value={progressPercentage} className="h-3 bg-secondary" />
+          <div className="absolute top-0 left-0 w-full h-3 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-500 ease-out"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+        </div>
+        <div className="flex justify-between mt-3">
+          {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+            <div
+              key={i}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                i + 1 <= currentStep ? 'bg-primary scale-110' : 'bg-muted'
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       <Form {...form}>
         <div className="space-y-6">
           {/* Step 1: Objetivo */}
           {currentStep === 1 && (
-            <Card>
+            <Card className="transition-all duration-300 ease-in-out transform hover:shadow-lg">
               <CardContent className="p-6">
                 <h2 className="text-xl font-semibold mb-6">Qual é o seu objetivo principal?</h2>
                 <FormField
@@ -195,7 +213,7 @@ export default function Onboarding() {
 
           {/* Step 2: Nível de experiência */}
           {currentStep === 2 && (
-            <Card>
+            <Card className="transition-all duration-300 ease-in-out transform hover:shadow-lg">
               <CardContent className="p-6">
                 <h2 className="text-xl font-semibold mb-6">Qual é o seu nível de experiência?</h2>
                 <FormField
@@ -233,7 +251,7 @@ export default function Onboarding() {
 
           {/* Step 3: Frequência semanal */}
           {currentStep === 3 && (
-            <Card>
+            <Card className="transition-all duration-300 ease-in-out transform hover:shadow-lg">
               <CardContent className="p-6">
                 <h2 className="text-xl font-semibold mb-6">Quantas vezes por semana você quer treinar?</h2>
                 <FormField
@@ -446,14 +464,20 @@ export default function Onboarding() {
             </Card>
           )}
 
-          {/* Navigation buttons */}
+          {/* Enhanced Navigation buttons */}
           <div className="flex justify-between pt-6">
             <Button
               type="button"
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 1}
+              className={`transition-all duration-200 ${
+                currentStep === 1 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : 'hover:scale-105 active:scale-95'
+              }`}
             >
+              <ChevronLeft className="h-4 w-4 mr-2" />
               Anterior
             </Button>
 
@@ -462,16 +486,33 @@ export default function Onboarding() {
                 type="button"
                 onClick={handleNext}
                 disabled={!canProceed()}
+                className={`transition-all duration-200 bg-gradient-to-r from-primary to-secondary ${
+                  !canProceed() 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'hover:scale-105 active:scale-95 hover:from-primary/90 hover:to-secondary/90'
+                }`}
               >
                 Próximo
+                <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
               <Button
                 type="button"
                 onClick={() => form.handleSubmit(onSubmit)()}
                 disabled={!canProceed() || updateUserMutation.isPending}
+                className="transition-all duration-200 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 hover:scale-105 active:scale-95"
               >
-                {updateUserMutation.isPending ? "Finalizando..." : "Finalizar"}
+                {updateUserMutation.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Finalizando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Finalizar
+                  </>
+                )}
               </Button>
             )}
           </div>
