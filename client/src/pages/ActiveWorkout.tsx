@@ -171,8 +171,8 @@ export default function ActiveWorkout() {
       </div>
 
       {/* Content Area - Fixed height, no scroll jump */}
-      <div className="flex-1 px-4 py-6 flex items-center justify-center">
-        <div className="w-full max-w-md">
+      <div className="flex-1 px-4 py-0 flex items-start justify-center">
+        <div className="w-full max-w-md mt-2">
           {/* During Exercise Phase */}
           {!isResting && !showSetFeedback && (
             <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
@@ -242,9 +242,9 @@ export default function ActiveWorkout() {
               {/* Exercise Progress */}
               <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
                 <CardContent className="p-2">
-                  <div className="text-center mb-2">
+                  <div className="text-center mb-1">
                     <div className="text-sm font-semibold">{currentExercise?.name}</div>
-                    <div className="text-lg font-bold">Série {currentSet} de {currentExercise?.sets}</div>
+                    <div className="text-base font-bold">Série {currentSet} de {currentExercise?.sets}</div>
                     <div className="text-sm text-muted-foreground">{currentExercise?.reps} repetições</div>
                   </div>
                   <div className="w-full bg-secondary rounded-full h-2">
