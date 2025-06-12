@@ -18,7 +18,7 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
       <div 
         className={cn(
           "flex items-center justify-center rounded-full transition-all duration-300 ease-in-out",
-          "bg-green-500",
+          "bg-green-500 animate-pulse-icon",
           isVisible ? "animate-in fade-in-50 zoom-in-95" : "animate-out fade-out-50 zoom-out-95",
           className || "w-8 h-8"
         )}
@@ -33,7 +33,7 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
       <div 
         className={cn(
           "flex items-center justify-center rounded-full transition-all duration-300 ease-in-out",
-          "bg-red-500",
+          "bg-red-500 animate-pulse-icon",
           isVisible ? "animate-in fade-in-50 zoom-in-95" : "animate-out fade-out-50 zoom-out-95",
           className || "w-8 h-8"
         )}
@@ -48,7 +48,7 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
       <div 
         className={cn(
           "flex items-center justify-center rounded-full transition-all duration-300 ease-in-out",
-          "bg-yellow-500",
+          "bg-yellow-500 animate-pulse-icon",
           isVisible ? "animate-in fade-in-50 zoom-in-95" : "animate-out fade-out-50 zoom-out-95",
           className || "w-8 h-8"
         )}
@@ -98,6 +98,7 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
         "flex items-center justify-center rounded-full transition-all duration-300 ease-in-out",
         config.bgColor,
         config.textColor,
+        "animate-pulse-icon",
         isVisible ? "animate-in fade-in-50 zoom-in-95" : "animate-out fade-out-50 zoom-out-95",
         className || "w-8 h-8"
       )}
