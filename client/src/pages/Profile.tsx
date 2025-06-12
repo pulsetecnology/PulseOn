@@ -239,8 +239,24 @@ export default function Profile() {
   const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showError("Arquivo muito grande. Tamanho máximo: 5MB");
+        return;
+      }
+      
+      // Check file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        showError("Tipo de arquivo não suportado. Use JPEG, PNG, GIF ou WebP");
+        return;
+      }
+      
       avatarUploadMutation.mutate(file);
     }
+    
+    // Reset the input so the same file can be selected again if needed
+    event.target.value = '';
   };
 
   if (isLoading) {
@@ -272,14 +288,36 @@ export default function Profile() {
       <Card className="w-full">
         <CardContent className="p-4 sm:p-6">
           <div className="flex flex-row items-start space-x-4">
-            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0">
-              <AvatarImage 
-                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
+            <div className="relative">
+              <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0">
+                <AvatarImage 
+                  src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
+                />
+                <AvatarFallback className="text-xl sm:text-2xl">
+                  {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0 shadow-md hover:shadow-lg transition-all"
+                onClick={() => document.getElementById('avatar-upload')?.click()}
+                disabled={avatarUploadMutation.isPending}
+              >
+                {avatarUploadMutation.isPending ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
+              </Button>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
               />
-              <AvatarFallback className="text-xl sm:text-2xl">
-                {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
-              </AvatarFallback>
-            </Avatar>
+            </div>
             <div className="flex-1 text-left min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold truncate">{user.name || 'Usuário'}</h1>
               <p className="text-muted-foreground text-sm sm:text-base truncate">{user.email}</p>
