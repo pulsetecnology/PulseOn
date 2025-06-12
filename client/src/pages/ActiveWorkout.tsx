@@ -21,7 +21,7 @@ export default function ActiveWorkout() {
   const [showSetFeedback, setShowSetFeedback] = useState(false);
   const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
   const [completedSets, setCompletedSets] = useState<Array<{exerciseIndex: number, set: number, weight: number, effort: number}>>([]);
-  const { showSuccess, showWarning } = useGlobalNotification();
+  const { showSuccess, showWarning, showWorkoutProgress, showSetCompletion } = useGlobalNotification();
   const [, setLocation] = useLocation();
 
   const currentExercise = sampleExercises[currentExerciseIndex];
@@ -41,37 +41,43 @@ export default function ActiveWorkout() {
   }, [isTimerRunning, restTime, showSuccess]);
 
   const completeSet = () => {
-    // Save completed set
-    const completedSet = {
+    const newCompletedSet = {
       exerciseIndex: currentExerciseIndex,
       set: currentSet,
       weight: weight,
       effort: effortLevel[0]
     };
-    setCompletedSets([...completedSets, completedSet]);
-    setShowSetFeedback(false);
 
-    if (currentSet < currentExercise.sets) {
-      // Next set - start rest timer
-      setCurrentSet(currentSet + 1);
-      setRestTime(currentExercise.restTime);
-      setIsResting(true);
-      setIsTimerRunning(true);
-      showSuccess();
-    } else {
-      // Move to next exercise or complete workout
-      if (currentExerciseIndex < totalExercises - 1) {
-        setCurrentExerciseIndex(currentExerciseIndex + 1);
-        setCurrentSet(1);
-        setWeight(sampleExercises[currentExerciseIndex + 1].suggestedWeight || 40);
-        setEffortLevel([7]);
-        setRestTime(sampleExercises[currentExerciseIndex + 1].restTime);
+    setCompletedSets([...completedSets, newCompletedSet]);
+    setShowSetFeedback(true);
+
+    // Show workout progress notification (pulsing heart)
+    showWorkoutProgress(2000);
+
+    setTimeout(() => {
+      setShowSetFeedback(false);
+
+      if (currentSet < currentExercise.sets) {
+        setCurrentSet(currentSet + 1);
         setIsResting(true);
+        setRestTime(currentExercise.restTime);
         setIsTimerRunning(true);
+        // Show set completion notification
+        showSetCompletion(1500);
       } else {
-        setIsWorkoutComplete(true);
+        // Move to next exercise or complete workout
+        if (currentExerciseIndex < sampleExercises.length - 1) {
+          setCurrentExerciseIndex(currentExerciseIndex + 1);
+          setCurrentSet(1);
+          setWeight(sampleExercises[currentExerciseIndex + 1].suggestedWeight || 40);
+          setEffortLevel([7]);
+          showWorkoutProgress(2000);
+        } else {
+          setIsWorkoutComplete(true);
+          showSuccess("Treino concluído com sucesso!");
+        }
       }
-    }
+    }, 2000);
   };
 
   const skipExercise = () => {

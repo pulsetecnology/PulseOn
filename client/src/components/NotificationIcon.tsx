@@ -35,7 +35,7 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
       textColor: "text-white"
     },
     workout_progress: { // Add configuration for workout progress
-      icon: PulsingHeartIcon,
+      icon: () => <PulsingHeartIcon className="w-4 h-4" />,
       bgColor: "bg-transparent",
       textColor: "text-red-500"
     }
@@ -54,7 +54,11 @@ export function NotificationIcon({ type, isVisible, className }: NotificationIco
         className || "w-8 h-8"
       )}
     >
-      <IconComponent className={className?.includes("w-8") ? "w-4 h-4" : "w-4 h-4"} />
+      {typeof IconComponent === 'function' && type === 'workout_progress' ? (
+        <IconComponent />
+      ) : (
+        <IconComponent className={className?.includes("w-8") ? "w-4 h-4" : "w-4 h-4"} />
+      )}
     </div>
   );
 }

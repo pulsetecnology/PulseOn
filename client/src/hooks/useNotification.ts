@@ -33,10 +33,20 @@ export function useNotification() {
     showNotification("warning", duration);
   }, [showNotification]);
 
+  const showWorkoutProgress = useCallback((duration?: number) => {
+    showNotification("workout_progress", duration);
+  }, [showNotification]);
+
+  const showSetCompletion = useCallback((duration?: number) => {
+    showNotification("set_completion", duration);
+  }, [showNotification]);
+
   return {
     notification,
     showSuccess,
     showError,
     showWarning,
+    showWorkoutProgress,
+    showSetCompletion,
   };
 }
