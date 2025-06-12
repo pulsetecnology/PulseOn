@@ -160,7 +160,7 @@ export default function ActiveWorkout() {
         <div className="px-4 py-6">
           <div className="text-center space-y-2">
             <Badge variant="secondary" className="bg-slate-700 dark:bg-slate-700 light:bg-slate-200 text-slate-200 dark:text-slate-200 light:text-slate-700">
-              Exercício {currentExerciseIndex + 1} de {totalExercises}
+              Exercício {currentExerciseIndex + 1}/{totalExercises}
             </Badge>
             <h1 className="text-2xl font-bold">{currentExercise.name}</h1>
             <div className="text-3xl font-bold text-cyan-400 dark:text-cyan-400 light:text-cyan-600">
@@ -245,22 +245,6 @@ export default function ActiveWorkout() {
           {/* Set Feedback Phase */}
           {showSetFeedback && (
             <div className="space-y-1">
-              {/* Exercise Progress */}
-              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-                <CardContent className="p-2">
-                  <div className="text-center mb-1">
-                    <div className="text-sm font-semibold">{currentExercise?.name}</div>
-                    <div className="text-base font-bold">Série {currentSet} de {currentExercise?.sets}</div>
-                    <div className="text-sm text-muted-foreground">{currentExercise?.reps} repetições</div>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div 
-                      className="bg-cyan-600 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${progressPercentage}%` }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
 
               {/* Weight Selection */}
               <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
