@@ -123,7 +123,7 @@ export default function Home() {
       {/* Today's Workout */}
       <div>
         <h2 className="text-lg font-semibold mb-3">Treino de Hoje</h2>
-        <Card className="bg-slate-50 dark:bg-slate-900 light:bg-slate-100/80"></Card>
+        <Card className="bg-slate-50 dark:bg-slate-900 light:bg-slate-100/80">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-bold">Treino de Pernas</h3>
