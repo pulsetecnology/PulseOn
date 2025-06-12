@@ -36,26 +36,26 @@ export default function Workout() {
         <h2 className="text-lg font-semibold">Exercícios</h2>
         {todaysWorkout.exercises?.map((exercise, index) => (
           <Card key={exercise.id}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold">{exercise.name}</h3>
-                <span className="text-sm text-muted-foreground">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-sm">{exercise.name}</h3>
+                <span className="text-xs text-muted-foreground">
                   {exercise.sets}x{exercise.reps}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
-                <span>Peso sugerido: {exercise.suggestedWeight}kg</span>
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                <span>Peso: {exercise.suggestedWeight}kg</span>
                 <span className="flex items-center">
-                  <Clock className="mr-1 h-3 w-3" />
-                  Descanso: {exercise.restTime}s
+                  <Clock className="mr-1 h-2 w-2" />
+                  {exercise.restTime}s
                 </span>
               </div>
-              <div className="mb-3">
-                <p className="text-sm">{exercise.instructions}</p>
+              <div className="mb-2">
+                <p className="text-xs text-muted-foreground">{exercise.instructions}</p>
               </div>
-              <div className="flex flex-wrap gap-1 mb-3">
+              <div className="flex flex-wrap gap-1 mb-2">
                 {exercise.muscleGroups.map((muscle) => (
-                  <Badge key={muscle} variant="outline" className="text-xs">
+                  <Badge key={muscle} variant="outline" className="text-xs px-1 py-0">
                     {muscle}
                   </Badge>
                 ))}
