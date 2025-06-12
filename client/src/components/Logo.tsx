@@ -15,7 +15,18 @@ export default function Logo({ className = "text-xl" }: { className?: string }) 
             className="w-10 h-10"
           />
         ) : (
-          <FitnessIcon className="h-10 w-10 text-primary" animated={false} />
+          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+            <svg
+              className="w-6 h-6 text-white"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M3 9h2v6H3V9zm4-3h2v12H7V6zm4-3h2v18h-2V3zm4 3h2v12h-2V6zm4 3h2v6h-2V9z"/>
+              <circle cx="4" cy="12" r="1.5"/>
+              <circle cx="20" cy="12" r="1.5"/>
+            </svg>
+          </div>
         )}
       </div>
       <div className="flex items-center">
