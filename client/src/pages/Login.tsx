@@ -58,7 +58,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-slate-800/50 backdrop-blur-sm border-slate-700">
+      <Card className="w-full max-w-md bg-slate-800/50 backdrop-blur-sm border-slate-700 shadow-lg dark:shadow-2xl dark:shadow-black/30">
         <CardHeader className="text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
             <div className="p-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500">
@@ -123,13 +123,7 @@ export default function Login() {
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-slate-700/30 rounded-lg border border-slate-600">
-            <p className="text-sm text-slate-300 font-medium mb-2">Conta de teste:</p>
-            <p className="text-xs text-slate-400">Email: teste@pulseon.com</p>
-            <p className="text-xs text-slate-400">Senha: 123456</p>
-          </div>
-
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
             <p className="text-sm text-slate-400">
               Ainda não tem uma conta?{" "}
               <Link href="/register">

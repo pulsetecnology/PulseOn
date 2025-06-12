@@ -6,21 +6,32 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { registerSchema, type RegisterData } from "@shared/schema";
+import { z } from "zod";
 import { Link, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import Logo from "@/components/Logo";
 
+const registerWithConfirmSchema = registerSchema.extend({
+  confirmPassword: z.string().min(6, "Confirmação de senha é obrigatória")
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"]
+});
+
+type RegisterWithConfirmData = z.infer<typeof registerWithConfirmSchema>;
+
 export default function Register() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const form = useForm<RegisterData>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm<RegisterWithConfirmData>({
+    resolver: zodResolver(registerWithConfirmSchema),
     defaultValues: {
       email: "",
       password: "",
+      confirmPassword: "",
       name: ""
     }
   });
@@ -60,8 +71,9 @@ export default function Register() {
     }
   });
 
-  const onSubmit = (data: RegisterData) => {
-    registerMutation.mutate(data);
+  const onSubmit = (data: RegisterWithConfirmData) => {
+    const { confirmPassword, ...registerData } = data;
+    registerMutation.mutate(registerData);
   };
 
   return (
@@ -110,6 +122,24 @@ export default function Register() {
                         <Input 
                           type="password" 
                           placeholder="Mínimo 6 caracteres"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar Senha</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="password" 
+                          placeholder="Digite a senha novamente"
                           {...field} 
                         />
                       </FormControl>

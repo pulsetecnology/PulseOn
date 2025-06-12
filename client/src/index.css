@@ -23,7 +23,7 @@
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
   --ring: hsl(20, 14.3%, 4.1%);
   --radius: 0.5rem;
-  
+
   /* PulseOn Custom Colors */
   --brand-cyan: hsl(175, 93%, 48%);
   --brand-blue: hsl(216, 58%, 86%);
@@ -74,80 +74,80 @@
       padding: 0;
     }
   }
-  
+
   /* Brand colors with better contrast for light mode */
   .brand-cyan {
     color: hsl(175, 93%, 48%);
   }
-  
+
   .brand-blue {
     color: hsl(216, 58%, 86%);
   }
-  
+
   /* Light mode brand colors with better visibility */
   .light .brand-cyan {
     color: hsl(175, 93%, 35%);
   }
-  
+
   .light .brand-blue {
     color: hsl(216, 100%, 45%);
   }
-  
+
   .bg-brand-cyan {
     background-color: hsl(175, 93%, 48%);
   }
-  
+
   .bg-brand-blue {
     background-color: hsl(216, 58%, 86%);
   }
-  
+
   .text-success {
     color: hsl(149, 80%, 40%);
   }
-  
+
   .bg-success {
     background-color: hsl(149, 80%, 40%);
   }
-  
+
   .text-warning {
     color: hsl(43, 96%, 49%);
   }
-  
+
   .bg-warning {
     background-color: hsl(43, 96%, 49%);
   }
-  
+
   .text-error {
     color: hsl(351, 95%, 71%);
   }
-  
+
   .bg-error {
     background-color: hsl(351, 95%, 71%);
   }
-  
+
   /* Enhanced shadows for cards */
   .card-shadow {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
-  
+
   .dark .card-shadow {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 10px 10px -5px rgba(0, 0, 0, 0.6);
   }
-  
+
   /* Header shadow - stronger for both modes */
   .header-shadow {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
-  
+
   .dark .header-shadow {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.9), 0 4px 6px -2px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
-  
+
   /* Bottom navigation shadow - stronger for both modes */
   .bottom-nav-shadow {
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
   }
-  
+
   .dark .bottom-nav-shadow {
     box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.9), 0 -4px 6px -2px rgba(0, 0, 0, 0.7);
   }
