@@ -114,7 +114,7 @@ export default function Login() {
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+              className="w-full"
               disabled={isLoading}
             >
               {isLoading ? "Entrando..." : "Entrar"}
