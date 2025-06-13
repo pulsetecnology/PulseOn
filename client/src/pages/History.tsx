@@ -11,6 +11,7 @@ const mockHistory = [
     duration: 42,
     exercises: 5,
     status: "completed",
+    completionRate: 100,
     exerciseDetails: [
       { name: "Agachamento", sets: 4, reps: 12, weight: "80kg" },
       { name: "Leg Press", sets: 3, reps: 15, weight: "120kg" },
@@ -25,14 +26,13 @@ const mockHistory = [
     date: "Ontem",
     duration: 38,
     exercises: 6,
-    status: "completed",
+    status: "partial",
+    completionRate: 75,
     exerciseDetails: [
       { name: "Supino Reto", sets: 4, reps: 10, weight: "70kg" },
       { name: "Supino Inclinado", sets: 3, reps: 12, weight: "60kg" },
       { name: "Flexão de Braços", sets: 3, reps: 15, weight: "Peso Corporal" },
-      { name: "Voador", sets: 3, reps: 12, weight: "25kg" },
-      { name: "Crucifixo", sets: 3, reps: 12, weight: "20kg" },
-      { name: "Paralelas", sets: 3, reps: 10, weight: "Peso Corporal" }
+      { name: "Voador", sets: 3, reps: 12, weight: "25kg" }
     ]
   },
   {
@@ -42,6 +42,7 @@ const mockHistory = [
     duration: 45,
     exercises: 7,
     status: "completed",
+    completionRate: 100,
     exerciseDetails: [
       { name: "Barra Fixa", sets: 4, reps: 8, weight: "Peso Corporal" },
       { name: "Remada Curvada", sets: 4, reps: 10, weight: "65kg" },
@@ -58,13 +59,12 @@ const mockHistory = [
     date: "5 dias atrás",
     duration: 35,
     exercises: 5,
-    status: "completed",
+    status: "partial",
+    completionRate: 60,
     exerciseDetails: [
       { name: "Desenvolvimento", sets: 4, reps: 10, weight: "45kg" },
       { name: "Elevação Lateral", sets: 3, reps: 12, weight: "15kg" },
-      { name: "Elevação Frontal", sets: 3, reps: 12, weight: "12kg" },
-      { name: "Remada Alta", sets: 3, reps: 12, weight: "30kg" },
-      { name: "Crucifixo Inverso", sets: 3, reps: 15, weight: "10kg" }
+      { name: "Elevação Frontal", sets: 3, reps: 12, weight: "12kg" }
     ]
   }
 ];
@@ -107,9 +107,7 @@ export default function History() {
         {mockHistory.map((workout) => (
           <Card 
             key={workout.id} 
-            className={`cursor-pointer transition-all duration-200 ${
-              expandedCard === workout.id ? 'ring-2 ring-primary' : ''
-            }`}
+            className="cursor-pointer transition-all duration-200"
             onClick={() => toggleCard(workout.id)}
           >
             <CardContent className="p-3">
@@ -138,8 +136,15 @@ export default function History() {
                     {workout.exercises} exercícios
                   </span>
                 </div>
-                <Badge variant="default" className="bg-success text-white text-xs px-2 py-0">
-                  Concluído
+                <Badge 
+                  variant="default" 
+                  className={`text-white text-xs px-2 py-0 ${
+                    workout.status === "completed" 
+                      ? "bg-success" 
+                      : "bg-orange-500"
+                  }`}
+                >
+                  {workout.status === "completed" ? "Concluído" : "Parcial"}
                 </Badge>
               </div>
               
