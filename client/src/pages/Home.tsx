@@ -43,7 +43,7 @@ function OnboardingCard({ user }: { user: any }) {
       });
     }
 
-    if (!user?.gender) {
+    if (!user?.gender || user.gender === "not_specified") {
       missingFields.push({
         field: "Gênero",
         description: "Influencia no cálculo de necessidades calóricas",
@@ -83,11 +83,90 @@ function OnboardingCard({ user }: { user: any }) {
       });
     }
 
+    // Adicionar validações para campos de estilo de vida se necessário
+    if (!user?.smokingStatus) {
+      missingFields.push({
+        field: "Status de tabagismo",
+        description: "Informação importante para personalizar treinos",
+        icon: Heart
+      });
+    }
+
+    if (!user?.alcoholConsumption) {
+      missingFields.push({
+        field: "Consumo de álcool",
+        description: "Influencia no planejamento de treinos",
+        icon: Heart
+      });
+    }
+
+    if (!user?.dietType) {
+      missingFields.push({
+        field: "Tipo de alimentação",
+        description: "Importante para recomendações personalizadas",
+        icon: Heart
+      });
+    }
+
+    if (!user?.sleepHours) {
+      missingFields.push({
+        field: "Horas de sono",
+        description: "Essencial para planejamento de recuperação",
+        icon: Heart
+      });
+    }
+
+    if (!user?.stressLevel) {
+      missingFields.push({
+        field: "Nível de estresse",
+        description: "Influencia na intensidade dos treinos",
+        icon: Heart
+      });
+    }
+
+    if (!user?.preferredWorkoutTime) {
+      missingFields.push({
+        field: "Horário preferido",
+        description: "Para otimizar seus treinos",
+        icon: Clock
+      });
+    }
+
+    if (!user?.availableDaysPerWeek || user.availableDaysPerWeek <= 0) {
+      missingFields.push({
+        field: "Dias disponíveis",
+        description: "Quantos dias por semana você pode treinar",
+        icon: Calendar
+      });
+    }
+
+    if (!user?.averageWorkoutDuration) {
+      missingFields.push({
+        field: "Duração dos treinos",
+        description: "Tempo médio que você tem para treinar",
+        icon: Clock
+      });
+    }
+
+    if (!user?.preferredLocation) {
+      missingFields.push({
+        field: "Local preferido",
+        description: "Onde você prefere treinar",
+        icon: Target
+      });
+    }
+
     return missingFields;
   };
 
   const missingFields = getMissingFields();
-  const completionPercentage = Math.round(((8 - missingFields.length) / 8) * 100);
+  const totalFields = 16; // Total de campos obrigatórios
+  const completionPercentage = Math.round(((totalFields - missingFields.length) / totalFields) * 100);
+
+  // Se não há campos faltando, não exibir o card
+  if (missingFields.length === 0) {
+    return null;
+  }
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
@@ -187,7 +266,7 @@ export default function Home() {
       </div>
 
       {/* Status Alerts */}
-      {!hasCompletedOnboarding && (
+      {(!hasCompletedOnboarding || (user && !user.onboardingCompleted)) && (
         <OnboardingCard user={user} />
       )}
 
