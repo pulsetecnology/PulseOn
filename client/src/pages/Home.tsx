@@ -648,23 +648,11 @@ export default function Home() {
                       {workout.date} • {workout.exercises.length} exercícios • {workout.difficulty}
                     </p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Navigate to workout when play button is clicked
-                      }}
-                    >
-                      <Play className="h-3 w-3" />
-                    </Button>
-                    {expandedUpcomingWorkout === workout.id ? (
-                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </div>
+                  {expandedUpcomingWorkout === workout.id ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </div>
 
                 {/* Expanded Exercise Details */}
