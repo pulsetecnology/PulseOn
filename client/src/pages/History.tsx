@@ -190,7 +190,7 @@ export default function History() {
                 <h3 className="font-semibold text-sm">{workout.name}</h3>
                 <div className="flex items-center space-x-2">
                   <span className="text-xs text-muted-foreground flex items-center">
-                    <Calendar className="mr-1 h-2 w-2" />
+                    <CalendarIcon className="mr-1 h-2 w-2" />
                     {workout.date}
                   </span>
                   {expandedCard === workout.id ? (
