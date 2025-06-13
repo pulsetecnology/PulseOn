@@ -739,10 +739,10 @@ export default function Onboarding() {
                 type="button"
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className={`transition-all duration-200 bg-gradient-to-r from-primary to-secondary ${
+                className={`transition-all duration-200 ${
                   !canProceed() 
                     ? 'opacity-50 cursor-not-allowed' 
-                    : 'hover:scale-105 active:scale-95 hover:from-primary/90 hover:to-secondary/90'
+                    : 'hover:scale-105 active:scale-95'
                 }`}
               >
                 Próximo
@@ -753,7 +753,7 @@ export default function Onboarding() {
                 type="button"
                 onClick={() => form.handleSubmit(onSubmit)()}
                 disabled={!canProceed() || updateUserMutation.isPending}
-                className="transition-all duration-200 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 hover:scale-105 active:scale-95"
+                className="transition-all duration-200 bg-green-600 hover:bg-green-700 hover:scale-105 active:scale-95"
               >
                 {updateUserMutation.isPending ? (
                   <>

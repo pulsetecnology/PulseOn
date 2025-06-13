@@ -11,25 +11,25 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
-  
+
   @media (min-width: 640px) {
     .app-container {
       max-width: 640px;
     }
   }
-  
+
   @media (min-width: 768px) {
     .app-container {
       max-width: 768px;
     }
   }
-  
+
   @media (min-width: 1024px) {
     .app-container {
       max-width: 1024px;
     }
   }
-  
+
   @media (min-width: 1280px) {
     .app-container {
       max-width: 1280px;
@@ -98,7 +98,7 @@
   --muted-foreground: hsl(25, 5.3%, 44.7%);
   --popover: hsl(0, 0%, 100%);
   --popover-foreground: hsl(20, 14.3%, 4.1%);
-  --card: hsl(0, 0%, 100%);
+  --card: hsl(0, 0%, 96%);
   --card-foreground: hsl(20, 14.3%, 4.1%);
   --border: hsl(20, 5.9%, 90%);
   --input: hsl(20, 5.9%, 90%);
@@ -257,6 +257,13 @@
 
   .dark .bottom-nav-shadow {
     box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.9), 0 -4px 6px -2px rgba(0, 0, 0, 0.7);
+  }
+
+  /* Onboarding buttons - remove gradient */
+  .onboarding-button {
+    background-image: none; /* Remove gradient */
+    background-color: var(--primary); /* Use primary color */
+    color: var(--primary-foreground);
   }
 }
 
