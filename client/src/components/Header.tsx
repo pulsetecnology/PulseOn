@@ -1,4 +1,4 @@
-import { Moon, Sun, LogOut, Bell, MessageCircle } from "lucide-react";
+import { Moon, Sun, LogOut, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
@@ -52,22 +52,6 @@ export default function Header() {
             ) : (
               <Sun className="h-4 w-4" />
             )}
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              // TODO: Implementar funcionalidade de notificações
-              console.log("Notificações clicked");
-            }}
-            className="h-10 w-10 relative"
-          >
-            <Bell className="h-4 w-4" />
-            {/* Badge de notificação para uso futuro */}
-            <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white opacity-0">
-              {/* Contador será implementado futuramente */}
-            </span>
           </Button>
           
           <Button
