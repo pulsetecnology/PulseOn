@@ -53,6 +53,15 @@ export class SQLiteStorage implements IStorage {
       available_equipment TEXT,
       custom_equipment TEXT,
       physical_restrictions TEXT,
+      smoking_status TEXT,
+      alcohol_consumption TEXT,
+      diet_type TEXT,
+      sleep_hours TEXT,
+      stress_level TEXT,
+      preferred_workout_time TEXT,
+      available_days_per_week INTEGER,
+      average_workout_duration TEXT,
+      preferred_location TEXT,
       onboarding_completed INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`;
@@ -105,6 +114,9 @@ export class SQLiteStorage implements IStorage {
     // Add migration to add avatar_url column if it doesn't exist
     this.addAvatarUrlColumn();
 
+    // Add lifestyle fields if they don't exist
+    this.addLifestyleFields();
+
     // Seed test user if it doesn't exist
     this.seedTestUser();
   }
@@ -138,6 +150,36 @@ export class SQLiteStorage implements IStorage {
       }
     } catch (error) {
       console.error('Error adding avatar_url column:', error);
+    }
+  }
+
+  private addLifestyleFields() {
+    try {
+      const columns = this.db.prepare("PRAGMA table_info(users)").all();
+      const columnNames = columns.map((col: any) => col.name);
+      
+      const lifestyleFields = [
+        'smoking_status',
+        'alcohol_consumption', 
+        'diet_type',
+        'sleep_hours',
+        'stress_level',
+        'preferred_workout_time',
+        'available_days_per_week',
+        'average_workout_duration',
+        'preferred_location'
+      ];
+
+      for (const field of lifestyleFields) {
+        if (!columnNames.includes(field)) {
+          console.log(`Adding ${field} column to users table...`);
+          const dataType = field === 'available_days_per_week' ? 'INTEGER' : 'TEXT';
+          this.db.exec(`ALTER TABLE users ADD COLUMN ${field} ${dataType}`);
+          console.log(`${field} column added successfully`);
+        }
+      }
+    } catch (error) {
+      console.error('Error adding lifestyle fields:', error);
     }
   }
 
@@ -187,6 +229,15 @@ export class SQLiteStorage implements IStorage {
       availableEquipment: row.available_equipment ? JSON.parse(row.available_equipment) : null,
       customEquipment: row.custom_equipment,
       physicalRestrictions: row.physical_restrictions,
+      smokingStatus: row.smoking_status,
+      alcoholConsumption: row.alcohol_consumption,
+      dietType: row.diet_type,
+      sleepHours: row.sleep_hours,
+      stressLevel: row.stress_level,
+      preferredWorkoutTime: row.preferred_workout_time,
+      availableDaysPerWeek: row.available_days_per_week,
+      averageWorkoutDuration: row.average_workout_duration,
+      preferredLocation: row.preferred_location,
       onboardingCompleted: Boolean(row.onboarding_completed),
       avatarUrl: row.avatar_url,
       createdAt: new Date(row.created_at)

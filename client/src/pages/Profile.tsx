@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { User, Settings, Calendar, Activity, Target, Dumbbell, Camera, Scale, Heart } from "lucide-react";
+import { Calendar, Activity, Target, Dumbbell, Camera, Scale } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -343,17 +343,17 @@ export default function Profile() {
         showError("Arquivo muito grande. Tamanho máximo: 5MB");
         return;
       }
-      
+
       // Check file type
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
         showError("Tipo de arquivo não suportado. Use JPEG, PNG, GIF ou WebP");
         return;
       }
-      
+
       avatarUploadMutation.mutate(file);
     }
-    
+
     // Reset the input so the same file can be selected again if needed
     event.target.value = '';
   };
@@ -635,33 +635,6 @@ export default function Profile() {
             </div>
 
             <div className="space-y-2">
-              <Label>Frequência Semanal</Label>
-              {isEditing ? (
-                <Select 
-                  value={formData.weeklyFrequency?.toString() || ""} 
-                  onValueChange={(value) => setFormData({ ...formData, weeklyFrequency: Number(value) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Quantas vezes por semana?" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1x por semana</SelectItem>
-                    <SelectItem value="2">2x por semana</SelectItem>
-                    <SelectItem value="3">3x por semana</SelectItem>
-                    <SelectItem value="4">4x por semana</SelectItem>
-                    <SelectItem value="5">5x por semana</SelectItem>
-                    <SelectItem value="6">6x por semana</SelectItem>
-                    <SelectItem value="7">Todos os dias</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  {user.weeklyFrequency ? `${user.weeklyFrequency}x por semana` : "Não informado"}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
               <Label>Horário Preferido para Treino</Label>
               {isEditing ? (
                 <Select 
@@ -738,7 +711,7 @@ export default function Profile() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Heart className="h-5 w-5" />
+              <Activity className="h-5 w-5" />
               Estilo de Vida
             </CardTitle>
           </CardHeader>
@@ -865,7 +838,7 @@ export default function Profile() {
                 )}
               </div>
 
-              
+
             </div>
           </CardContent>
         </Card>
