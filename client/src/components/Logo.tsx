@@ -6,7 +6,7 @@ export default function Logo({ className = "text-xl" }: { className?: string }) 
   const { notification } = useGlobalNotification();
 
   return (
-    <div className={`flex items-center space-x-0 ${className}`}>
+    <div className={`flex items-center space-x-0 pl-0 ${className}`}>
       <div className="w-14 h-14 relative flex items-center justify-center">
         {notification.type && notification.isVisible ? (
           <NotificationIcon
