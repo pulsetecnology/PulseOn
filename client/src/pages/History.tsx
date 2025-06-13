@@ -75,13 +75,45 @@ const mockHistory = [
 
 // Calendar workout data - maps dates to workout IDs
 const workoutCalendarData = {
+  // Janeiro 2025 - Semana atual
   "2025-01-13": { workoutId: 1, status: "completed" }, // Hoje
   "2025-01-12": { workoutId: 2, status: "partial" },   // Ontem  
-  "2025-01-10": { workoutId: 3, status: "completed" }, // 3 dias atrás
-  "2025-01-08": { workoutId: 4, status: "partial" },   // 5 dias atrás
-  "2025-01-06": { workoutId: 1, status: "completed" },
-  "2025-01-04": { workoutId: 3, status: "partial" },
-  "2025-01-02": { workoutId: 2, status: "completed" }
+  "2025-01-11": { workoutId: 3, status: "completed" }, 
+  "2025-01-10": { workoutId: 4, status: "completed" }, 
+  "2025-01-09": { workoutId: 1, status: "partial" },
+  "2025-01-08": { workoutId: 2, status: "completed" },   
+  "2025-01-07": { workoutId: 3, status: "completed" },
+  
+  // Semana passada
+  "2025-01-06": { workoutId: 4, status: "completed" },
+  "2025-01-05": { workoutId: 1, status: "partial" },
+  "2025-01-04": { workoutId: 2, status: "completed" },
+  "2025-01-03": { workoutId: 3, status: "completed" },
+  "2025-01-02": { workoutId: 4, status: "partial" },
+  "2025-01-01": { workoutId: 1, status: "completed" }, // Ano novo
+  
+  // Dezembro 2024 - Final do ano passado
+  "2024-12-31": { workoutId: 2, status: "completed" },
+  "2024-12-30": { workoutId: 3, status: "partial" },
+  "2024-12-29": { workoutId: 4, status: "completed" },
+  "2024-12-28": { workoutId: 1, status: "completed" },
+  "2024-12-27": { workoutId: 2, status: "partial" },
+  "2024-12-26": { workoutId: 3, status: "completed" }, // Boxing Day
+  "2024-12-25": { workoutId: 4, status: "completed" }, // Natal
+  "2024-12-24": { workoutId: 1, status: "partial" },   // Véspera de Natal
+  "2024-12-23": { workoutId: 2, status: "completed" }, 
+  "2024-12-22": { workoutId: 3, status: "completed" },
+  "2024-12-21": { workoutId: 4, status: "partial" },
+  "2024-12-20": { workoutId: 1, status: "completed" },
+  
+  // Algumas datas espalhadas para teste
+  "2025-01-15": { workoutId: 3, status: "completed" }, // Futura (amanhã)
+  "2025-01-17": { workoutId: 1, status: "completed" }, // Futura
+  "2025-01-20": { workoutId: 2, status: "partial" },   // Futura
+  "2025-01-22": { workoutId: 4, status: "completed" }, // Futura
+  "2025-01-25": { workoutId: 3, status: "completed" }, // Futura
+  "2025-01-27": { workoutId: 1, status: "partial" },   // Futura
+  "2025-01-30": { workoutId: 2, status: "completed" }  // Final do mês
 };
 
 export default function History() {
