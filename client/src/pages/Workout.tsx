@@ -10,7 +10,6 @@ import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
 
 export default function Workout() {
-  const todaysWorkout = sampleWorkouts[0]; // For demo purposes
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [currentSet, setCurrentSet] = useState(1);
@@ -90,6 +89,14 @@ export default function Workout() {
 
   return (
     <div className="px-4 py-6 space-y-6">
+      {/* Page Title */}
+      <div>
+        <h1 className="text-2xl font-bold mb-2">Treinos Programados</h1>
+        <p className="text-muted-foreground">
+          Seus treinos personalizados estão prontos para serem executados
+        </p>
+      </div>
+
       {/* Workout Header */}
       <Card>
         <CardContent className="p-6">
