@@ -682,7 +682,7 @@ export default function Home() {
                             <span className="text-sm font-semibold text-primary">
                               {exercise.weight}
                             </span>
-                            <p className="text-xs text-muted-foreground flex items-center">
+                            <p className="text-xs text-muted-foreground flex items-center justify-end">
                               <Clock className="mr-1 h-2 w-2" />
                               {exercise.restTime}s
                             </p>
