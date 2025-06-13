@@ -393,6 +393,12 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto px-4 py-4 space-y-4 max-w-4xl">
+      {/* Page Title */}
+      <div>
+        <h1 className="text-2xl font-bold">Perfil</h1>
+        <p className="text-muted-foreground">Gerencie suas informações pessoais e preferências</p>
+      </div>
+
       {/* Profile Header */}
       <div className="w-full bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-6 mb-6">
         <div className="flex flex-row items-start space-x-4">
