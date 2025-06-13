@@ -1,13 +1,16 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Clock, Plus, Dumbbell, User, Trophy, TrendingUp, CheckCircle, AlertCircle, BarChart3, Calendar, Target, Zap, ChevronDown, ChevronUp, X, Scale, Heart } from "lucide-react";
+import { Clock, Plus, Dumbbell, User, Trophy, TrendingUp, CheckCircle, AlertCircle, BarChart3, Calendar, Target, Zap, ChevronDown, ChevronUp, X, Scale, Heart, Flame, Play } from "lucide-react";
+import FitnessIcon from "@/components/FitnessIcon";
 
 // Component for expandable onboarding card
 function OnboardingCard({ user }: { user: any }) {
@@ -164,8 +167,6 @@ function OnboardingCard({ user }: { user: any }) {
   );
 }
 
-
-
 export default function Home() {
   const { user } = useAuth();
 
@@ -280,8 +281,6 @@ export default function Home() {
         </Card>
       </div>
 
-
-
       {/* Upcoming Workouts */}
       <div>
         <h2 className="text-lg font-semibold mb-3">Próximos Treinos</h2>
@@ -313,10 +312,3 @@ export default function Home() {
     </div>
   );
 }
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dumbbell, Flame, Play, AlertCircle, CheckCircle, Clock } from "lucide-react";
-import { useGlobalNotification } from "@/components/NotificationProvider";
-import { useAuth } from "@/hooks/useAuth";
-import FitnessIcon from "@/components/FitnessIcon";

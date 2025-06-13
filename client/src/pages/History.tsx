@@ -84,7 +84,7 @@ const workoutCalendarData = {
   "2025-01-09": { workoutId: 1, status: "completed" },
   "2025-01-08": { workoutId: 2, status: "partial" },   
   "2025-01-07": { workoutId: 3, status: "completed" },
-  
+
   // Semana passada
   "2025-01-06": { workoutId: 4, status: "partial" },
   "2025-01-05": { workoutId: 1, status: "completed" },
@@ -92,7 +92,7 @@ const workoutCalendarData = {
   "2025-01-03": { workoutId: 3, status: "completed" },
   "2025-01-02": { workoutId: 4, status: "partial" },
   "2025-01-01": { workoutId: 1, status: "completed" }, // Ano novo
-  
+
   // Dezembro 2024 - Final do ano passado
   "2024-12-31": { workoutId: 2, status: "partial" },
   "2024-12-30": { workoutId: 3, status: "completed" },
@@ -106,7 +106,7 @@ const workoutCalendarData = {
   "2024-12-22": { workoutId: 3, status: "completed" },
   "2024-12-21": { workoutId: 4, status: "partial" },
   "2024-12-20": { workoutId: 1, status: "completed" },
-  
+
   // Algumas datas espalhadas para teste
   "2025-01-15": { workoutId: 3, status: "completed" }, // Futura
   "2025-01-17": { workoutId: 1, status: "completed" }, // Futura
@@ -140,7 +140,7 @@ export default function History() {
   const handleDateSelect = (date: Date) => {
     const dateKey = formatDateKey(date);
     const workoutData = workoutCalendarData[dateKey];
-    
+
     if (workoutData) {
       const workout = mockHistory.find(w => w.id === workoutData.workoutId);
       // Create a workout object with the correct status from calendar data
@@ -148,7 +148,7 @@ export default function History() {
         ...workout,
         status: workoutData.status
       } : null;
-      
+
       setSelectedWorkout(workoutWithCorrectStatus);
       setSelectedDate(date);
       setExpandedCalendarWorkout(false); // Reset expanded state when selecting new date
@@ -172,17 +172,17 @@ export default function History() {
     const startDayOfWeek = firstDay.getDay();
 
     const days = [];
-    
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startDayOfWeek; i++) {
       days.push(null);
     }
-    
+
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(new Date(year, month, day));
     }
-    
+
     return days;
   };
 
@@ -269,7 +269,7 @@ export default function History() {
                   {workout.status === "completed" ? "Concluído" : "Parcial"}
                 </Badge>
               </div>
-              
+
               {/* Expanded Exercise Details */}
               {expandedCard === workout.id && (
                 <div className="mt-4 pt-3 border-t border-border">
@@ -279,7 +279,7 @@ export default function History() {
                       const isPartialSets = exercise.completed === "partial";
                       const isNotCompleted = exercise.completed === false;
                       const isCompleted = exercise.completed === true;
-                      
+
                       return (
                         <div 
                           key={index} 
@@ -365,7 +365,7 @@ export default function History() {
             <CalendarIcon className="mr-2 h-4 w-4" />
             Calendário de Treinos
           </h3>
-          
+
           {/* Custom Calendar */}
           <div className="w-full">
             {/* Calendar Header */}
@@ -395,17 +395,17 @@ export default function History() {
                   {day}
                 </div>
               ))}
-              
+
               {/* Calendar days */}
               {getDaysInMonth(currentMonth).map((date, index) => {
                 if (!date) {
                   return <div key={index} className="p-2"></div>;
                 }
-                
+
                 const workoutData = hasWorkout(date);
                 const isSelected = selectedDate && formatDateKey(date) === formatDateKey(selectedDate);
                 const isToday = formatDateKey(date) === formatDateKey(new Date());
-                
+
                 return (
                   <button
                     key={index}
@@ -431,7 +431,7 @@ export default function History() {
               })}
             </div>
           </div>
-          
+
           {/* Selected Date Workout Details */}
           {selectedWorkout && (
             <div className="mt-4 pt-4 border-t border-border">
@@ -482,7 +482,7 @@ export default function History() {
                         const isPartialSets = exercise.completed === "partial";
                         const isNotCompleted = exercise.completed === false;
                         const isCompleted = exercise.completed === true;
-                        
+
                         return (
                           <div 
                             key={index} 
@@ -559,7 +559,7 @@ export default function History() {
               </div>
             </div>
           )}
-          
+
           {selectedDate && !selectedWorkout && (
             <div className="mt-4 pt-4 border-t border-border">
               <p className="text-sm text-muted-foreground text-center">
@@ -567,7 +567,7 @@ export default function History() {
               </p>
             </div>
           )}
-          
+
           {/* Legend */}
           <div className="mt-4 pt-4 border-t border-border">
             <h4 className="font-semibold text-sm mb-2">Legenda</h4>
