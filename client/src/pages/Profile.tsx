@@ -1106,68 +1106,26 @@ export default function Profile() {
         </Card>
       </div>
 
-      {/* Restrições Físicas */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Restrições Físicas
-            </CardTitle>
-            <div className="flex gap-2">
-              {editingCard === 'restrictions' ? (
-                <>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleCancelEdit}
-                    disabled={updateMutation.isPending}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleSaveEdit}
-                    disabled={updateMutation.isPending}
-                  >
-                    {updateMutation.isPending ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <Check className="h-4 w-4" />
-                    )}
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setEditingCard('restrictions')}
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              )}
+      {/* Restrições Físicas - Seção de Visualização */}
+      {user.physicalRestrictions && (
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 rounded-lg p-6 border border-orange-200/50 dark:border-orange-800/50">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-1">
+              <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-medium text-orange-900 dark:text-orange-100 mb-2">
+                Restrições Físicas
+              </h3>
+              <p className="text-orange-800 dark:text-orange-200 leading-relaxed">
+                {user.physicalRestrictions}
+              </p>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {editingCard === 'restrictions' ? (
-            <div className="space-y-2">
-              <Label htmlFor="physicalRestrictions">Descreva suas restrições físicas (opcional):</Label>
-              <textarea
-                id="physicalRestrictions"
-                className="w-full p-3 border border-input rounded-md bg-background text-sm resize-none min-h-[100px]"
-                placeholder="Ex: Lesão no joelho direito, problema na coluna, etc."
-                value={formData.physicalRestrictions || ""}
-                onChange={(e) => setFormData({ ...formData, physicalRestrictions: e.target.value })}
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {user.physicalRestrictions || "Nenhuma restrição informada"}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   );
 }
