@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/useAuth";
@@ -314,3 +313,10 @@ export default function Home() {
     </div>
   );
 }
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dumbbell, Flame, Play, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { useGlobalNotification } from "@/components/NotificationProvider";
+import { useAuth } from "@/hooks/useAuth";
+import FitnessIcon from "@/components/FitnessIcon";
