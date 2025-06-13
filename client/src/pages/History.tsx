@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Dumbbell, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Calendar, Clock, Dumbbell, ChevronDown, ChevronUp, X, AlertCircle } from "lucide-react";
 
 const mockHistory = [
   {
@@ -13,11 +13,11 @@ const mockHistory = [
     status: "completed",
     completionRate: 100,
     exerciseDetails: [
-      { name: "Agachamento", sets: 4, reps: 12, weight: "80kg", completed: true },
-      { name: "Leg Press", sets: 3, reps: 15, weight: "120kg", completed: true },
-      { name: "Extensão de Pernas", sets: 3, reps: 12, weight: "40kg", completed: true },
-      { name: "Flexão de Pernas", sets: 3, reps: 12, weight: "35kg", completed: true },
-      { name: "Panturrilha em Pé", sets: 4, reps: 20, weight: "60kg", completed: true }
+      { name: "Agachamento", sets: 4, reps: 12, weight: "80kg", completed: true, completedSets: 4, totalSets: 4 },
+      { name: "Leg Press", sets: 3, reps: 15, weight: "120kg", completed: true, completedSets: 3, totalSets: 3 },
+      { name: "Extensão de Pernas", sets: 3, reps: 12, weight: "40kg", completed: true, completedSets: 3, totalSets: 3 },
+      { name: "Flexão de Pernas", sets: 3, reps: 12, weight: "35kg", completed: true, completedSets: 3, totalSets: 3 },
+      { name: "Panturrilha em Pé", sets: 4, reps: 20, weight: "60kg", completed: true, completedSets: 4, totalSets: 4 }
     ]
   },
   {
@@ -29,12 +29,12 @@ const mockHistory = [
     status: "partial",
     completionRate: 75,
     exerciseDetails: [
-      { name: "Supino Reto", sets: 4, reps: 10, weight: "70kg", completed: true },
-      { name: "Supino Inclinado", sets: 3, reps: 12, weight: "60kg", completed: true },
-      { name: "Flexão de Braços", sets: 3, reps: 15, weight: "Peso Corporal", completed: true },
-      { name: "Voador", sets: 3, reps: 12, weight: "25kg", completed: true },
-      { name: "Crucifixo", sets: 3, reps: 12, weight: "20kg", completed: false },
-      { name: "Paralelas", sets: 3, reps: 10, weight: "Peso Corporal", completed: false }
+      { name: "Supino Reto", sets: 4, reps: 10, weight: "70kg", completed: true, completedSets: 4, totalSets: 4 },
+      { name: "Supino Inclinado", sets: 3, reps: 12, weight: "60kg", completed: true, completedSets: 3, totalSets: 3 },
+      { name: "Flexão de Braços", sets: 3, reps: 15, weight: "Peso Corporal", completed: "partial", completedSets: 2, totalSets: 3 },
+      { name: "Voador", sets: 3, reps: 12, weight: "25kg", completed: true, completedSets: 3, totalSets: 3 },
+      { name: "Crucifixo", sets: 3, reps: 12, weight: "20kg", completed: false, completedSets: 0, totalSets: 3 },
+      { name: "Paralelas", sets: 3, reps: 10, weight: "Peso Corporal", completed: false, completedSets: 0, totalSets: 3 }
     ]
   },
   {
@@ -46,13 +46,13 @@ const mockHistory = [
     status: "completed",
     completionRate: 100,
     exerciseDetails: [
-      { name: "Barra Fixa", sets: 4, reps: 8, weight: "Peso Corporal", completed: true },
-      { name: "Remada Curvada", sets: 4, reps: 10, weight: "65kg", completed: true },
-      { name: "Puxada Frontal", sets: 3, reps: 12, weight: "55kg", completed: true },
-      { name: "Remada Sentado", sets: 3, reps: 12, weight: "50kg", completed: true },
-      { name: "Levantamento Terra", sets: 4, reps: 8, weight: "90kg", completed: true },
-      { name: "Pullover", sets: 3, reps: 12, weight: "25kg", completed: true },
-      { name: "Encolhimento", sets: 3, reps: 15, weight: "30kg", completed: true }
+      { name: "Barra Fixa", sets: 4, reps: 8, weight: "Peso Corporal", completed: true, completedSets: 4, totalSets: 4 },
+      { name: "Remada Curvada", sets: 4, reps: 10, weight: "65kg", completed: true, completedSets: 4, totalSets: 4 },
+      { name: "Puxada Frontal", sets: 3, reps: 12, weight: "55kg", completed: true, completedSets: 3, totalSets: 3 },
+      { name: "Remada Sentado", sets: 3, reps: 12, weight: "50kg", completed: true, completedSets: 3, totalSets: 3 },
+      { name: "Levantamento Terra", sets: 4, reps: 8, weight: "90kg", completed: true, completedSets: 4, totalSets: 4 },
+      { name: "Pullover", sets: 3, reps: 12, weight: "25kg", completed: true, completedSets: 3, totalSets: 3 },
+      { name: "Encolhimento", sets: 3, reps: 15, weight: "30kg", completed: true, completedSets: 3, totalSets: 3 }
     ]
   },
   {
@@ -64,11 +64,11 @@ const mockHistory = [
     status: "partial",
     completionRate: 60,
     exerciseDetails: [
-      { name: "Desenvolvimento", sets: 4, reps: 10, weight: "45kg", completed: true },
-      { name: "Elevação Lateral", sets: 3, reps: 12, weight: "15kg", completed: true },
-      { name: "Elevação Frontal", sets: 3, reps: 12, weight: "12kg", completed: true },
-      { name: "Remada Alta", sets: 3, reps: 12, weight: "30kg", completed: false },
-      { name: "Crucifixo Inverso", sets: 3, reps: 15, weight: "10kg", completed: false }
+      { name: "Desenvolvimento", sets: 4, reps: 10, weight: "45kg", completed: true, completedSets: 4, totalSets: 4 },
+      { name: "Elevação Lateral", sets: 3, reps: 12, weight: "15kg", completed: "partial", completedSets: 2, totalSets: 3 },
+      { name: "Elevação Frontal", sets: 3, reps: 12, weight: "12kg", completed: true, completedSets: 3, totalSets: 3 },
+      { name: "Remada Alta", sets: 3, reps: 12, weight: "30kg", completed: false, completedSets: 0, totalSets: 3 },
+      { name: "Crucifixo Inverso", sets: 3, reps: 15, weight: "10kg", completed: false, completedSets: 0, totalSets: 3 }
     ]
   }
 ];
@@ -157,52 +157,77 @@ export default function History() {
                 <div className="mt-4 pt-3 border-t border-border">
                   <h4 className="font-semibold text-sm mb-3 text-foreground">Detalhes dos Exercícios</h4>
                   <div className="space-y-2">
-                    {workout.exerciseDetails.map((exercise, index) => (
-                      <div 
-                        key={index} 
-                        className={`flex items-center justify-between py-2 px-3 rounded-md ${
-                          exercise.completed 
-                            ? 'bg-muted/30' 
-                            : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50'
-                        }`}
-                      >
-                        <div className="flex items-center flex-1">
-                          {!exercise.completed && (
-                            <X className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
-                          )}
-                          <div className="flex-1">
-                            <h5 className={`font-medium text-sm ${
-                              exercise.completed 
-                                ? 'text-foreground' 
-                                : 'text-red-600 dark:text-red-400'
-                            }`}>
-                              {exercise.name}
-                              {!exercise.completed && (
-                                <span className="ml-2 text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full">
-                                  Não executado
-                                </span>
-                              )}
-                            </h5>
-                            <p className={`text-xs ${
-                              exercise.completed 
-                                ? 'text-muted-foreground' 
+                    {workout.exerciseDetails.map((exercise, index) => {
+                      const isPartialSets = exercise.completed === "partial";
+                      const isNotCompleted = exercise.completed === false;
+                      const isCompleted = exercise.completed === true;
+                      
+                      return (
+                        <div 
+                          key={index} 
+                          className={`flex items-center justify-between py-2 px-3 rounded-md ${
+                            isCompleted 
+                              ? 'bg-muted/30' 
+                              : isPartialSets
+                              ? 'bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/50'
+                              : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50'
+                          }`}
+                        >
+                          <div className="flex items-center flex-1">
+                            {isNotCompleted && (
+                              <X className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
+                            )}
+                            {isPartialSets && (
+                              <AlertCircle className="h-4 w-4 text-orange-500 mr-2 flex-shrink-0" />
+                            )}
+                            <div className="flex-1">
+                              <h5 className={`font-medium text-sm ${
+                                isCompleted 
+                                  ? 'text-foreground' 
+                                  : isPartialSets
+                                  ? 'text-orange-600 dark:text-orange-400'
+                                  : 'text-red-600 dark:text-red-400'
+                              }`}>
+                                {exercise.name}
+                                {isNotCompleted && (
+                                  <span className="ml-2 text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full">
+                                    Não executado
+                                  </span>
+                                )}
+                                {isPartialSets && (
+                                  <span className="ml-2 text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">
+                                    Séries incompletas
+                                  </span>
+                                )}
+                              </h5>
+                              <p className={`text-xs ${
+                                isCompleted 
+                                  ? 'text-muted-foreground' 
+                                  : isPartialSets
+                                  ? 'text-orange-500 dark:text-orange-400'
+                                  : 'text-red-500 dark:text-red-400'
+                              }`}>
+                                {isPartialSets 
+                                  ? `${exercise.completedSets}/${exercise.totalSets} séries × ${exercise.reps} repetições`
+                                  : `${exercise.sets} séries × ${exercise.reps} repetições`
+                                }
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-sm font-semibold ${
+                              isCompleted 
+                                ? 'text-primary' 
+                                : isPartialSets
+                                ? 'text-orange-500 dark:text-orange-400'
                                 : 'text-red-500 dark:text-red-400'
                             }`}>
-                              {exercise.sets} séries × {exercise.reps} repetições
-                            </p>
+                              {exercise.weight}
+                            </span>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <span className={`text-sm font-semibold ${
-                            exercise.completed 
-                              ? 'text-primary' 
-                              : 'text-red-500 dark:text-red-400'
-                          }`}>
-                            {exercise.weight}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
