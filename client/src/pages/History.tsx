@@ -298,37 +298,41 @@ export default function History() {
                               <AlertCircle className="h-4 w-4 text-orange-500 mr-2 flex-shrink-0" />
                             )}
                             <div className="flex-1">
-                              <h5 className={`font-medium text-sm ${
-                                isCompleted 
-                                  ? 'text-foreground' 
-                                  : isPartialSets
-                                  ? 'text-orange-600 dark:text-orange-400'
-                                  : 'text-red-600 dark:text-red-400'
-                              }`}>
-                                {exercise.name}
-                                {isNotCompleted && (
-                                  <span className="ml-2 text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full">
-                                    Não executado
-                                  </span>
-                                )}
-                                {isPartialSets && (
-                                  <span className="ml-2 text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">
-                                    Séries incompletas
-                                  </span>
-                                )}
-                              </h5>
-                              <p className={`text-xs ${
-                                isCompleted 
-                                  ? 'text-muted-foreground' 
-                                  : isPartialSets
-                                  ? 'text-orange-500 dark:text-orange-400'
-                                  : 'text-red-500 dark:text-red-400'
-                              }`}>
-                                {isPartialSets 
-                                  ? `${exercise.completedSets}/${exercise.totalSets} séries × ${exercise.reps} repetições`
-                                  : `${exercise.sets} séries × ${exercise.reps} repetições`
-                                }
-                              </p>
+                              <div className="flex flex-col min-w-0">
+                                <h5 className={`font-medium text-sm ${
+                                  isCompleted 
+                                    ? 'text-foreground' 
+                                    : isPartialSets
+                                    ? 'text-orange-600 dark:text-orange-400'
+                                    : 'text-red-600 dark:text-red-400'
+                                }`}>
+                                  {exercise.name}
+                                </h5>
+                                <div className="flex flex-wrap items-center gap-1 mt-1">
+                                  {isNotCompleted && (
+                                    <span className="text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                      Não executado
+                                    </span>
+                                  )}
+                                  {isPartialSets && (
+                                    <span className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                      Séries incompletas
+                                    </span>
+                                  )}
+                                </div>
+                                <p className={`text-xs mt-1 ${
+                                  isCompleted 
+                                    ? 'text-muted-foreground' 
+                                    : isPartialSets
+                                    ? 'text-orange-500 dark:text-orange-400'
+                                    : 'text-red-500 dark:text-red-400'
+                                }`}>
+                                  {isPartialSets 
+                                    ? `${exercise.completedSets}/${exercise.totalSets} séries × ${exercise.reps} reps`
+                                    : `${exercise.sets} séries × ${exercise.reps} reps`
+                                  }
+                                </p>
+                              </div>
                             </div>
                           </div>
                           <div className="text-right">
@@ -416,8 +420,8 @@ export default function History() {
                     {workoutData && (
                       <div 
                         className={`
-                          absolute -top-1 -right-1 w-3 h-3 rounded-full text-xs
-                          ${workoutData.status === 'completed' ? 'bg-green-500' : 'bg-orange-500'}
+                          absolute inset-0 rounded-full border-2 
+                          ${workoutData.status === 'completed' ? 'border-green-500' : 'border-orange-500'}
                         `}
                       />
                     )}
@@ -497,37 +501,41 @@ export default function History() {
                                 <AlertCircle className="h-4 w-4 text-orange-500 mr-2 flex-shrink-0" />
                               )}
                               <div className="flex-1">
-                                <h7 className={`font-medium text-sm ${
-                                  isCompleted 
-                                    ? 'text-foreground' 
-                                    : isPartialSets
-                                    ? 'text-orange-600 dark:text-orange-400'
-                                    : 'text-red-600 dark:text-red-400'
-                                }`}>
-                                  {exercise.name}
-                                  {isNotCompleted && (
-                                    <span className="ml-2 text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full">
-                                      Não executado
-                                    </span>
-                                  )}
-                                  {isPartialSets && (
-                                    <span className="ml-2 text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">
-                                      Séries incompletas
-                                    </span>
-                                  )}
-                                </h7>
-                                <p className={`text-xs ${
-                                  isCompleted 
-                                    ? 'text-muted-foreground' 
-                                    : isPartialSets
-                                    ? 'text-orange-500 dark:text-orange-400'
-                                    : 'text-red-500 dark:text-red-400'
-                                }`}>
-                                  {isPartialSets 
-                                    ? `${exercise.completedSets}/${exercise.totalSets} séries × ${exercise.reps} repetições`
-                                    : `${exercise.sets} séries × ${exercise.reps} repetições`
-                                  }
-                                </p>
+                                <div className="flex flex-col min-w-0">
+                                  <h5 className={`font-medium text-sm ${
+                                    isCompleted 
+                                      ? 'text-foreground' 
+                                      : isPartialSets
+                                      ? 'text-orange-600 dark:text-orange-400'
+                                      : 'text-red-600 dark:text-red-400'
+                                  }`}>
+                                    {exercise.name}
+                                  </h5>
+                                  <div className="flex flex-wrap items-center gap-1 mt-1">
+                                    {isNotCompleted && (
+                                      <span className="text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                        Não executado
+                                      </span>
+                                    )}
+                                    {isPartialSets && (
+                                      <span className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                        Séries incompletas
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className={`text-xs mt-1 ${
+                                    isCompleted 
+                                      ? 'text-muted-foreground' 
+                                      : isPartialSets
+                                      ? 'text-orange-500 dark:text-orange-400'
+                                      : 'text-red-500 dark:text-red-400'
+                                  }`}>
+                                    {isPartialSets 
+                                      ? `${exercise.completedSets}/${exercise.totalSets} séries × ${exercise.reps} reps`
+                                      : `${exercise.sets} séries × ${exercise.reps} reps`
+                                    }
+                                  </p>
+                                </div>
                               </div>
                             </div>
                             <div className="text-right">
@@ -564,11 +572,11 @@ export default function History() {
             <h4 className="font-semibold text-sm mb-2">Legenda</h4>
             <div className="flex items-center space-x-4 text-xs">
               <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 rounded-full bg-success"></div>
+                <div className="w-3 h-3 rounded-full border-2 border-green-500"></div>
                 <span>Concluído</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                <div className="w-3 h-3 rounded-full border-2 border-orange-500"></div>
                 <span>Parcial</span>
               </div>
             </div>
