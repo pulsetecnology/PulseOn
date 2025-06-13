@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, Clock, Dumbbell, ChevronDown, ChevronUp, X } from "lucide-react";
 
 const mockHistory = [
   {
@@ -13,11 +13,11 @@ const mockHistory = [
     status: "completed",
     completionRate: 100,
     exerciseDetails: [
-      { name: "Agachamento", sets: 4, reps: 12, weight: "80kg" },
-      { name: "Leg Press", sets: 3, reps: 15, weight: "120kg" },
-      { name: "Extensão de Pernas", sets: 3, reps: 12, weight: "40kg" },
-      { name: "Flexão de Pernas", sets: 3, reps: 12, weight: "35kg" },
-      { name: "Panturrilha em Pé", sets: 4, reps: 20, weight: "60kg" }
+      { name: "Agachamento", sets: 4, reps: 12, weight: "80kg", completed: true },
+      { name: "Leg Press", sets: 3, reps: 15, weight: "120kg", completed: true },
+      { name: "Extensão de Pernas", sets: 3, reps: 12, weight: "40kg", completed: true },
+      { name: "Flexão de Pernas", sets: 3, reps: 12, weight: "35kg", completed: true },
+      { name: "Panturrilha em Pé", sets: 4, reps: 20, weight: "60kg", completed: true }
     ]
   },
   {
@@ -29,10 +29,12 @@ const mockHistory = [
     status: "partial",
     completionRate: 75,
     exerciseDetails: [
-      { name: "Supino Reto", sets: 4, reps: 10, weight: "70kg" },
-      { name: "Supino Inclinado", sets: 3, reps: 12, weight: "60kg" },
-      { name: "Flexão de Braços", sets: 3, reps: 15, weight: "Peso Corporal" },
-      { name: "Voador", sets: 3, reps: 12, weight: "25kg" }
+      { name: "Supino Reto", sets: 4, reps: 10, weight: "70kg", completed: true },
+      { name: "Supino Inclinado", sets: 3, reps: 12, weight: "60kg", completed: true },
+      { name: "Flexão de Braços", sets: 3, reps: 15, weight: "Peso Corporal", completed: true },
+      { name: "Voador", sets: 3, reps: 12, weight: "25kg", completed: true },
+      { name: "Crucifixo", sets: 3, reps: 12, weight: "20kg", completed: false },
+      { name: "Paralelas", sets: 3, reps: 10, weight: "Peso Corporal", completed: false }
     ]
   },
   {
@@ -44,13 +46,13 @@ const mockHistory = [
     status: "completed",
     completionRate: 100,
     exerciseDetails: [
-      { name: "Barra Fixa", sets: 4, reps: 8, weight: "Peso Corporal" },
-      { name: "Remada Curvada", sets: 4, reps: 10, weight: "65kg" },
-      { name: "Puxada Frontal", sets: 3, reps: 12, weight: "55kg" },
-      { name: "Remada Sentado", sets: 3, reps: 12, weight: "50kg" },
-      { name: "Levantamento Terra", sets: 4, reps: 8, weight: "90kg" },
-      { name: "Pullover", sets: 3, reps: 12, weight: "25kg" },
-      { name: "Encolhimento", sets: 3, reps: 15, weight: "30kg" }
+      { name: "Barra Fixa", sets: 4, reps: 8, weight: "Peso Corporal", completed: true },
+      { name: "Remada Curvada", sets: 4, reps: 10, weight: "65kg", completed: true },
+      { name: "Puxada Frontal", sets: 3, reps: 12, weight: "55kg", completed: true },
+      { name: "Remada Sentado", sets: 3, reps: 12, weight: "50kg", completed: true },
+      { name: "Levantamento Terra", sets: 4, reps: 8, weight: "90kg", completed: true },
+      { name: "Pullover", sets: 3, reps: 12, weight: "25kg", completed: true },
+      { name: "Encolhimento", sets: 3, reps: 15, weight: "30kg", completed: true }
     ]
   },
   {
@@ -62,9 +64,11 @@ const mockHistory = [
     status: "partial",
     completionRate: 60,
     exerciseDetails: [
-      { name: "Desenvolvimento", sets: 4, reps: 10, weight: "45kg" },
-      { name: "Elevação Lateral", sets: 3, reps: 12, weight: "15kg" },
-      { name: "Elevação Frontal", sets: 3, reps: 12, weight: "12kg" }
+      { name: "Desenvolvimento", sets: 4, reps: 10, weight: "45kg", completed: true },
+      { name: "Elevação Lateral", sets: 3, reps: 12, weight: "15kg", completed: true },
+      { name: "Elevação Frontal", sets: 3, reps: 12, weight: "12kg", completed: true },
+      { name: "Remada Alta", sets: 3, reps: 12, weight: "30kg", completed: false },
+      { name: "Crucifixo Inverso", sets: 3, reps: 15, weight: "10kg", completed: false }
     ]
   }
 ];
@@ -154,15 +158,48 @@ export default function History() {
                   <h4 className="font-semibold text-sm mb-3 text-foreground">Detalhes dos Exercícios</h4>
                   <div className="space-y-2">
                     {workout.exerciseDetails.map((exercise, index) => (
-                      <div key={index} className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-md">
-                        <div className="flex-1">
-                          <h5 className="font-medium text-sm text-foreground">{exercise.name}</h5>
-                          <p className="text-xs text-muted-foreground">
-                            {exercise.sets} séries × {exercise.reps} repetições
-                          </p>
+                      <div 
+                        key={index} 
+                        className={`flex items-center justify-between py-2 px-3 rounded-md ${
+                          exercise.completed 
+                            ? 'bg-muted/30' 
+                            : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50'
+                        }`}
+                      >
+                        <div className="flex items-center flex-1">
+                          {!exercise.completed && (
+                            <X className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
+                          )}
+                          <div className="flex-1">
+                            <h5 className={`font-medium text-sm ${
+                              exercise.completed 
+                                ? 'text-foreground' 
+                                : 'text-red-600 dark:text-red-400'
+                            }`}>
+                              {exercise.name}
+                              {!exercise.completed && (
+                                <span className="ml-2 text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full">
+                                  Não executado
+                                </span>
+                              )}
+                            </h5>
+                            <p className={`text-xs ${
+                              exercise.completed 
+                                ? 'text-muted-foreground' 
+                                : 'text-red-500 dark:text-red-400'
+                            }`}>
+                              {exercise.sets} séries × {exercise.reps} repetições
+                            </p>
+                          </div>
                         </div>
                         <div className="text-right">
-                          <span className="text-sm font-semibold text-primary">{exercise.weight}</span>
+                          <span className={`text-sm font-semibold ${
+                            exercise.completed 
+                              ? 'text-primary' 
+                              : 'text-red-500 dark:text-red-400'
+                          }`}>
+                            {exercise.weight}
+                          </span>
                         </div>
                       </div>
                     ))}
