@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon, Clock, Dumbbell, ChevronDown, ChevronUp, X, AlertCircle } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Dumbbell, ChevronDown, ChevronUp, X, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 const mockHistory = [
   {
@@ -89,6 +88,7 @@ export default function History() {
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const toggleCard = (cardId: number) => {
     setExpandedCard(expandedCard === cardId ? null : cardId);
@@ -102,9 +102,7 @@ export default function History() {
     return workoutCalendarData[formatDateKey(date)];
   };
 
-  const handleDateSelect = (date: Date | undefined) => {
-    if (!date) return;
-    
+  const handleDateSelect = (date: Date) => {
     const dateKey = formatDateKey(date);
     const workoutData = workoutCalendarData[dateKey];
     
@@ -116,6 +114,41 @@ export default function History() {
       setSelectedDate(date);
       setSelectedWorkout(null);
     }
+  };
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay();
+
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    
+    return days;
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth(prev => {
+      const newMonth = new Date(prev);
+      if (direction === 'prev') {
+        newMonth.setMonth(prev.getMonth() - 1);
+      } else {
+        newMonth.setMonth(prev.getMonth() + 1);
+      }
+      return newMonth;
+    });
   };
   return (
     <div className="px-4 py-6 space-y-6">
@@ -281,38 +314,72 @@ export default function History() {
             <CalendarIcon className="mr-2 h-4 w-4" />
             Calendário de Treinos
           </h3>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            className="w-full"
-            modifiers={{
-              workout: (date) => !!hasWorkout(date),
-              completed: (date) => {
-                const workout = hasWorkout(date);
-                return workout && workout.status === "completed";
-              },
-              partial: (date) => {
-                const workout = hasWorkout(date);
-                return workout && workout.status === "partial";
-              }
-            }}
-            modifiersStyles={{
-              workout: {
-                fontWeight: "bold"
-              },
-              completed: {
-                backgroundColor: "rgb(34, 197, 94)",
-                color: "white",
-                borderRadius: "50%"
-              },
-              partial: {
-                backgroundColor: "rgb(249, 115, 22)",
-                color: "white", 
-                borderRadius: "50%"
-              }
-            }}
-          />
+          
+          {/* Custom Calendar */}
+          <div className="w-full">
+            {/* Calendar Header */}
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() => navigateMonth('prev')}
+                className="p-1 hover:bg-muted rounded"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <h4 className="font-medium">
+                {currentMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+              </h4>
+              <button
+                onClick={() => navigateMonth('next')}
+                className="p-1 hover:bg-muted rounded"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {/* Week days header */}
+              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
+                <div key={day} className="text-center text-xs font-medium text-muted-foreground p-2">
+                  {day}
+                </div>
+              ))}
+              
+              {/* Calendar days */}
+              {getDaysInMonth(currentMonth).map((date, index) => {
+                if (!date) {
+                  return <div key={index} className="p-2"></div>;
+                }
+                
+                const workoutData = hasWorkout(date);
+                const isSelected = selectedDate && formatDateKey(date) === formatDateKey(selectedDate);
+                const isToday = formatDateKey(date) === formatDateKey(new Date());
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleDateSelect(date)}
+                    className={`
+                      p-2 text-sm rounded-full transition-colors relative
+                      ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}
+                      ${isToday && !isSelected ? 'bg-accent text-accent-foreground' : ''}
+                      ${workoutData ? 'font-semibold' : ''}
+                    `}
+                  >
+                    {date.getDate()}
+                    {workoutData && (
+                      <div 
+                        className={`
+                          absolute -top-1 -right-1 w-3 h-3 rounded-full text-xs
+                          ${workoutData.status === 'completed' ? 'bg-green-500' : 'bg-orange-500'}
+                        `}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           
           {/* Selected Date Workout Details */}
           {selectedWorkout && (
