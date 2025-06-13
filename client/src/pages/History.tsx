@@ -120,7 +120,8 @@ export default function History() {
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  // Initialize to January 2025 where we have test data
+  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 0, 1));
 
   const toggleCard = (cardId: number) => {
     setExpandedCard(expandedCard === cardId ? null : cardId);
