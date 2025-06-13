@@ -333,7 +333,7 @@ export default function Profile() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Informações Detalhadas</h2>
-          <p className="text-muted-foreground">Configure seu perfil para treinos personalizados</p>
+          <p className="text-muted-foreground">Configure seu perfil de treinos</p>
         </div>
 
         {!isEditing ? (
