@@ -301,7 +301,7 @@ export default function ActiveWorkout() {
                   <h3 className="font-semibold mb-2 text-center text-sm">Nível de esforço</h3>
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Fácil</span>
+                      <span>Suave</span>
                       <span>Intenso</span>
                     </div>
                     <Slider

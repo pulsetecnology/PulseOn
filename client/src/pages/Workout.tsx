@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,7 +98,7 @@ export default function Workout() {
             <Badge variant="secondary">{todaysWorkout.duration} min</Badge>
           </div>
           <p className="text-muted-foreground mb-4">{todaysWorkout.description}</p>
-          
+
           {/* Progress Counter */}
           {completedExercises.size > 0 && (
             <div className="mb-4">
@@ -225,7 +224,7 @@ export default function Workout() {
                     <h3 className="font-semibold mb-2 text-sm">Nível de esforço</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs opacity-75">
-                        <span>Fácil</span>
+                        <span>Suave</span>
                         <span>Intenso</span>
                       </div>
                       <Slider
