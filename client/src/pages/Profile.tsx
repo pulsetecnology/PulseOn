@@ -660,6 +660,77 @@ export default function Profile() {
                 </p>
               )}
             </div>
+
+            <div className="space-y-2">
+              <Label>Horário Preferido para Treino</Label>
+              {isEditing ? (
+                <Select 
+                  value={formData.preferredWorkoutTime || ""} 
+                  onValueChange={(value) => setFormData({ ...formData, preferredWorkoutTime: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o período" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="morning">Manhã</SelectItem>
+                    <SelectItem value="afternoon">Tarde</SelectItem>
+                    <SelectItem value="evening">Noite</SelectItem>
+                    <SelectItem value="variable">Variável</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {user.preferredWorkoutTime && lifestyleMappings.preferredWorkoutTime[user.preferredWorkoutTime as keyof typeof lifestyleMappings.preferredWorkoutTime] || "Não informado"}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Dias Disponíveis por Semana</Label>
+              {isEditing ? (
+                <Select 
+                  value={formData.availableDaysPerWeek?.toString() || ""} 
+                  onValueChange={(value) => setFormData({ ...formData, availableDaysPerWeek: Number(value) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                      <SelectItem key={day} value={day.toString()}>{day} dia{day > 1 ? 's' : ''}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {user.availableDaysPerWeek ? `${user.availableDaysPerWeek} dia${user.availableDaysPerWeek > 1 ? 's' : ''}` : "Não informado"}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Duração Média dos Treinos</Label>
+              {isEditing ? (
+                <Select 
+                  value={formData.averageWorkoutDuration || ""} 
+                  onValueChange={(value) => setFormData({ ...formData, averageWorkoutDuration: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15-20min">15-20 minutos</SelectItem>
+                    <SelectItem value="30min">30 minutos</SelectItem>
+                    <SelectItem value="45min">45 minutos</SelectItem>
+                    <SelectItem value="1h_or_more">1 hora ou mais</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {user.averageWorkoutDuration && lifestyleMappings.averageWorkoutDuration[user.averageWorkoutDuration as keyof typeof lifestyleMappings.averageWorkoutDuration] || "Não informado"}
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -794,79 +865,93 @@ export default function Profile() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label>Horário Preferido para Treino</Label>
-                {isEditing ? (
-                  <Select 
-                    value={formData.preferredWorkoutTime || ""} 
-                    onValueChange={(value) => setFormData({ ...formData, preferredWorkoutTime: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="morning">Manhã</SelectItem>
-                      <SelectItem value="afternoon">Tarde</SelectItem>
-                      <SelectItem value="evening">Noite</SelectItem>
-                      <SelectItem value="variable">Variável</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {user.preferredWorkoutTime && lifestyleMappings.preferredWorkoutTime[user.preferredWorkoutTime as keyof typeof lifestyleMappings.preferredWorkoutTime] || "Não informado"}
-                  </p>
-                )}
-              </div>
+              
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="space-y-2">
-                <Label>Dias Disponíveis por Semana</Label>
+        {/* Equipamentos e Local */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Dumbbell className="h-5 w-5" />
+              Equipamentos e Local de Treino
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Equipamentos */}
+              <div>
+                <Label className="text-base font-medium mb-3 block">Equipamentos Disponíveis</Label>
                 {isEditing ? (
-                  <Select 
-                    value={formData.availableDaysPerWeek?.toString() || ""} 
-                    onValueChange={(value) => setFormData({ ...formData, availableDaysPerWeek: Number(value) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5, 6, 7].map((day) => (
-                        <SelectItem key={day} value={day.toString()}>{day} dia{day > 1 ? 's' : ''}</SelectItem>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      {equipmentOptions.map((equipment) => (
+                        <div key={equipment.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={equipment.id}
+                            checked={(formData.availableEquipment || []).includes(equipment.id)}
+                            onCheckedChange={(checked) => handleEquipmentChange(equipment.id, checked as boolean)}
+                          />
+                          <Label htmlFor={equipment.id} className="text-sm">
+                            {equipment.label}
+                          </Label>
+                        </div>
                       ))}
-                    </SelectContent>
-                  </Select>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="others"
+                          checked={(formData.availableEquipment || []).includes("others")}
+                          onCheckedChange={(checked) => handleEquipmentChange("others", checked as boolean)}
+                        />
+                        <Label htmlFor="others" className="text-sm">
+                          Outros
+                        </Label>
+                      </div>
+                    </div>
+
+                    {(formData.availableEquipment || []).includes("others") && (
+                      <div className="space-y-2">
+                        <Label htmlFor="customEquipment">Especifique outros equipamentos:</Label>
+                        <Input
+                          id="customEquipment"
+                          placeholder="Ex: Cordas de pular, medicine ball, etc."
+                          value={formData.customEquipment || ""}
+                          onChange={(e) => setFormData({ ...formData, customEquipment: e.target.value })}
+                        />
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {user.availableDaysPerWeek ? `${user.availableDaysPerWeek} dia${user.availableDaysPerWeek > 1 ? 's' : ''}` : "Não informado"}
-                  </p>
+                  <div className="space-y-2">
+                    {user.availableEquipment && user.availableEquipment.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {user.availableEquipment.map((equipmentId) => {
+                          if (equipmentId === "others") {
+                            return (
+                              <span key={equipmentId} className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
+                                Outros: {user.customEquipment || "Não especificado"}
+                              </span>
+                            );
+                          }
+                          const equipment = equipmentOptions.find(eq => eq.id === equipmentId);
+                          return equipment ? (
+                            <span key={equipmentId} className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
+                              {equipment.label}
+                            </span>
+                          ) : null;
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Nenhum equipamento selecionado</p>
+                    )}
+                  </div>
                 )}
               </div>
 
+              {/* Local Preferido */}
               <div className="space-y-2">
-                <Label>Duração Média dos Treinos</Label>
-                {isEditing ? (
-                  <Select 
-                    value={formData.averageWorkoutDuration || ""} 
-                    onValueChange={(value) => setFormData({ ...formData, averageWorkoutDuration: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15-20min">15-20 minutos</SelectItem>
-                      <SelectItem value="30min">30 minutos</SelectItem>
-                      <SelectItem value="45min">45 minutos</SelectItem>
-                      <SelectItem value="1h_or_more">1 hora ou mais</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {user.averageWorkoutDuration && lifestyleMappings.averageWorkoutDuration[user.averageWorkoutDuration as keyof typeof lifestyleMappings.averageWorkoutDuration] || "Não informado"}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Local Preferido para Treinar</Label>
+                <Label className="text-base font-medium">Local Preferido para Treinar</Label>
                 {isEditing ? (
                   <Select 
                     value={formData.preferredLocation || ""} 
@@ -889,82 +974,6 @@ export default function Profile() {
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Equipamentos Disponíveis */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Dumbbell className="h-5 w-5" />
-              Equipamentos Disponíveis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isEditing ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  {equipmentOptions.map((equipment) => (
-                    <div key={equipment.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={equipment.id}
-                        checked={(formData.availableEquipment || []).includes(equipment.id)}
-                        onCheckedChange={(checked) => handleEquipmentChange(equipment.id, checked as boolean)}
-                      />
-                      <Label htmlFor={equipment.id} className="text-sm">
-                        {equipment.label}
-                      </Label>
-                    </div>
-                  ))}
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="others"
-                      checked={(formData.availableEquipment || []).includes("others")}
-                      onCheckedChange={(checked) => handleEquipmentChange("others", checked as boolean)}
-                    />
-                    <Label htmlFor="others" className="text-sm">
-                      Outros
-                    </Label>
-                  </div>
-                </div>
-
-                {(formData.availableEquipment || []).includes("others") && (
-                  <div className="space-y-2">
-                    <Label htmlFor="customEquipment">Especifique outros equipamentos:</Label>
-                    <Input
-                      id="customEquipment"
-                      placeholder="Ex: Cordas de pular, medicine ball, etc."
-                      value={formData.customEquipment || ""}
-                      onChange={(e) => setFormData({ ...formData, customEquipment: e.target.value })}
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {user.availableEquipment && user.availableEquipment.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    {user.availableEquipment.map((equipmentId) => {
-                      if (equipmentId === "others") {
-                        return (
-                          <span key={equipmentId} className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
-                            Outros: {user.customEquipment || "Não especificado"}
-                          </span>
-                        );
-                      }
-                      const equipment = equipmentOptions.find(eq => eq.id === equipmentId);
-                      return equipment ? (
-                        <span key={equipmentId} className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
-                          {equipment.label}
-                        </span>
-                      ) : null;
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Nenhum equipamento selecionado</p>
-                )}
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>

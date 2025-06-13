@@ -114,19 +114,18 @@ export default function Onboarding() {
       case 2:
         return !!form.getValues("experienceLevel");
       case 3:
-        return form.getValues("weeklyFrequency") > 0;
+        return form.getValues("weeklyFrequency") > 0 && !!form.getValues("preferredWorkoutTime") &&
+               form.getValues("availableDaysPerWeek") > 0 && !!form.getValues("averageWorkoutDuration");
       case 4:
-        return form.getValues("availableEquipment").length > 0;
+        return form.getValues("availableEquipment").length > 0 && !!form.getValues("preferredLocation");
       case 5:
         return !!form.getValues("birthDate") && !!form.getValues("gender");
       case 6:
-        return form.getValues("weight") > 0 && form.getValues("height") > 0;
-      case 7:
         return !!form.getValues("smokingStatus") && !!form.getValues("alcoholConsumption") && 
                !!form.getValues("dietType") && !!form.getValues("sleepHours") && 
-               !!form.getValues("stressLevel") && !!form.getValues("preferredWorkoutTime") &&
-               form.getValues("availableDaysPerWeek") > 0 && !!form.getValues("averageWorkoutDuration") &&
-               !!form.getValues("preferredLocation");
+               !!form.getValues("stressLevel");
+      case 7:
+        return form.getValues("weight") > 0 && form.getValues("height") > 0;
       default:
         return false;
     }
@@ -264,93 +263,194 @@ export default function Onboarding() {
             </Card>
           )}
 
-          {/* Step 3: Frequência semanal */}
+          {/* Step 3: Frequência e planejamento de treinos */}
           {currentStep === 3 && (
             <Card className="transition-all duration-300 ease-in-out transform hover:shadow-lg">
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-6">Quantas vezes por semana você quer treinar?</h2>
-                <FormField
-                  control={form.control}
-                  name="weeklyFrequency"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
-                        {[1, 2, 3, 4, 5, 6].map((freq) => (
-                          <Button
-                            key={freq}
-                            type="button"
-                            variant={field.value === freq ? "default" : "outline"}
-                            className="h-16"
-                            onClick={() => field.onChange(freq)}
-                          >
-                            {freq}x por semana
-                          </Button>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <h2 className="text-xl font-semibold mb-6">Planejamento dos seus treinos</h2>
+                <div className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="weeklyFrequency"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-base font-medium">Quantas vezes por semana você quer treinar?</FormLabel>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[1, 2, 3, 4, 5, 6].map((freq) => (
+                            <Button
+                              key={freq}
+                              type="button"
+                              variant={field.value === freq ? "default" : "outline"}
+                              className="h-16"
+                              onClick={() => field.onChange(freq)}
+                            >
+                              {freq}x por semana
+                            </Button>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="preferredWorkoutTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium">Horário preferido para treinar</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o período" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="morning">Manhã</SelectItem>
+                            <SelectItem value="afternoon">Tarde</SelectItem>
+                            <SelectItem value="evening">Noite</SelectItem>
+                            <SelectItem value="variable">Variável</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="availableDaysPerWeek"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium">Dias disponíveis por semana</FormLabel>
+                        <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                              <SelectItem key={day} value={day.toString()}>{day} dia{day > 1 ? 's' : ''}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="averageWorkoutDuration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium">Tempo médio por treino</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="15-20min">15-20 minutos</SelectItem>
+                            <SelectItem value="30min">30 minutos</SelectItem>
+                            <SelectItem value="45min">45 minutos</SelectItem>
+                            <SelectItem value="1h_or_more">1 hora ou mais</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Step 4: Equipamentos disponíveis */}
+          {/* Step 4: Equipamentos e local */}
           {currentStep === 4 && (
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-6">Quais equipamentos você tem acesso?</h2>
-                <FormField
-                  control={form.control}
-                  name="availableEquipment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="space-y-3">
-                        {[
-                          { id: "bodyweight", label: "Peso corporal" },
-                          { id: "dumbbells", label: "Halteres" },
-                          { id: "barbell", label: "Barra" },
-                          { id: "resistance_bands", label: "Faixas elásticas" },
-                          { id: "pull_up_bar", label: "Barra de flexão" },
-                          { id: "kettlebells", label: "Kettlebells" },
-                          { id: "gym_access", label: "Academia completa" },
-                          { id: "outdoor_gym", label: "Academia ao ar livre (padrão prefeituras)" },
-                          { id: "others", label: "Outros" }
-                        ].map((equipment) => (
-                          <label
-                            key={equipment.id}
-                            className={cn(
-                              "flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-colors",
-                              field.value.includes(equipment.id)
-                                ? "border-primary bg-primary/5"
-                                : "border-border hover:border-primary/50"
-                            )}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              const newEquipment = field.value.includes(equipment.id)
-                                ? field.value.filter(e => e !== equipment.id)
-                                : [...field.value, equipment.id];
-                              field.onChange(newEquipment);
-                            }}
-                          >
-                            <div className={cn(
-                              "w-5 h-5 rounded border-2 flex items-center justify-center",
-                              field.value.includes(equipment.id)
-                                ? "border-primary bg-primary"
-                                : "border-border"
-                            )}>
-                              {field.value.includes(equipment.id) && (
-                                <Check className="w-3 h-3 text-primary-foreground" />
+                <h2 className="text-xl font-semibold mb-6">Equipamentos e local de treino</h2>
+                <div className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="availableEquipment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium">Quais equipamentos você tem acesso?</FormLabel>
+                        <div className="space-y-3">
+                          {[
+                            { id: "bodyweight", label: "Peso corporal" },
+                            { id: "dumbbells", label: "Halteres" },
+                            { id: "barbell", label: "Barra" },
+                            { id: "resistance_bands", label: "Faixas elásticas" },
+                            { id: "pull_up_bar", label: "Barra de flexão" },
+                            { id: "kettlebells", label: "Kettlebells" },
+                            { id: "gym_access", label: "Academia completa" },
+                            { id: "outdoor_gym", label: "Academia ao ar livre (padrão prefeituras)" },
+                            { id: "others", label: "Outros" }
+                          ].map((equipment) => (
+                            <label
+                              key={equipment.id}
+                              className={cn(
+                                "flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-colors",
+                                field.value.includes(equipment.id)
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border hover:border-primary/50"
                               )}
-                            </div>
-                            <span className="font-medium">{equipment.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                              onClick={(e) => {
+                                e.preventDefault();
+                                const newEquipment = field.value.includes(equipment.id)
+                                  ? field.value.filter(e => e !== equipment.id)
+                                  : [...field.value, equipment.id];
+                                field.onChange(newEquipment);
+                              }}
+                            >
+                              <div className={cn(
+                                "w-5 h-5 rounded border-2 flex items-center justify-center",
+                                field.value.includes(equipment.id)
+                                  ? "border-primary bg-primary"
+                                  : "border-border"
+                              )}>
+                                {field.value.includes(equipment.id) && (
+                                  <Check className="w-3 h-3 text-primary-foreground" />
+                                )}
+                              </div>
+                              <span className="font-medium">{equipment.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="preferredLocation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium">Local preferido para treinar</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="home">Em casa</SelectItem>
+                            <SelectItem value="outdoor">Ao ar livre</SelectItem>
+                            <SelectItem value="gym">Academia</SelectItem>
+                            <SelectItem value="other">Outro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </CardContent>
             </Card>
           )}
@@ -539,100 +639,7 @@ export default function Onboarding() {
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="preferredWorkoutTime"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Período preferido para treinar</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="morning">Manhã</SelectItem>
-                              <SelectItem value="afternoon">Tarde</SelectItem>
-                              <SelectItem value="evening">Noite</SelectItem>
-                              <SelectItem value="variable">Variável</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="availableDaysPerWeek"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Dias disponíveis por semana</FormLabel>
-                          <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {[1, 2, 3, 4, 5, 6, 7].map((day) => (
-                                <SelectItem key={day} value={day.toString()}>{day} dia{day > 1 ? 's' : ''}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="averageWorkoutDuration"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Tempo médio por treino</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="15-20min">15-20 minutos</SelectItem>
-                              <SelectItem value="30min">30 minutos</SelectItem>
-                              <SelectItem value="45min">45 minutos</SelectItem>
-                              <SelectItem value="1h_or_more">1 hora ou mais</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="preferredLocation"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Local preferido para treinar</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="home">Em casa</SelectItem>
-                              <SelectItem value="outdoor">Ao ar livre</SelectItem>
-                              <SelectItem value="gym">Academia</SelectItem>
-                              <SelectItem value="other">Outro</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    
                   </div>
                 </div>
               </CardContent>
