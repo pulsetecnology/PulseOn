@@ -463,6 +463,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  // N8N Integration endpoints
+  app.get("/api/n8n/users", async (req: Request, res: Response) => {
+    try {
+      // Basic API key authentication for N8N
+      const apiKey = req.headers['x-api-key'];
+      if (apiKey !== process.env.N8N_API_KEY) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const users = await storage.getUsers();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/n8n/users/:id", async (req: Request, res: Response) => {
+    try {
+      const apiKey = req.headers['x-api-key'];
+      if (apiKey !== process.env.N8N_API_KEY) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const userId = parseInt(req.params.id);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/n8n/workout-sessions", async (req: Request, res: Response) => {
+    try {
+      const apiKey = req.headers['x-api-key'];
+      if (apiKey !== process.env.N8N_API_KEY) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const sessionData = insertWorkoutSessionSchema.parse(req.body);
+      const session = await storage.createWorkoutSession(sessionData);
+      res.status(201).json(session);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/n8n/workouts", async (req: Request, res: Response) => {
+    try {
+      const apiKey = req.headers['x-api-key'];
+      if (apiKey !== process.env.N8N_API_KEY) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const workouts = await storage.getWorkouts(userId);
+      res.json(workouts);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Upload profile photo
   app.post("/api/profile/photo", authenticateToken, upload.single('photo'), async (req: Request, res: Response) => {
     try {

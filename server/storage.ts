@@ -4,6 +4,7 @@ import Database from "better-sqlite3";
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
+  getUsers(): Promise<User[]>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
@@ -248,6 +249,12 @@ export class SQLiteStorage implements IStorage {
     const stmt = this.db.prepare("SELECT * FROM users WHERE id = ?");
     const row = stmt.get(id);
     return row ? this.parseUser(row) : undefined;
+  }
+
+  async getUsers(): Promise<User[]> {
+    const stmt = this.db.prepare("SELECT * FROM users");
+    const rows = stmt.all();
+    return rows.map(row => this.parseUser(row));
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
