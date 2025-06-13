@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { Calendar, Activity, Target, Dumbbell, Camera, Scale, User, Settings, Check, X } from "lucide-react";
+import { Calendar, Activity, Target, Dumbbell, Camera, Scale, User, Settings, Check, X, AlertCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -394,50 +394,54 @@ export default function Profile() {
   return (
     <div className="container mx-auto px-4 py-4 space-y-4 max-w-4xl">
       {/* Profile Header */}
-      <Card className="w-full">
-        <CardContent className="p-4 sm:p-6">
-          <div className="flex flex-row items-start space-x-4">
-            <div className="relative">
-              <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0">
-                <AvatarImage 
-                  src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
-                />
-                <AvatarFallback className="text-xl sm:text-2xl">
-                  {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0 shadow-md hover:shadow-lg transition-all"
-                onClick={() => document.getElementById('avatar-upload')?.click()}
-                disabled={avatarUploadMutation.isPending}
-              >
-                {avatarUploadMutation.isPending ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                ) : (
-                  <Camera className="h-4 w-4" />
-                )}
-              </Button>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarUpload}
+      <div className="w-full bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-6 mb-6">
+        <div className="flex flex-row items-start space-x-4">
+          <div className="relative">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 border-2 border-primary/20">
+              <AvatarImage 
+                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
               />
-            </div>
-            <div className="flex-1 text-left min-w-0">
-              <h1 className="text-xl sm:text-2xl font-bold truncate">{user.name || 'Usuário'}</h1>
-              <p className="text-muted-foreground text-sm sm:text-base truncate">{user.email}</p>
-              <div className="flex items-center justify-start gap-2 text-sm text-muted-foreground mt-1">
-                <User className="h-4 w-4 flex-shrink-0" />
-                <span>{userAge} anos • {user.gender === 'female' ? 'Feminino' : user.gender === 'male' ? 'Masculino' : 'Não informado'}</span>
-              </div>
+              <AvatarFallback className="text-xl sm:text-2xl bg-primary text-primary-foreground">
+                {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0 shadow-md hover:shadow-lg transition-all border border-primary/20"
+              onClick={() => document.getElementById('avatar-upload')?.click()}
+              disabled={avatarUploadMutation.isPending}
+            >
+              {avatarUploadMutation.isPending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              ) : (
+                <Camera className="h-4 w-4" />
+              )}
+            </Button>
+            <input
+              id="avatar-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+          </div>
+          <div className="flex-1 text-left min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+              {user.name || 'Usuário'}
+            </h1>
+            <p className="text-muted-foreground text-base sm:text-lg mb-2">
+              {user.email}
+            </p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <User className="h-4 w-4 flex-shrink-0" />
+              <span className="font-medium">
+                {userAge} anos • {user.gender === 'female' ? 'Feminino' : user.gender === 'male' ? 'Masculino' : 'Não informado'}
+              </span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Personal Information */}
@@ -1104,28 +1108,71 @@ export default function Profile() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Restrições Físicas - Seção de Visualização */}
-      {user.physicalRestrictions && (
-        <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 rounded-lg p-6 border border-orange-200/50 dark:border-orange-800/50">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 mt-1">
-              <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center">
-                <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+        {/* Restrições Físicas */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Restrições Físicas
+              </CardTitle>
+              <div className="flex gap-2">
+                {editingCard === 'restrictions' ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      {updateMutation.isPending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEditingCard('restrictions')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-medium text-orange-900 dark:text-orange-100 mb-2">
-                Restrições Físicas
-              </h3>
-              <p className="text-orange-800 dark:text-orange-200 leading-relaxed">
-                {user.physicalRestrictions}
-              </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Descreva suas restrições físicas (lesões, limitações, etc.)</Label>
+              {editingCard === 'restrictions' ? (
+                <textarea
+                  className="w-full min-h-[100px] p-3 border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  placeholder="Ex: Lesão no joelho direito, problemas na coluna lombar, etc."
+                  value={formData.physicalRestrictions || ""}
+                  onChange={(e) => setFormData({ ...formData, physicalRestrictions: e.target.value })}
+                />
+              ) : (
+                <div className="min-h-[60px] p-3 bg-muted rounded-md">
+                  <p className="text-sm text-muted-foreground">
+                    {user.physicalRestrictions || "Nenhuma restrição física informada"}
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-      )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
