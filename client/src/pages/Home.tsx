@@ -471,10 +471,10 @@ export default function Home() {
   };
 
   return (
-    <div className="px-4 py-4 space-y-4">
+    <div className="px-4 py-6 space-y-6">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-2xl font-bold mb-2">Olá, {user?.name?.split(' ')[0] || 'usuário'}!</h1>
+        <h1 className="text-2xl font-bold">Olá, {user?.name?.split(' ')[0] || 'usuário'}!</h1>
         <p className="text-muted-foreground">
           {user?.gender === "female" ? "Pronta" : "Pronto"} para iniciar seu treino?
         </p>
