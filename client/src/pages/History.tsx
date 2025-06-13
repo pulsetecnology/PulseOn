@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Dumbbell } from "lucide-react";
+import { Calendar, Clock, Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
 
 const mockHistory = [
   {
@@ -9,7 +10,14 @@ const mockHistory = [
     date: "Hoje",
     duration: 42,
     exercises: 5,
-    status: "completed"
+    status: "completed",
+    exerciseDetails: [
+      { name: "Agachamento", sets: 4, reps: 12, weight: "80kg" },
+      { name: "Leg Press", sets: 3, reps: 15, weight: "120kg" },
+      { name: "Extensão de Pernas", sets: 3, reps: 12, weight: "40kg" },
+      { name: "Flexão de Pernas", sets: 3, reps: 12, weight: "35kg" },
+      { name: "Panturrilha em Pé", sets: 4, reps: 20, weight: "60kg" }
+    ]
   },
   {
     id: 2,
@@ -17,7 +25,15 @@ const mockHistory = [
     date: "Ontem",
     duration: 38,
     exercises: 6,
-    status: "completed"
+    status: "completed",
+    exerciseDetails: [
+      { name: "Supino Reto", sets: 4, reps: 10, weight: "70kg" },
+      { name: "Supino Inclinado", sets: 3, reps: 12, weight: "60kg" },
+      { name: "Flexão de Braços", sets: 3, reps: 15, weight: "Peso Corporal" },
+      { name: "Voador", sets: 3, reps: 12, weight: "25kg" },
+      { name: "Crucifixo", sets: 3, reps: 12, weight: "20kg" },
+      { name: "Paralelas", sets: 3, reps: 10, weight: "Peso Corporal" }
+    ]
   },
   {
     id: 3,
@@ -25,7 +41,16 @@ const mockHistory = [
     date: "3 dias atrás",
     duration: 45,
     exercises: 7,
-    status: "completed"
+    status: "completed",
+    exerciseDetails: [
+      { name: "Barra Fixa", sets: 4, reps: 8, weight: "Peso Corporal" },
+      { name: "Remada Curvada", sets: 4, reps: 10, weight: "65kg" },
+      { name: "Puxada Frontal", sets: 3, reps: 12, weight: "55kg" },
+      { name: "Remada Sentado", sets: 3, reps: 12, weight: "50kg" },
+      { name: "Levantamento Terra", sets: 4, reps: 8, weight: "90kg" },
+      { name: "Pullover", sets: 3, reps: 12, weight: "25kg" },
+      { name: "Encolhimento", sets: 3, reps: 15, weight: "30kg" }
+    ]
   },
   {
     id: 4,
@@ -33,11 +58,23 @@ const mockHistory = [
     date: "5 dias atrás",
     duration: 35,
     exercises: 5,
-    status: "completed"
+    status: "completed",
+    exerciseDetails: [
+      { name: "Desenvolvimento", sets: 4, reps: 10, weight: "45kg" },
+      { name: "Elevação Lateral", sets: 3, reps: 12, weight: "15kg" },
+      { name: "Elevação Frontal", sets: 3, reps: 12, weight: "12kg" },
+      { name: "Remada Alta", sets: 3, reps: 12, weight: "30kg" },
+      { name: "Crucifixo Inverso", sets: 3, reps: 15, weight: "10kg" }
+    ]
   }
 ];
 
 export default function History() {
+  const [expandedCard, setExpandedCard] = useState<number | null>(null);
+
+  const toggleCard = (cardId: number) => {
+    setExpandedCard(expandedCard === cardId ? null : cardId);
+  };
   return (
     <div className="px-4 py-6 space-y-6">
       <h1 className="text-2xl font-bold">Histórico de Treinos</h1>
@@ -68,14 +105,27 @@ export default function History() {
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Treinos Recentes</h2>
         {mockHistory.map((workout) => (
-          <Card key={workout.id}>
+          <Card 
+            key={workout.id} 
+            className={`cursor-pointer transition-all duration-200 ${
+              expandedCard === workout.id ? 'ring-2 ring-primary' : ''
+            }`}
+            onClick={() => toggleCard(workout.id)}
+          >
             <CardContent className="p-3">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="font-semibold text-sm">{workout.name}</h3>
-                <span className="text-xs text-muted-foreground flex items-center">
-                  <Calendar className="mr-1 h-2 w-2" />
-                  {workout.date}
-                </span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-muted-foreground flex items-center">
+                    <Calendar className="mr-1 h-2 w-2" />
+                    {workout.date}
+                  </span>
+                  {expandedCard === workout.id ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 text-xs text-muted-foreground">
@@ -92,6 +142,28 @@ export default function History() {
                   Concluído
                 </Badge>
               </div>
+              
+              {/* Expanded Exercise Details */}
+              {expandedCard === workout.id && (
+                <div className="mt-4 pt-3 border-t border-border">
+                  <h4 className="font-semibold text-sm mb-3 text-foreground">Detalhes dos Exercícios</h4>
+                  <div className="space-y-2">
+                    {workout.exerciseDetails.map((exercise, index) => (
+                      <div key={index} className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-md">
+                        <div className="flex-1">
+                          <h5 className="font-medium text-sm text-foreground">{exercise.name}</h5>
+                          <p className="text-xs text-muted-foreground">
+                            {exercise.sets} séries × {exercise.reps} repetições
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm font-semibold text-primary">{exercise.weight}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
