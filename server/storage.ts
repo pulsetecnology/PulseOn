@@ -109,6 +109,9 @@ export class SQLiteStorage implements IStorage {
     this.db.exec(createWorkoutsTable);
     this.db.exec(createWorkoutSessionsTable);
 
+    // Add indexes for better performance
+    this.addDatabaseIndexes();
+
     // Add migration to add custom_equipment column if it doesn't exist
     this.addCustomEquipmentColumn();
     
@@ -151,6 +154,26 @@ export class SQLiteStorage implements IStorage {
       }
     } catch (error) {
       console.error('Error adding avatar_url column:', error);
+    }
+  }
+
+  private addDatabaseIndexes() {
+    try {
+      const indexes = [
+        'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)',
+        'CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)',
+        'CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)',
+        'CREATE INDEX IF NOT EXISTS idx_workouts_user_id ON workouts(user_id)',
+        'CREATE INDEX IF NOT EXISTS idx_workout_sessions_user_id ON workout_sessions(user_id)',
+        'CREATE INDEX IF NOT EXISTS idx_workout_sessions_workout_id ON workout_sessions(workout_id)'
+      ];
+
+      for (const indexSql of indexes) {
+        this.db.exec(indexSql);
+      }
+      console.log('Database indexes created successfully');
+    } catch (error) {
+      console.error('Error creating indexes:', error);
     }
   }
 
@@ -246,8 +269,15 @@ export class SQLiteStorage implements IStorage {
   }
 
   async getUser(id: number): Promise<User | undefined> {
+    const startTime = Date.now();
     const stmt = this.db.prepare("SELECT * FROM users WHERE id = ?");
     const row = stmt.get(id);
+    const duration = Date.now() - startTime;
+    
+    if (duration > 100) {
+      console.warn(`Slow query detected: getUser(${id}) took ${duration}ms`);
+    }
+    
     return row ? this.parseUser(row) : undefined;
   }
 
@@ -406,11 +436,17 @@ export class SQLiteStorage implements IStorage {
 
   // Workout methods
   async getWorkouts(userId?: number): Promise<Workout[]> {
+    const startTime = Date.now();
     const stmt = userId 
       ? this.db.prepare("SELECT * FROM workouts WHERE user_id = ?")
       : this.db.prepare("SELECT * FROM workouts");
 
     const rows = userId ? stmt.all(userId) : stmt.all();
+    const duration = Date.now() - startTime;
+    
+    if (duration > 200) {
+      console.warn(`Slow query detected: getWorkouts took ${duration}ms`);
+    }
 
     return rows.map((row: any) => ({
       id: row.id,
