@@ -73,53 +73,54 @@ const mockHistory = [
   }
 ];
 
-// Calendar workout data - maps dates to workout IDs
+// Calendar workout data - maps dates to workout IDs with consistent status
 const workoutCalendarData = {
-  // Janeiro 2025 - Semana atual
-  "2025-01-13": { workoutId: 1, status: "completed" }, // Hoje
-  "2025-01-12": { workoutId: 2, status: "partial" },   // Ontem  
-  "2025-01-11": { workoutId: 3, status: "completed" }, 
-  "2025-01-10": { workoutId: 4, status: "completed" }, 
-  "2025-01-09": { workoutId: 1, status: "partial" },
-  "2025-01-08": { workoutId: 2, status: "completed" },   
+  // Janeiro 2025 - Semana atual (sincronizando com status do mockHistory)
+  "2025-01-13": { workoutId: 1, status: "completed" }, // Hoje - Treino de Pernas (completed)
+  "2025-01-12": { workoutId: 2, status: "partial" },   // Ontem - Treino de Peito (partial)
+  "2025-01-11": { workoutId: 3, status: "completed" }, // Treino de Costas (completed)
+  "2025-01-10": { workoutId: 4, status: "partial" },   // Treino de Ombros (partial)
+  "2025-01-09": { workoutId: 1, status: "completed" },
+  "2025-01-08": { workoutId: 2, status: "partial" },   
   "2025-01-07": { workoutId: 3, status: "completed" },
   
   // Semana passada
-  "2025-01-06": { workoutId: 4, status: "completed" },
-  "2025-01-05": { workoutId: 1, status: "partial" },
-  "2025-01-04": { workoutId: 2, status: "completed" },
+  "2025-01-06": { workoutId: 4, status: "partial" },
+  "2025-01-05": { workoutId: 1, status: "completed" },
+  "2025-01-04": { workoutId: 2, status: "partial" },
   "2025-01-03": { workoutId: 3, status: "completed" },
   "2025-01-02": { workoutId: 4, status: "partial" },
   "2025-01-01": { workoutId: 1, status: "completed" }, // Ano novo
   
   // Dezembro 2024 - Final do ano passado
-  "2024-12-31": { workoutId: 2, status: "completed" },
-  "2024-12-30": { workoutId: 3, status: "partial" },
-  "2024-12-29": { workoutId: 4, status: "completed" },
+  "2024-12-31": { workoutId: 2, status: "partial" },
+  "2024-12-30": { workoutId: 3, status: "completed" },
+  "2024-12-29": { workoutId: 4, status: "partial" },
   "2024-12-28": { workoutId: 1, status: "completed" },
   "2024-12-27": { workoutId: 2, status: "partial" },
   "2024-12-26": { workoutId: 3, status: "completed" }, // Boxing Day
-  "2024-12-25": { workoutId: 4, status: "completed" }, // Natal
-  "2024-12-24": { workoutId: 1, status: "partial" },   // Véspera de Natal
-  "2024-12-23": { workoutId: 2, status: "completed" }, 
+  "2024-12-25": { workoutId: 4, status: "partial" }, // Natal
+  "2024-12-24": { workoutId: 1, status: "completed" },   // Véspera de Natal
+  "2024-12-23": { workoutId: 2, status: "partial" }, 
   "2024-12-22": { workoutId: 3, status: "completed" },
   "2024-12-21": { workoutId: 4, status: "partial" },
   "2024-12-20": { workoutId: 1, status: "completed" },
   
   // Algumas datas espalhadas para teste
-  "2025-01-15": { workoutId: 3, status: "completed" }, // Futura (amanhã)
+  "2025-01-15": { workoutId: 3, status: "completed" }, // Futura
   "2025-01-17": { workoutId: 1, status: "completed" }, // Futura
   "2025-01-20": { workoutId: 2, status: "partial" },   // Futura
-  "2025-01-22": { workoutId: 4, status: "completed" }, // Futura
+  "2025-01-22": { workoutId: 4, status: "partial" }, // Futura
   "2025-01-25": { workoutId: 3, status: "completed" }, // Futura
-  "2025-01-27": { workoutId: 1, status: "partial" },   // Futura
-  "2025-01-30": { workoutId: 2, status: "completed" }  // Final do mês
+  "2025-01-27": { workoutId: 1, status: "completed" },   // Futura
+  "2025-01-30": { workoutId: 2, status: "partial" }  // Final do mês
 };
 
 export default function History() {
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
+  const [expandedCalendarWorkout, setExpandedCalendarWorkout] = useState<boolean>(false);
   // Initialize to January 2025 where we have test data
   const [currentMonth, setCurrentMonth] = useState(new Date(2025, 0, 1));
 
@@ -141,12 +142,24 @@ export default function History() {
     
     if (workoutData) {
       const workout = mockHistory.find(w => w.id === workoutData.workoutId);
-      setSelectedWorkout(workout);
+      // Create a workout object with the correct status from calendar data
+      const workoutWithCorrectStatus = workout ? {
+        ...workout,
+        status: workoutData.status
+      } : null;
+      
+      setSelectedWorkout(workoutWithCorrectStatus);
       setSelectedDate(date);
+      setExpandedCalendarWorkout(false); // Reset expanded state when selecting new date
     } else {
       setSelectedDate(date);
       setSelectedWorkout(null);
+      setExpandedCalendarWorkout(false);
     }
+  };
+
+  const toggleCalendarWorkoutDetails = () => {
+    setExpandedCalendarWorkout(!expandedCalendarWorkout);
   };
 
   const getDaysInMonth = (date: Date) => {
@@ -420,19 +433,29 @@ export default function History() {
               <h4 className="font-semibold text-sm mb-2">
                 Treino de {selectedDate?.toLocaleDateString('pt-BR')}
               </h4>
-              <div className="bg-muted/50 p-3 rounded-md">
+              <div 
+                className="bg-muted/50 p-3 rounded-md cursor-pointer transition-all duration-200"
+                onClick={toggleCalendarWorkoutDetails}
+              >
                 <div className="flex items-center justify-between mb-2">
                   <h5 className="font-medium text-sm">{selectedWorkout.name}</h5>
-                  <Badge 
-                    variant="default" 
-                    className={`text-white text-xs px-2 py-0 ${
-                      selectedWorkout.status === "completed" 
-                        ? "bg-success" 
-                        : "bg-orange-500"
-                    }`}
-                  >
-                    {selectedWorkout.status === "completed" ? "Concluído" : "Parcial"}
-                  </Badge>
+                  <div className="flex items-center space-x-2">
+                    <Badge 
+                      variant="default" 
+                      className={`text-white text-xs px-2 py-0 ${
+                        selectedWorkout.status === "completed" 
+                          ? "bg-success" 
+                          : "bg-orange-500"
+                      }`}
+                    >
+                      {selectedWorkout.status === "completed" ? "Concluído" : "Parcial"}
+                    </Badge>
+                    {expandedCalendarWorkout ? (
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center space-x-3 text-xs text-muted-foreground">
                   <span className="flex items-center">
@@ -444,6 +467,86 @@ export default function History() {
                     {selectedWorkout.exercises} exercícios
                   </span>
                 </div>
+
+                {/* Expanded Exercise Details for Calendar Selection */}
+                {expandedCalendarWorkout && (
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <h6 className="font-semibold text-sm mb-3 text-foreground">Detalhes dos Exercícios</h6>
+                    <div className="space-y-2">
+                      {selectedWorkout.exerciseDetails.map((exercise, index) => {
+                        const isPartialSets = exercise.completed === "partial";
+                        const isNotCompleted = exercise.completed === false;
+                        const isCompleted = exercise.completed === true;
+                        
+                        return (
+                          <div 
+                            key={index} 
+                            className={`flex items-center justify-between py-2 px-3 rounded-md ${
+                              isCompleted 
+                                ? 'bg-muted/30' 
+                                : isPartialSets
+                                ? 'bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/50'
+                                : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50'
+                            }`}
+                          >
+                            <div className="flex items-center flex-1">
+                              {isNotCompleted && (
+                                <X className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
+                              )}
+                              {isPartialSets && (
+                                <AlertCircle className="h-4 w-4 text-orange-500 mr-2 flex-shrink-0" />
+                              )}
+                              <div className="flex-1">
+                                <h7 className={`font-medium text-sm ${
+                                  isCompleted 
+                                    ? 'text-foreground' 
+                                    : isPartialSets
+                                    ? 'text-orange-600 dark:text-orange-400'
+                                    : 'text-red-600 dark:text-red-400'
+                                }`}>
+                                  {exercise.name}
+                                  {isNotCompleted && (
+                                    <span className="ml-2 text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full">
+                                      Não executado
+                                    </span>
+                                  )}
+                                  {isPartialSets && (
+                                    <span className="ml-2 text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">
+                                      Séries incompletas
+                                    </span>
+                                  )}
+                                </h7>
+                                <p className={`text-xs ${
+                                  isCompleted 
+                                    ? 'text-muted-foreground' 
+                                    : isPartialSets
+                                    ? 'text-orange-500 dark:text-orange-400'
+                                    : 'text-red-500 dark:text-red-400'
+                                }`}>
+                                  {isPartialSets 
+                                    ? `${exercise.completedSets}/${exercise.totalSets} séries × ${exercise.reps} repetições`
+                                    : `${exercise.sets} séries × ${exercise.reps} repetições`
+                                  }
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className={`text-sm font-semibold ${
+                                isCompleted 
+                                  ? 'text-primary' 
+                                  : isPartialSets
+                                  ? 'text-orange-500 dark:text-orange-400'
+                                  : 'text-red-500 dark:text-red-400'
+                              }`}>
+                                {exercise.weight}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
