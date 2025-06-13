@@ -165,12 +165,7 @@ function OnboardingCard({ user }: { user: any }) {
   );
 }
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dumbbell, Flame, Play, AlertCircle, CheckCircle, Clock } from "lucide-react";
-import { useGlobalNotification } from "@/components/NotificationProvider";
-import FitnessIcon from "@/components/FitnessIcon";
+
 
 export default function Home() {
   const { user } = useAuth();
