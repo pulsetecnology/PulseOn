@@ -1,15 +1,180 @@
+import { useState, useEffect } from "react";
+import { Link } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Clock, Plus, Dumbbell, User, Trophy, TrendingUp, CheckCircle, AlertCircle, BarChart3, Calendar, Target, Zap, ChevronDown, ChevronUp, X, Scale, Heart } from "lucide-react";
+
+// Component for expandable onboarding card
+function OnboardingCard({ user }: { user: any }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const getMissingFields = () => {
+    const missingFields = [];
+
+    if (!user?.birthDate) {
+      missingFields.push({
+        field: "Data de nascimento",
+        description: "Necessária para calcular sua idade e personalizar treinos",
+        icon: Calendar
+      });
+    }
+
+    if (!user?.weight || user.weight <= 0) {
+      missingFields.push({
+        field: "Peso",
+        description: "Importante para calcular cargas e intensidade dos exercícios",
+        icon: Scale
+      });
+    }
+
+    if (!user?.height || user.height <= 0) {
+      missingFields.push({
+        field: "Altura",
+        description: "Usada para cálculos de IMC e metabolismo basal",
+        icon: User
+      });
+    }
+
+    if (!user?.gender) {
+      missingFields.push({
+        field: "Gênero",
+        description: "Influencia no cálculo de necessidades calóricas",
+        icon: User
+      });
+    }
+
+    if (!user?.fitnessGoal) {
+      missingFields.push({
+        field: "Objetivo fitness",
+        description: "Define o tipo de treino (perder peso, ganhar massa, etc.)",
+        icon: Target
+      });
+    }
+
+    if (!user?.experienceLevel) {
+      missingFields.push({
+        field: "Nível de experiência",
+        description: "Determina a complexidade e intensidade dos exercícios",
+        icon: Trophy
+      });
+    }
+
+    if (!user?.weeklyFrequency || user.weeklyFrequency <= 0) {
+      missingFields.push({
+        field: "Frequência semanal",
+        description: "Quantas vezes por semana você pretende treinar",
+        icon: Calendar
+      });
+    }
+
+    if (!user?.availableEquipment || user.availableEquipment.length === 0) {
+      missingFields.push({
+        field: "Equipamentos disponíveis",
+        description: "Tipos de equipamentos que você tem acesso para treinar",
+        icon: Dumbbell
+      });
+    }
+
+    return missingFields;
+  };
+
+  const missingFields = getMissingFields();
+  const completionPercentage = Math.round(((8 - missingFields.length) / 8) * 100);
+
+  return (
+    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+      <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
+        <CardContent className="p-4">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-orange-800 dark:text-orange-200">
+                  Complete seu perfil
+                </h3>
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300"
+                  >
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+
+              <div className="mb-3">
+                <p className="text-sm text-orange-700 dark:text-orange-300 mb-2">
+                  Finalize suas informações para receber treinos personalizados pela IA.
+                </p>
+                <div className="flex items-center space-x-2 mb-2">
+                  <Progress value={completionPercentage} className="flex-1 h-2" />
+                  <span className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                    {completionPercentage}%
+                  </span>
+                </div>
+                <p className="text-xs text-orange-600 dark:text-orange-400">
+                  {missingFields.length} {missingFields.length === 1 ? 'campo faltando' : 'campos faltando'}
+                </p>
+              </div>
+
+              <CollapsibleContent>
+                <div className="space-y-3 mb-4">
+                  <h4 className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                    Informações necessárias:
+                  </h4>
+                  {missingFields.map((field, index) => {
+                    const Icon = field.icon;
+                    return (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                        <Icon className="h-4 w-4 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                            {field.field}
+                          </p>
+                          <p className="text-xs text-orange-700 dark:text-orange-300">
+                            {field.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CollapsibleContent>
+
+              <Link href="/onboarding">
+                <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700 text-white">
+                  Completar Onboarding
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </Collapsible>
+  );
+}
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dumbbell, Flame, Play, AlertCircle, CheckCircle, Clock } from "lucide-react";
-import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { useAuth } from "@/hooks/useAuth";
 import FitnessIcon from "@/components/FitnessIcon";
 
 export default function Home() {
   const { user } = useAuth();
-  
+
   // Simulate user onboarding status and workout data
   const hasCompletedOnboarding = user?.onboardingCompleted || false;
   const hasWorkoutsAvailable = true; // This would come from API
@@ -28,26 +193,7 @@ export default function Home() {
 
       {/* Status Alerts */}
       {!hasCompletedOnboarding && (
-        <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-orange-800 dark:text-orange-200">
-                  Complete seu perfil
-                </h3>
-                <p className="text-sm text-orange-700 dark:text-orange-300 mb-3">
-                  Finalize suas informações para receber treinos personalizados pela IA.
-                </p>
-                <Link href="/profile">
-                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
-                    Completar Onboarding
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <OnboardingCard user={user} />
       )}
 
       {hasCompletedOnboarding && !hasWorkoutsAvailable && (
@@ -140,7 +286,7 @@ export default function Home() {
         </Card>
       </div>
 
-      
+
 
       {/* Upcoming Workouts */}
       <div>
