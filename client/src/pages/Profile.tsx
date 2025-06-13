@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { User, Settings, Calendar, Activity, Target, Dumbbell, Camera, Scale } from "lucide-react";
+import { User, Settings, Calendar, Activity, Target, Dumbbell, Camera, Scale, Heart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { apiRequest } from "@/lib/queryClient";
 
