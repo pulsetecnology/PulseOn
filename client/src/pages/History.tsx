@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Dumbbell, ChevronDown, ChevronUp, X, AlertCircle } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarIcon, Clock, Dumbbell, ChevronDown, ChevronUp, X, AlertCircle } from "lucide-react";
 
 const mockHistory = [
   {
@@ -73,11 +74,48 @@ const mockHistory = [
   }
 ];
 
+// Calendar workout data - maps dates to workout IDs
+const workoutCalendarData = {
+  "2025-01-13": { workoutId: 1, status: "completed" }, // Hoje
+  "2025-01-12": { workoutId: 2, status: "partial" },   // Ontem  
+  "2025-01-10": { workoutId: 3, status: "completed" }, // 3 dias atrás
+  "2025-01-08": { workoutId: 4, status: "partial" },   // 5 dias atrás
+  "2025-01-06": { workoutId: 1, status: "completed" },
+  "2025-01-04": { workoutId: 3, status: "partial" },
+  "2025-01-02": { workoutId: 2, status: "completed" }
+};
+
 export default function History() {
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
 
   const toggleCard = (cardId: number) => {
     setExpandedCard(expandedCard === cardId ? null : cardId);
+  };
+
+  const formatDateKey = (date: Date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const hasWorkout = (date: Date) => {
+    return workoutCalendarData[formatDateKey(date)];
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
+    
+    const dateKey = formatDateKey(date);
+    const workoutData = workoutCalendarData[dateKey];
+    
+    if (workoutData) {
+      const workout = mockHistory.find(w => w.id === workoutData.workoutId);
+      setSelectedWorkout(workout);
+      setSelectedDate(date);
+    } else {
+      setSelectedDate(date);
+      setSelectedWorkout(null);
+    }
   };
   return (
     <div className="px-4 py-6 space-y-6">
@@ -236,19 +274,101 @@ export default function History() {
         ))}
       </div>
 
-      {/* Weekly Progress */}
+      {/* Workout Calendar */}
       <Card>
         <CardContent className="p-6">
-          <h3 className="font-semibold mb-4">Progresso Semanal</h3>
-          <div className="space-y-2">
-            {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day, index) => (
-              <div key={day} className="flex items-center justify-between">
-                <span className="text-sm">{day}</span>
-                <div className={`w-4 h-4 rounded-full ${
-                  index < 4 ? "bg-success" : "bg-muted"
-                }`} />
+          <h3 className="font-semibold mb-4 flex items-center">
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            Calendário de Treinos
+          </h3>
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateSelect}
+            className="w-full"
+            modifiers={{
+              workout: (date) => !!hasWorkout(date),
+              completed: (date) => {
+                const workout = hasWorkout(date);
+                return workout && workout.status === "completed";
+              },
+              partial: (date) => {
+                const workout = hasWorkout(date);
+                return workout && workout.status === "partial";
+              }
+            }}
+            modifiersStyles={{
+              workout: {
+                fontWeight: "bold"
+              },
+              completed: {
+                backgroundColor: "rgb(34, 197, 94)",
+                color: "white",
+                borderRadius: "50%"
+              },
+              partial: {
+                backgroundColor: "rgb(249, 115, 22)",
+                color: "white", 
+                borderRadius: "50%"
+              }
+            }}
+          />
+          
+          {/* Selected Date Workout Details */}
+          {selectedWorkout && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <h4 className="font-semibold text-sm mb-2">
+                Treino de {selectedDate?.toLocaleDateString('pt-BR')}
+              </h4>
+              <div className="bg-muted/50 p-3 rounded-md">
+                <div className="flex items-center justify-between mb-2">
+                  <h5 className="font-medium text-sm">{selectedWorkout.name}</h5>
+                  <Badge 
+                    variant="default" 
+                    className={`text-white text-xs px-2 py-0 ${
+                      selectedWorkout.status === "completed" 
+                        ? "bg-success" 
+                        : "bg-orange-500"
+                    }`}
+                  >
+                    {selectedWorkout.status === "completed" ? "Concluído" : "Parcial"}
+                  </Badge>
+                </div>
+                <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                  <span className="flex items-center">
+                    <Clock className="mr-1 h-2 w-2" />
+                    {selectedWorkout.duration} min
+                  </span>
+                  <span className="flex items-center">
+                    <Dumbbell className="mr-1 h-2 w-2" />
+                    {selectedWorkout.exercises} exercícios
+                  </span>
+                </div>
               </div>
-            ))}
+            </div>
+          )}
+          
+          {selectedDate && !selectedWorkout && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <p className="text-sm text-muted-foreground text-center">
+                Nenhum treino realizado em {selectedDate.toLocaleDateString('pt-BR')}
+              </p>
+            </div>
+          )}
+          
+          {/* Legend */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <h4 className="font-semibold text-sm mb-2">Legenda</h4>
+            <div className="flex items-center space-x-4 text-xs">
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-3 rounded-full bg-success"></div>
+                <span>Concluído</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                <span>Parcial</span>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
