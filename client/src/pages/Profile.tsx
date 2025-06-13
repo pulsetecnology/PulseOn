@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { Calendar, Activity, Target, Dumbbell, Camera, Scale, User, Settings } from "lucide-react";
+import { Calendar, Activity, Target, Dumbbell, Camera, Scale, User, Settings, Check, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -135,7 +136,7 @@ const equipmentOptions = [
 ];
 
 export default function Profile() {
-  const [isEditing, setIsEditing] = useState(false);
+  const [editingCard, setEditingCard] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<UserData>>({});
   const { showSuccess, showError } = useGlobalNotification();
   const queryClient = useQueryClient();
@@ -282,7 +283,7 @@ export default function Profile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      setIsEditing(false);
+      setEditingCard(null);
       showSuccess();
     },
     onError: (error: Error) => {
@@ -358,6 +359,15 @@ export default function Profile() {
     event.target.value = '';
   };
 
+  const handleCancelEdit = () => {
+    setEditingCard(null);
+    setFormData(user || {});
+  };
+
+  const handleSaveEdit = () => {
+    updateMutation.mutate(formData);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -429,49 +439,55 @@ export default function Profile() {
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Informações Detalhadas</h2>
-          <p className="text-muted-foreground">Configure seu perfil de treinos</p>
-        </div>
-
-        {!isEditing ? (
-          <Button onClick={() => setIsEditing(true)}>
-            <Settings className="h-4 w-4 mr-2" />
-            Editar
-          </Button>
-        ) : (
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsEditing(false);
-                setFormData(user);
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button onClick={handleSubmit} disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? "Salvando..." : "Salvar"}
-            </Button>
-          </div>
-        )}
-      </div>
-
       <div className="grid gap-6 md:grid-cols-2">
         {/* Personal Information */}
         <Card className="w-full">
           <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <User className="h-5 w-5 flex-shrink-0" />
-              <span>Informações Pessoais</span>
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <User className="h-5 w-5 flex-shrink-0" />
+                <span>Informações Pessoais</span>
+              </CardTitle>
+              <div className="flex gap-2">
+                {editingCard === 'personal' ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      {updateMutation.isPending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEditingCard('personal')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="px-4 sm:px-6 space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Nome</Label>
-                {isEditing ? (
+                {editingCard === 'personal' ? (
                   <Input
                     value={formData.name || ""}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -488,7 +504,7 @@ export default function Profile() {
 
               <div className="space-y-2">
                 <Label>Data de Nascimento</Label>
-                {isEditing ? (
+                {editingCard === 'personal' ? (
                   <Input
                     type="date"
                     value={formData.birthDate || ""}
@@ -514,16 +530,51 @@ export default function Profile() {
         {/* Physical Data */}
         <Card className="w-full">
           <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Scale className="h-5 w-5 flex-shrink-0" />
-              <span>Dados Físicos</span>
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Scale className="h-5 w-5 flex-shrink-0" />
+                <span>Dados Físicos</span>
+              </CardTitle>
+              <div className="flex gap-2">
+                {editingCard === 'physical' ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      {updateMutation.isPending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEditingCard('physical')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="px-4 sm:px-6 space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Peso (kg)</Label>
-                {isEditing ? (
+                {editingCard === 'physical' ? (
                   <Input
                     type="number"
                     value={formData.weight || ""}
@@ -538,7 +589,7 @@ export default function Profile() {
 
               <div className="space-y-2">
                 <Label>Altura (cm)</Label>
-                {isEditing ? (
+                {editingCard === 'physical' ? (
                   <Input
                     type="number"
                     value={formData.height || ""}
@@ -553,7 +604,7 @@ export default function Profile() {
 
               <div className="space-y-2">
                 <Label>Gênero</Label>
-                {isEditing ? (
+                {editingCard === 'physical' ? (
                   <Select 
                     value={formData.gender || ""} 
                     onValueChange={(value) => setFormData({ ...formData, gender: value })}
@@ -582,15 +633,50 @@ export default function Profile() {
         {/* Objetivos de Treino */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Objetivos de Treino
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Objetivos de Treino
+              </CardTitle>
+              <div className="flex gap-2">
+                {editingCard === 'goals' ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      {updateMutation.isPending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEditingCard('goals')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Objetivo Principal</Label>
-              {isEditing ? (
+              {editingCard === 'goals' ? (
                 <Select 
                   value={formData.fitnessGoal || ""} 
                   onValueChange={(value) => setFormData({ ...formData, fitnessGoal: value })}
@@ -613,7 +699,7 @@ export default function Profile() {
 
             <div className="space-y-2">
               <Label>Nível de Experiência</Label>
-              {isEditing ? (
+              {editingCard === 'goals' ? (
                 <Select 
                   value={formData.experienceLevel || ""} 
                   onValueChange={(value) => setFormData({ ...formData, experienceLevel: value })}
@@ -636,7 +722,7 @@ export default function Profile() {
 
             <div className="space-y-2">
               <Label>Horário Preferido para Treino</Label>
-              {isEditing ? (
+              {editingCard === 'goals' ? (
                 <Select 
                   value={formData.preferredWorkoutTime || ""} 
                   onValueChange={(value) => setFormData({ ...formData, preferredWorkoutTime: value })}
@@ -660,7 +746,7 @@ export default function Profile() {
 
             <div className="space-y-2">
               <Label>Dias Disponíveis por Semana</Label>
-              {isEditing ? (
+              {editingCard === 'goals' ? (
                 <Select 
                   value={formData.availableDaysPerWeek?.toString() || ""} 
                   onValueChange={(value) => setFormData({ ...formData, availableDaysPerWeek: Number(value) })}
@@ -683,7 +769,7 @@ export default function Profile() {
 
             <div className="space-y-2">
               <Label>Duração Média dos Treinos</Label>
-              {isEditing ? (
+              {editingCard === 'goals' ? (
                 <Select 
                   value={formData.averageWorkoutDuration || ""} 
                   onValueChange={(value) => setFormData({ ...formData, averageWorkoutDuration: value })}
@@ -710,16 +796,51 @@ export default function Profile() {
         {/* Estilo de Vida */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Estilo de Vida
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Estilo de Vida
+              </CardTitle>
+              <div className="flex gap-2">
+                {editingCard === 'lifestyle' ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      {updateMutation.isPending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEditingCard('lifestyle')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Tabagismo</Label>
-                {isEditing ? (
+                {editingCard === 'lifestyle' ? (
                   <Select 
                     value={formData.smokingStatus || ""} 
                     onValueChange={(value) => setFormData({ ...formData, smokingStatus: value })}
@@ -742,7 +863,7 @@ export default function Profile() {
 
               <div className="space-y-2">
                 <Label>Consumo de Álcool</Label>
-                {isEditing ? (
+                {editingCard === 'lifestyle' ? (
                   <Select 
                     value={formData.alcoholConsumption || ""} 
                     onValueChange={(value) => setFormData({ ...formData, alcoholConsumption: value })}
@@ -766,7 +887,7 @@ export default function Profile() {
 
               <div className="space-y-2">
                 <Label>Tipo de Alimentação</Label>
-                {isEditing ? (
+                {editingCard === 'lifestyle' ? (
                   <Select 
                     value={formData.dietType || ""} 
                     onValueChange={(value) => setFormData({ ...formData, dietType: value })}
@@ -792,7 +913,7 @@ export default function Profile() {
 
               <div className="space-y-2">
                 <Label>Horas de Sono</Label>
-                {isEditing ? (
+                {editingCard === 'lifestyle' ? (
                   <Select 
                     value={formData.sleepHours || ""} 
                     onValueChange={(value) => setFormData({ ...formData, sleepHours: value })}
@@ -816,7 +937,7 @@ export default function Profile() {
 
               <div className="space-y-2">
                 <Label>Nível de Estresse</Label>
-                {isEditing ? (
+                {editingCard === 'lifestyle' ? (
                   <Select 
                     value={formData.stressLevel || ""} 
                     onValueChange={(value) => setFormData({ ...formData, stressLevel: value })}
@@ -838,7 +959,6 @@ export default function Profile() {
                 )}
               </div>
 
-
             </div>
           </CardContent>
         </Card>
@@ -846,17 +966,52 @@ export default function Profile() {
         {/* Equipamentos e Local */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Dumbbell className="h-5 w-5" />
-              Equipamentos e Local de Treino
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Dumbbell className="h-5 w-5" />
+                Equipamentos e Local de Treino
+              </CardTitle>
+              <div className="flex gap-2">
+                {editingCard === 'equipment' ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      {updateMutation.isPending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEditingCard('equipment')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               {/* Equipamentos */}
               <div>
                 <Label className="text-base font-medium mb-3 block">Equipamentos Disponíveis</Label>
-                {isEditing ? (
+                {editingCard === 'equipment' ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       {equipmentOptions.map((equipment) => (
@@ -925,7 +1080,7 @@ export default function Profile() {
               {/* Local Preferido */}
               <div className="space-y-2">
                 <Label className="text-base font-medium">Local Preferido para Treinar</Label>
-                {isEditing ? (
+                {editingCard === 'equipment' ? (
                   <Select 
                     value={formData.preferredLocation || ""} 
                     onValueChange={(value) => setFormData({ ...formData, preferredLocation: value })}
@@ -954,13 +1109,48 @@ export default function Profile() {
       {/* Restrições Físicas */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Restrições Físicas
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Restrições Físicas
+            </CardTitle>
+            <div className="flex gap-2">
+              {editingCard === 'restrictions' ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                    disabled={updateMutation.isPending}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveEdit}
+                    disabled={updateMutation.isPending}
+                  >
+                    {updateMutation.isPending ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      <Check className="h-4 w-4" />
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setEditingCard('restrictions')}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {isEditing ? (
+          {editingCard === 'restrictions' ? (
             <div className="space-y-2">
               <Label htmlFor="physicalRestrictions">Descreva suas restrições físicas (opcional):</Label>
               <textarea
