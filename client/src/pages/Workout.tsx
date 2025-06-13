@@ -10,6 +10,7 @@ import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
 
 export default function Workout() {
+  const todaysWorkout = sampleWorkouts[0]; // For demo purposes
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [currentSet, setCurrentSet] = useState(1);
