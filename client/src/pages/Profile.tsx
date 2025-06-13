@@ -797,6 +797,148 @@ export default function Profile() {
           </CardContent>
         </Card>
 
+        {/* Estrutura de Treino */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Dumbbell className="h-5 w-5" />
+                Estrutura de treino
+              </CardTitle>
+              <div className="flex gap-2">
+                {editingCard === 'equipment' ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEdit}
+                      disabled={updateMutation.isPending}
+                    >
+                      {updateMutation.isPending ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEditingCard('equipment')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Equipamentos */}
+              <div>
+                <Label className="text-base font-medium mb-3 block">Equipamentos Disponíveis</Label>
+                {editingCard === 'equipment' ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      {equipmentOptions.map((equipment) => (
+                        <div key={equipment.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={equipment.id}
+                            checked={(formData.availableEquipment || []).includes(equipment.id)}
+                            onCheckedChange={(checked) => handleEquipmentChange(equipment.id, checked as boolean)}
+                          />
+                          <Label htmlFor={equipment.id} className="text-sm">
+                            {equipment.label}
+                          </Label>
+                        </div>
+                      ))}
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="others"
+                          checked={(formData.availableEquipment || []).includes("others")}
+                          onCheckedChange={(checked) => handleEquipmentChange("others", checked as boolean)}
+                        />
+                        <Label htmlFor="others" className="text-sm">
+                          Outros
+                        </Label>
+                      </div>
+                    </div>
+
+                    {(formData.availableEquipment || []).includes("others") && (
+                      <div className="space-y-2">
+                        <Label htmlFor="customEquipment">Especifique outros equipamentos:</Label>
+                        <Input
+                          id="customEquipment"
+                          placeholder="Ex: Cordas de pular, medicine ball, etc."
+                          value={formData.customEquipment || ""}
+                          onChange={(e) => setFormData({ ...formData, customEquipment: e.target.value })}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {user.availableEquipment && user.availableEquipment.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {user.availableEquipment.map((equipmentId) => {
+                          if (equipmentId === "others") {
+                            return (
+                              <span key={equipmentId} className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
+                                Outros: {user.customEquipment || "Não especificado"}
+                              </span>
+                            );
+                          }
+                          const equipment = equipmentOptions.find(eq => eq.id === equipmentId);
+                          return equipment ? (
+                            <span key={equipmentId} className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
+                              {equipment.label}
+                            </span>
+                          ) : null;
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Nenhum equipamento selecionado</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Local Preferido */}
+              <div className="space-y-2">
+                <Label className="text-base font-medium">Local Preferido para Treinar</Label>
+                {editingCard === 'equipment' ? (
+                  <Select 
+                    value={formData.preferredLocation || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, preferredLocation: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="home">Em casa</SelectItem>
+                      <SelectItem value="outdoor">Ao ar livre</SelectItem>
+                      <SelectItem value="gym">Academia</SelectItem>
+                      <SelectItem value="other">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.preferredLocation && lifestyleMappings.preferredLocation[user.preferredLocation as keyof typeof lifestyleMappings.preferredLocation] || "Não informado"}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Estilo de Vida */}
         <Card>
           <CardHeader>
@@ -967,13 +1109,13 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Equipamentos e Local */}
+        {/* Restrições Físicas */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <Dumbbell className="h-5 w-5" />
-                Equipamentos e Local de Treino
+                <AlertCircle className="h-5 w-5" />
+                Restrições Físicas
               </CardTitle>
               <div className="flex gap-2">
                 {editingCard === 'equipment' ? (
