@@ -199,7 +199,10 @@ export default function History() {
   };
   return (
     <div className="px-4 py-6 space-y-6">
-      <h1 className="text-2xl font-bold">Histórico de Treinos</h1>
+      <div>
+        <h1 className="text-2xl font-bold">Histórico de Treinos</h1>
+        <p className="text-muted-foreground">Acompanhe seu progresso e performance</p>
+      </div>
 
       {/* Stats Summary */}
       <div className="grid grid-cols-3 gap-4">
