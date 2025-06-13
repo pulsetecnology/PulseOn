@@ -250,7 +250,16 @@ export class SQLiteStorage implements IStorage {
                      key === 'customEquipment' ? 'custom_equipment':
                      key === 'physicalRestrictions' ? 'physical_restrictions' :
                      key === 'onboardingCompleted' ? 'onboarding_completed' :
-                     key === 'avatarUrl' ? 'avatar_url' : key;
+                     key === 'avatarUrl' ? 'avatar_url' :
+                     key === 'smokingStatus' ? 'smoking_status' :
+                     key === 'alcoholConsumption' ? 'alcohol_consumption' :
+                     key === 'dietType' ? 'diet_type' :
+                     key === 'sleepHours' ? 'sleep_hours' :
+                     key === 'stressLevel' ? 'stress_level' :
+                     key === 'preferredWorkoutTime' ? 'preferred_workout_time' :
+                     key === 'availableDaysPerWeek' ? 'available_days_per_week' :
+                     key === 'averageWorkoutDuration' ? 'average_workout_duration' :
+                     key === 'preferredLocation' ? 'preferred_location' : key;
 
         setParts.push(`${dbKey} = ?`);
 

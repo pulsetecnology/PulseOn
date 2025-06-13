@@ -18,6 +18,16 @@ export const users = pgTable("users", {
   availableEquipment: jsonb("available_equipment").$type<string[]>(),
   customEquipment: text("custom_equipment"),
   physicalRestrictions: text("physical_restrictions"),
+  // Lifestyle fields
+  smokingStatus: text("smoking_status"), // "never", "yes", "ex_smoker"
+  alcoholConsumption: text("alcohol_consumption"), // "never", "rarely", "socially", "frequently"
+  dietType: text("diet_type"), // "balanced", "high_protein", "high_carb", "fast_food", "vegetarian_vegan", "other"
+  sleepHours: text("sleep_hours"), // "4-5", "6-7", "8-9", "9+"
+  stressLevel: text("stress_level"), // "low", "moderate", "high", "very_high"
+  preferredWorkoutTime: text("preferred_workout_time"), // "morning", "afternoon", "evening", "variable"
+  availableDaysPerWeek: integer("available_days_per_week"), // 1-7
+  averageWorkoutDuration: text("average_workout_duration"), // "15-20min", "30min", "45min", "1h_or_more"
+  preferredLocation: text("preferred_location"), // "home", "outdoor", "gym", "other"
   onboardingCompleted: boolean("onboarding_completed").default(false),
   createdAt: timestamp("created_at").defaultNow()
 });
@@ -126,7 +136,17 @@ export const onboardingSchema = z.object({
   experienceLevel: z.enum(["beginner", "intermediate", "advanced"]),
   weeklyFrequency: z.number().min(1).max(7),
   availableEquipment: z.array(z.string()),
-  physicalRestrictions: z.string().optional()
+  physicalRestrictions: z.string().optional(),
+  // Lifestyle fields
+  smokingStatus: z.enum(["never", "yes", "ex_smoker"]),
+  alcoholConsumption: z.enum(["never", "rarely", "socially", "frequently"]),
+  dietType: z.enum(["balanced", "high_protein", "high_carb", "fast_food", "vegetarian_vegan", "other"]),
+  sleepHours: z.enum(["4-5", "6-7", "8-9", "9+"]),
+  stressLevel: z.enum(["low", "moderate", "high", "very_high"]),
+  preferredWorkoutTime: z.enum(["morning", "afternoon", "evening", "variable"]),
+  availableDaysPerWeek: z.number().min(1).max(7),
+  averageWorkoutDuration: z.enum(["15-20min", "30min", "45min", "1h_or_more"]),
+  preferredLocation: z.enum(["home", "outdoor", "gym", "other"])
 });
 
 export const profileUpdateSchema = z.object({
@@ -142,7 +162,17 @@ export const profileUpdateSchema = z.object({
   availableEquipment: z.array(z.string()).optional(),
   customEquipment: z.string().optional(),
   physicalRestrictions: z.string().optional(),
-  avatarUrl: z.string().optional()
+  avatarUrl: z.string().optional(),
+  // Lifestyle fields
+  smokingStatus: z.enum(["never", "yes", "ex_smoker"]).optional(),
+  alcoholConsumption: z.enum(["never", "rarely", "socially", "frequently"]).optional(),
+  dietType: z.enum(["balanced", "high_protein", "high_carb", "fast_food", "vegetarian_vegan", "other"]).optional(),
+  sleepHours: z.enum(["4-5", "6-7", "8-9", "9+"]).optional(),
+  stressLevel: z.enum(["low", "moderate", "high", "very_high"]).optional(),
+  preferredWorkoutTime: z.enum(["morning", "afternoon", "evening", "variable"]).optional(),
+  availableDaysPerWeek: z.number().min(1).max(7).optional(),
+  averageWorkoutDuration: z.enum(["15-20min", "30min", "45min", "1h_or_more"]).optional(),
+  preferredLocation: z.enum(["home", "outdoor", "gym", "other"]).optional()
 });
 
 // N8N Integration schema

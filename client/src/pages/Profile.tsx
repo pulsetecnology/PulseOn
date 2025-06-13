@@ -27,6 +27,16 @@ interface UserData {
   physicalRestrictions?: string;
   onboardingCompleted: boolean;
   avatarUrl?: string;
+  // Lifestyle fields
+  smokingStatus?: string;
+  alcoholConsumption?: string;
+  dietType?: string;
+  sleepHours?: string;
+  stressLevel?: string;
+  preferredWorkoutTime?: string;
+  availableDaysPerWeek?: number;
+  averageWorkoutDuration?: string;
+  preferredLocation?: string;
 }
 
 const calculateAge = (birthDate: string): number => {
@@ -59,6 +69,58 @@ const experienceLevels = {
   beginner: "Iniciante",
   intermediate: "Intermediário", 
   advanced: "Avançado"
+};
+
+const lifestyleMappings = {
+  smokingStatus: {
+    never: "Nunca fumei",
+    yes: "Sim, fumo",
+    ex_smoker: "Ex-fumante"
+  },
+  alcoholConsumption: {
+    never: "Nunca",
+    rarely: "Raramente",
+    socially: "Socialmente",
+    frequently: "Frequentemente"
+  },
+  dietType: {
+    balanced: "Balanceada",
+    high_protein: "Rica em proteínas",
+    high_carb: "Rica em carboidratos",
+    fast_food: "Fast-food",
+    vegetarian_vegan: "Vegetariana/Vegana",
+    other: "Outro"
+  },
+  sleepHours: {
+    "4-5": "4-5 horas",
+    "6-7": "6-7 horas",
+    "8-9": "8-9 horas",
+    "9+": "9+ horas"
+  },
+  stressLevel: {
+    low: "Baixo",
+    moderate: "Moderado",
+    high: "Alto",
+    very_high: "Muito alto"
+  },
+  preferredWorkoutTime: {
+    morning: "Manhã",
+    afternoon: "Tarde",
+    evening: "Noite",
+    variable: "Variável"
+  },
+  averageWorkoutDuration: {
+    "15-20min": "15-20 minutos",
+    "30min": "30 minutos",
+    "45min": "45 minutos",
+    "1h_or_more": "1 hora ou mais"
+  },
+  preferredLocation: {
+    home: "Em casa",
+    outdoor: "Ao ar livre",
+    gym: "Academia",
+    other: "Outro"
+  }
 };
 
 const equipmentOptions = [
@@ -175,6 +237,43 @@ export default function Profile() {
 
       if (data.customEquipment !== user?.customEquipment) {
         updatePayload.customEquipment = data.customEquipment;
+      }
+
+      // Lifestyle fields
+      if (data.smokingStatus && data.smokingStatus !== user?.smokingStatus) {
+        updatePayload.smokingStatus = data.smokingStatus;
+      }
+
+      if (data.alcoholConsumption && data.alcoholConsumption !== user?.alcoholConsumption) {
+        updatePayload.alcoholConsumption = data.alcoholConsumption;
+      }
+
+      if (data.dietType && data.dietType !== user?.dietType) {
+        updatePayload.dietType = data.dietType;
+      }
+
+      if (data.sleepHours && data.sleepHours !== user?.sleepHours) {
+        updatePayload.sleepHours = data.sleepHours;
+      }
+
+      if (data.stressLevel && data.stressLevel !== user?.stressLevel) {
+        updatePayload.stressLevel = data.stressLevel;
+      }
+
+      if (data.preferredWorkoutTime && data.preferredWorkoutTime !== user?.preferredWorkoutTime) {
+        updatePayload.preferredWorkoutTime = data.preferredWorkoutTime;
+      }
+
+      if (data.availableDaysPerWeek && data.availableDaysPerWeek !== user?.availableDaysPerWeek) {
+        updatePayload.availableDaysPerWeek = data.availableDaysPerWeek;
+      }
+
+      if (data.averageWorkoutDuration && data.averageWorkoutDuration !== user?.averageWorkoutDuration) {
+        updatePayload.averageWorkoutDuration = data.averageWorkoutDuration;
+      }
+
+      if (data.preferredLocation && data.preferredLocation !== user?.preferredLocation) {
+        updatePayload.preferredLocation = data.preferredLocation;
       }
 
       console.log('Sending update payload:', updatePayload);
@@ -560,6 +659,235 @@ export default function Profile() {
                   {user.weeklyFrequency ? `${user.weeklyFrequency}x por semana` : "Não informado"}
                 </p>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Estilo de Vida */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Heart className="h-5 w-5" />
+              Estilo de Vida
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Tabagismo</Label>
+                {isEditing ? (
+                  <Select 
+                    value={formData.smokingStatus || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, smokingStatus: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="never">Nunca fumei</SelectItem>
+                      <SelectItem value="yes">Sim, fumo</SelectItem>
+                      <SelectItem value="ex_smoker">Ex-fumante</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.smokingStatus && lifestyleMappings.smokingStatus[user.smokingStatus as keyof typeof lifestyleMappings.smokingStatus] || "Não informado"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Consumo de Álcool</Label>
+                {isEditing ? (
+                  <Select 
+                    value={formData.alcoholConsumption || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, alcoholConsumption: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="never">Nunca</SelectItem>
+                      <SelectItem value="rarely">Raramente</SelectItem>
+                      <SelectItem value="socially">Socialmente</SelectItem>
+                      <SelectItem value="frequently">Frequentemente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.alcoholConsumption && lifestyleMappings.alcoholConsumption[user.alcoholConsumption as keyof typeof lifestyleMappings.alcoholConsumption] || "Não informado"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tipo de Alimentação</Label>
+                {isEditing ? (
+                  <Select 
+                    value={formData.dietType || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, dietType: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="balanced">Balanceada</SelectItem>
+                      <SelectItem value="high_protein">Rica em proteínas</SelectItem>
+                      <SelectItem value="high_carb">Rica em carboidratos</SelectItem>
+                      <SelectItem value="fast_food">Fast-food</SelectItem>
+                      <SelectItem value="vegetarian_vegan">Vegetariana/Vegana</SelectItem>
+                      <SelectItem value="other">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.dietType && lifestyleMappings.dietType[user.dietType as keyof typeof lifestyleMappings.dietType] || "Não informado"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Horas de Sono</Label>
+                {isEditing ? (
+                  <Select 
+                    value={formData.sleepHours || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, sleepHours: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="4-5">4-5 horas</SelectItem>
+                      <SelectItem value="6-7">6-7 horas</SelectItem>
+                      <SelectItem value="8-9">8-9 horas</SelectItem>
+                      <SelectItem value="9+">9+ horas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.sleepHours && lifestyleMappings.sleepHours[user.sleepHours as keyof typeof lifestyleMappings.sleepHours] || "Não informado"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Nível de Estresse</Label>
+                {isEditing ? (
+                  <Select 
+                    value={formData.stressLevel || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, stressLevel: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixo</SelectItem>
+                      <SelectItem value="moderate">Moderado</SelectItem>
+                      <SelectItem value="high">Alto</SelectItem>
+                      <SelectItem value="very_high">Muito alto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.stressLevel && lifestyleMappings.stressLevel[user.stressLevel as keyof typeof lifestyleMappings.stressLevel] || "Não informado"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Horário Preferido para Treino</Label>
+                {isEditing ? (
+                  <Select 
+                    value={formData.preferredWorkoutTime || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, preferredWorkoutTime: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="morning">Manhã</SelectItem>
+                      <SelectItem value="afternoon">Tarde</SelectItem>
+                      <SelectItem value="evening">Noite</SelectItem>
+                      <SelectItem value="variable">Variável</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.preferredWorkoutTime && lifestyleMappings.preferredWorkoutTime[user.preferredWorkoutTime as keyof typeof lifestyleMappings.preferredWorkoutTime] || "Não informado"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Dias Disponíveis por Semana</Label>
+                {isEditing ? (
+                  <Select 
+                    value={formData.availableDaysPerWeek?.toString() || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, availableDaysPerWeek: Number(value) })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                        <SelectItem key={day} value={day.toString()}>{day} dia{day > 1 ? 's' : ''}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.availableDaysPerWeek ? `${user.availableDaysPerWeek} dia${user.availableDaysPerWeek > 1 ? 's' : ''}` : "Não informado"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Duração Média dos Treinos</Label>
+                {isEditing ? (
+                  <Select 
+                    value={formData.averageWorkoutDuration || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, averageWorkoutDuration: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15-20min">15-20 minutos</SelectItem>
+                      <SelectItem value="30min">30 minutos</SelectItem>
+                      <SelectItem value="45min">45 minutos</SelectItem>
+                      <SelectItem value="1h_or_more">1 hora ou mais</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.averageWorkoutDuration && lifestyleMappings.averageWorkoutDuration[user.averageWorkoutDuration as keyof typeof lifestyleMappings.averageWorkoutDuration] || "Não informado"}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Local Preferido para Treinar</Label>
+                {isEditing ? (
+                  <Select 
+                    value={formData.preferredLocation || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, preferredLocation: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="home">Em casa</SelectItem>
+                      <SelectItem value="outdoor">Ao ar livre</SelectItem>
+                      <SelectItem value="gym">Academia</SelectItem>
+                      <SelectItem value="other">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {user.preferredLocation && lifestyleMappings.preferredLocation[user.preferredLocation as keyof typeof lifestyleMappings.preferredLocation] || "Não informado"}
+                  </p>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
