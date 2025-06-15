@@ -459,6 +459,9 @@ export default function Home() {
   const { user } = useAuth();
   const [expandedTodaysWorkout, setExpandedTodaysWorkout] = useState(false);
   const [expandedUpcomingWorkout, setExpandedUpcomingWorkout] = useState<number | null>(null);
+  const [expandedStatsCard, setExpandedStatsCard] = useState<string | null>(null);
+  const [expandedWeeklyProgress, setExpandedWeeklyProgress] = useState(false);
+  const [expandedCaloriesCard, setExpandedCaloriesCard] = useState(false);
 
   // Simulate user onboarding status and workout data
   const hasCompletedOnboarding = user?.onboardingCompleted || false;
@@ -523,11 +526,21 @@ export default function Home() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+        <Card 
+          className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
+          onClick={() => setExpandedStatsCard(expandedStatsCard === 'workouts' ? null : 'workouts')}
+        >
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">Treinos Concluídos</span>
-              <FitnessIcon className="h-3 w-3" />
+              <div className="flex items-center gap-1">
+                <FitnessIcon className="h-3 w-3" />
+                {expandedStatsCard === 'workouts' ? (
+                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                )}
+              </div>
             </div>
             <span className="text-xl font-bold">{completedWorkouts}</span>
             {completedWorkouts > 0 && (
@@ -535,13 +548,50 @@ export default function Home() {
                 +3 esta semana
               </Badge>
             )}
+            
+            {/* Expanded Content */}
+            {expandedStatsCard === 'workouts' && (
+              <div className="mt-3 pt-3 border-t border-border space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Esta semana:</span>
+                  <span className="font-medium">3 treinos</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Este mês:</span>
+                  <span className="font-medium">12 treinos</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Média/semana:</span>
+                  <span className="font-medium">2.8 treinos</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Maior sequência:</span>
+                  <span className="font-medium text-orange-600">14 dias</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Treino favorito:</span>
+                  <span className="font-medium">Pernas</span>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
-        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+        
+        <Card 
+          className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
+          onClick={() => setExpandedStatsCard(expandedStatsCard === 'streak' ? null : 'streak')}
+        >
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">Sequência Atual</span>
-              <Flame className="h-3 w-3 text-orange-500" />
+              <div className="flex items-center gap-1">
+                <Flame className="h-3 w-3 text-orange-500" />
+                {expandedStatsCard === 'streak' ? (
+                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                )}
+              </div>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xl font-bold">{currentStreak} dias</span>
@@ -551,17 +601,56 @@ export default function Home() {
                 </Badge>
               )}
             </div>
+            
+            {/* Expanded Content */}
+            {expandedStatsCard === 'streak' && (
+              <div className="mt-3 pt-3 border-t border-border space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Iniciou em:</span>
+                  <span className="font-medium">05/01/2025</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Próxima meta:</span>
+                  <span className="font-medium text-blue-600">10 dias</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Recorde pessoal:</span>
+                  <span className="font-medium text-green-600">14 dias</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Último treino:</span>
+                  <span className="font-medium">Hoje</span>
+                </div>
+                <div className="w-full mt-2">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">Progresso até 10 dias</span>
+                    <span className="font-medium">70%</span>
+                  </div>
+                  <Progress value={70} className="h-1" />
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Extended Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+        <Card 
+          className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
+          onClick={() => setExpandedStatsCard(expandedStatsCard === 'calories' ? null : 'calories')}
+        >
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">Calorias Queimadas</span>
-              <Flame className="h-3 w-3 text-red-500" />
+              <div className="flex items-center gap-1">
+                <Flame className="h-3 w-3 text-red-500" />
+                {expandedStatsCard === 'calories' ? (
+                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                )}
+              </div>
             </div>
             <span className="text-xl font-bold">{hasCompletedOnboarding ? "1,845" : "0"}</span>
             {hasCompletedOnboarding && (
@@ -569,13 +658,57 @@ export default function Home() {
                 Esta semana
               </Badge>
             )}
+            
+            {/* Expanded Content */}
+            {expandedStatsCard === 'calories' && hasCompletedOnboarding && (
+              <div className="mt-3 pt-3 border-t border-border space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Hoje:</span>
+                  <span className="font-medium">420 kcal</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Ontem:</span>
+                  <span className="font-medium">385 kcal</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Média/dia:</span>
+                  <span className="font-medium">263 kcal</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Meta semanal:</span>
+                  <span className="font-medium text-blue-600">2,100 kcal</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Maior queima:</span>
+                  <span className="font-medium text-orange-600">520 kcal</span>
+                </div>
+                <div className="w-full mt-2">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">Meta semanal</span>
+                    <span className="font-medium">88%</span>
+                  </div>
+                  <Progress value={88} className="h-1" />
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
-        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+        
+        <Card 
+          className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
+          onClick={() => setExpandedStatsCard(expandedStatsCard === 'time' ? null : 'time')}
+        >
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">Tempo Total</span>
-              <Clock className="h-3 w-3 text-blue-500" />
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3 text-blue-500" />
+                {expandedStatsCard === 'time' ? (
+                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                )}
+              </div>
             </div>
             <span className="text-xl font-bold">{hasCompletedOnboarding ? "18h" : "0h"}</span>
             {hasCompletedOnboarding && (
@@ -583,17 +716,60 @@ export default function Home() {
                 Este mês
               </Badge>
             )}
+            
+            {/* Expanded Content */}
+            {expandedStatsCard === 'time' && hasCompletedOnboarding && (
+              <div className="mt-3 pt-3 border-t border-border space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Esta semana:</span>
+                  <span className="font-medium">2h 15min</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Último treino:</span>
+                  <span className="font-medium">45min</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Média/treino:</span>
+                  <span className="font-medium">45min</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Maior treino:</span>
+                  <span className="font-medium text-green-600">1h 20min</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Meta mensal:</span>
+                  <span className="font-medium text-blue-600">20h</span>
+                </div>
+                <div className="w-full mt-2">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">Meta mensal</span>
+                    <span className="font-medium">90%</span>
+                  </div>
+                  <Progress value={90} className="h-1" />
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Weekly Progress */}
       {hasCompletedOnboarding && (
-        <Card>
+        <Card 
+          className="cursor-pointer transition-all duration-200"
+          onClick={() => setExpandedWeeklyProgress(!expandedWeeklyProgress)}
+        >
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <BarChart3 className="h-4 w-4" />
-              Progresso da Semana
+            <CardTitle className="flex items-center justify-between text-base">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Progresso da Semana
+              </div>
+              {expandedWeeklyProgress ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -628,6 +804,93 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            
+            {/* Expanded Content */}
+            {expandedWeeklyProgress && (
+              <div className="mt-4 pt-4 border-t border-border space-y-4">
+                <h4 className="font-semibold text-sm">Detalhes Semanais</h4>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Segunda-feira</span>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm font-medium">Pernas - 45min</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Terça-feira</span>
+                    <div className="flex items-center gap-2">
+                      <X className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Descanso</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Quarta-feira</span>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm font-medium">Peito - 50min</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Quinta-feira</span>
+                    <div className="flex items-center gap-2">
+                      <X className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Descanso</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Sexta-feira</span>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm font-medium">Costas - 40min</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Sábado</span>
+                    <div className="flex items-center gap-2">
+                      <X className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Descanso</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Domingo</span>
+                    <div className="flex items-center gap-2">
+                      <X className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Descanso</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-muted/30 p-3 rounded-lg">
+                  <h5 className="text-sm font-medium mb-2">Resumo da Semana</h5>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total de calorias:</span>
+                      <span className="font-medium">1,845 kcal</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tempo total:</span>
+                      <span className="font-medium">2h 15min</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Exercícios únicos:</span>
+                      <span className="font-medium">15</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Grupos musculares:</span>
+                      <span className="font-medium">8</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -709,11 +972,21 @@ export default function Home() {
 
       {/* Calories Breakdown */}
       {hasCompletedOnboarding && (
-        <Card>
+        <Card 
+          className="cursor-pointer transition-all duration-200"
+          onClick={() => setExpandedCaloriesCard(!expandedCaloriesCard)}
+        >
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Zap className="h-4 w-4 text-yellow-500" />
-              Análise de Calorias
+            <CardTitle className="flex items-center justify-between text-base">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-yellow-500" />
+                Análise de Calorias
+              </div>
+              {expandedCaloriesCard ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -768,6 +1041,162 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            
+            {/* Expanded Content */}
+            {expandedCaloriesCard && (
+              <div className="mt-4 pt-4 border-t border-border space-y-4">
+                <h4 className="font-semibold text-sm">Análise Detalhada</h4>
+                
+                {/* Historical data */}
+                <div className="space-y-3">
+                  <h5 className="text-sm font-medium">Histórico dos últimos 7 dias</h5>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Hoje (Dom)</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-muted rounded-full h-1">
+                          <div className="bg-red-500 h-1 rounded-full" style={{ width: '85%' }}></div>
+                        </div>
+                        <span className="text-xs font-medium">420 kcal</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Sáb</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-muted rounded-full h-1">
+                          <div className="bg-red-500 h-1 rounded-full" style={{ width: '78%' }}></div>
+                        </div>
+                        <span className="text-xs font-medium">385 kcal</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Sex</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-muted rounded-full h-1">
+                          <div className="bg-red-500 h-1 rounded-full" style={{ width: '92%' }}></div>
+                        </div>
+                        <span className="text-xs font-medium">450 kcal</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Qui</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-muted rounded-full h-1">
+                          <div className="bg-muted-foreground h-1 rounded-full" style={{ width: '0%' }}></div>
+                        </div>
+                        <span className="text-xs text-muted-foreground">0 kcal</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Qua</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-muted rounded-full h-1">
+                          <div className="bg-red-500 h-1 rounded-full" style={{ width: '88%' }}></div>
+                        </div>
+                        <span className="text-xs font-medium">430 kcal</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Ter</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-muted rounded-full h-1">
+                          <div className="bg-muted-foreground h-1 rounded-full" style={{ width: '0%' }}></div>
+                        </div>
+                        <span className="text-xs text-muted-foreground">0 kcal</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Seg</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-muted rounded-full h-1">
+                          <div className="bg-red-500 h-1 rounded-full" style={{ width: '100%' }}></div>
+                        </div>
+                        <span className="text-xs font-medium text-orange-600">520 kcal</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Exercise breakdown */}
+                <div className="space-y-3">
+                  <h5 className="text-sm font-medium">Detalhamento por exercício (Esta semana)</h5>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <span className="text-xs">Esteira</span>
+                      </div>
+                      <span className="text-xs font-medium">320 kcal</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                        <span className="text-xs">Bicicleta</span>
+                      </div>
+                      <span className="text-xs font-medium">280 kcal</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-red-300 rounded-full"></div>
+                        <span className="text-xs">Elíptico</span>
+                      </div>
+                      <span className="text-xs font-medium">180 kcal</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="text-xs">Agachamento</span>
+                      </div>
+                      <span className="text-xs font-medium">285 kcal</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        <span className="text-xs">Supino</span>
+                      </div>
+                      <span className="text-xs font-medium">260 kcal</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
+                        <span className="text-xs">Remada</span>
+                      </div>
+                      <span className="text-xs font-medium">240 kcal</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-200 rounded-full"></div>
+                        <span className="text-xs">Outros</span>
+                      </div>
+                      <span className="text-xs font-medium">280 kcal</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Goals and projections */}
+                <div className="bg-muted/30 p-3 rounded-lg space-y-2">
+                  <h5 className="text-sm font-medium">Metas e Projeções</h5>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Meta diária:</span>
+                      <span className="font-medium">350 kcal</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Meta semanal:</span>
+                      <span className="font-medium">2,100 kcal</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Projeção mensal:</span>
+                      <span className="font-medium text-blue-600">8,400 kcal</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Para bater meta:</span>
+                      <span className="font-medium text-green-600">+255 kcal</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
