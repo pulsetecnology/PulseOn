@@ -555,6 +555,83 @@ export default function Home() {
         </Card>
       </div>
 
+      {/* Extended Stats */}
+      <div className="grid grid-cols-2 gap-3">
+        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-muted-foreground">Calorias Queimadas</span>
+              <Flame className="h-3 w-3 text-red-500" />
+            </div>
+            <span className="text-xl font-bold">{hasCompletedOnboarding ? "1,845" : "0"}</span>
+            {hasCompletedOnboarding && (
+              <Badge variant="secondary" className="mt-1 text-xs">
+                Esta semana
+              </Badge>
+            )}
+          </CardContent>
+        </Card>
+        <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-muted-foreground">Tempo Total</span>
+              <Clock className="h-3 w-3 text-blue-500" />
+            </div>
+            <span className="text-xl font-bold">{hasCompletedOnboarding ? "18h" : "0h"}</span>
+            {hasCompletedOnboarding && (
+              <Badge variant="secondary" className="mt-1 text-xs">
+                Este mês
+              </Badge>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Weekly Progress */}
+      {hasCompletedOnboarding && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <BarChart3 className="h-4 w-4" />
+              Progresso da Semana
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Meta Semanal</span>
+                <span className="text-muted-foreground">3/3 treinos</span>
+              </div>
+              <Progress value={100} className="h-2" />
+            </div>
+            
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Calorias</p>
+                <p className="text-sm font-semibold">645 kcal</p>
+                <div className="w-full bg-muted rounded-full h-1">
+                  <div className="bg-red-500 h-1 rounded-full" style={{ width: '80%' }}></div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Tempo</p>
+                <p className="text-sm font-semibold">2h 15min</p>
+                <div className="w-full bg-muted rounded-full h-1">
+                  <div className="bg-blue-500 h-1 rounded-full" style={{ width: '75%' }}></div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Exercícios</p>
+                <p className="text-sm font-semibold">15</p>
+                <div className="w-full bg-muted rounded-full h-1">
+                  <div className="bg-green-500 h-1 rounded-full" style={{ width: '90%' }}></div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Today's Workout */}
       <div>
         <h2 className="text-lg font-semibold mb-3">Treino de Hoje</h2>
@@ -629,6 +706,71 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Calories Breakdown */}
+      {hasCompletedOnboarding && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Zap className="h-4 w-4 text-yellow-500" />
+              Análise de Calorias
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Hoje</span>
+                  <span className="text-sm font-semibold">420 kcal</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Ontem</span>
+                  <span className="text-sm font-semibold">385 kcal</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Esta semana</span>
+                  <span className="text-sm font-semibold">1,845 kcal</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Média/dia</span>
+                  <span className="text-sm font-semibold">263 kcal</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Recorde</span>
+                  <span className="text-sm font-semibold text-orange-600">520 kcal</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Total mês</span>
+                  <span className="text-sm font-semibold">7,890 kcal</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Calories by exercise type */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Por tipo de exercício</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-xs">Cardio</span>
+                  </div>
+                  <span className="text-xs font-medium">780 kcal</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="text-xs">Força</span>
+                  </div>
+                  <span className="text-xs font-medium">1,065 kcal</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Upcoming Workouts */}
       <div>
