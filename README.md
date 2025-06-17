@@ -1,5 +1,6 @@
 
 # PulseOn - Plataforma de Treinos Personalizados
+# Autor: André silva
 
 ## 📋 Descrição
 
