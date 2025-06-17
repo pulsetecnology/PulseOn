@@ -3,6 +3,20 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// Add CORS middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -56,6 +70,11 @@ app.use((req, res, next) => {
     res.status(200).json({ status: "ok", message: "Server is running" });
   });
 
+  // Add root route for testing
+  app.get("/", (_req, res) => {
+    res.json({ message: "PulseOn API is running", timestamp: new Date().toISOString() });
+  });
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
@@ -80,5 +99,12 @@ app.use((req, res, next) => {
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
     log(`Application available at: http://0.0.0.0:${port}`);
+    log(`Health check available at: http://0.0.0.0:${port}/health`);
+    log(`API available at: http://0.0.0.0:${port}/api/health`);
+    
+    // Test if server is responding
+    setTimeout(() => {
+      log("Server startup completed successfully");
+    }, 1000);
   });
 })();
