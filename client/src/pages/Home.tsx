@@ -500,10 +500,10 @@ export default function Home() {
     },
   });
 
-  const completedWorkouts = (workoutSessions as any[]).filter((session: any) => session.completedAt).length;
+  const completedWorkouts = Array.isArray(workoutSessions) ? workoutSessions.filter((session: any) => session.completedAt).length : 0;
   const currentStreak = 7; // Calculate based on consecutive workout days
-  const hasWorkoutsAvailable = (scheduledWorkouts as any[]).length > 0;
-  const todaysWorkout = (scheduledWorkouts as any[]).find((workout: any) => workout.status === "pending");
+  const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) ? scheduledWorkouts.length > 0 : false;
+  const todaysWorkout = Array.isArray(scheduledWorkouts) ? scheduledWorkouts.find((workout: any) => workout.status === "pending") : null;
 
   const toggleUpcomingWorkout = (workoutId: number) => {
     setExpandedUpcomingWorkout(expandedUpcomingWorkout === workoutId ? null : workoutId);
