@@ -1,6 +1,6 @@
 
 # PulseOn - Plataforma de Treinos Personalizados
-# Autor: André silva - Giulio
+# Autor: André Silva - Giulio Vittorio
 # Data: 17/06/2025
 
 ## 📋 Descrição
