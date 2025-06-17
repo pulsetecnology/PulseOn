@@ -665,33 +665,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
           onboardingCompleted: userData.onboardingCompleted,
           avatarUrl: userData.avatarUrl,
           lastUpdated: new Date().toISOString()
-        }
+        },
+        // Campo temporário para validação
+        validationField: "test-connection-railway-n8n"
       };
 
-      // Send to N8N webhook
-      const N8N_WEBHOOK_URL = process.env.N8N_USER_SYNC_WEBHOOK_URL || process.env.N8N_WEBHOOK_URL;
+      // Send to Railway N8N webhook
+      const RAILWAY_WEBHOOK_URL = "https://primary-production-3b832.up.railway.app/webhook-test/onboarding-recebido";
+      let n8nResponse = null;
       
-      if (N8N_WEBHOOK_URL) {
-        try {
-          const webhookResponse = await fetch(N8N_WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(n8nData)
-          });
+      try {
+        console.log('Sending data to Railway N8N webhook:', RAILWAY_WEBHOOK_URL);
+        const webhookResponse = await fetch(RAILWAY_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(n8nData)
+        });
 
-          if (!webhookResponse.ok) {
-            console.error('N8N webhook error:', webhookResponse.status, await webhookResponse.text());
+        if (webhookResponse.ok) {
+          try {
+            n8nResponse = await webhookResponse.json();
+            console.log('N8N webhook response:', n8nResponse);
+          } catch (parseError) {
+            n8nResponse = await webhookResponse.text();
+            console.log('N8N webhook response (text):', n8nResponse);
           }
-        } catch (webhookError) {
-          console.error('Error sending to N8N webhook:', webhookError);
+        } else {
+          console.error('N8N webhook error:', webhookResponse.status, await webhookResponse.text());
+          n8nResponse = { error: `HTTP ${webhookResponse.status}` };
         }
+      } catch (webhookError) {
+        console.error('Error sending to N8N webhook:', webhookError);
+        n8nResponse = { error: webhookError.message };
       }
 
       res.json({ 
         message: "Dados sincronizados com sucesso",
-        dataSent: n8nData
+        dataSent: n8nData,
+        n8nResponse: n8nResponse
       });
 
     } catch (error) {

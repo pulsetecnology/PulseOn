@@ -352,8 +352,14 @@ export default function Profile() {
       }
       return response.json();
     },
-    onSuccess: () => {
-      showSuccess("Dados sincronizados com IA com sucesso!");
+    onSuccess: (data) => {
+      console.log('N8N sync response:', data);
+      if (data.n8nResponse) {
+        console.log('N8N webhook response:', data.n8nResponse);
+        showSuccess(`Dados sincronizados com IA! Resposta: ${JSON.stringify(data.n8nResponse).substring(0, 100)}...`);
+      } else {
+        showSuccess("Dados sincronizados com IA com sucesso!");
+      }
     },
     onError: (error: Error) => {
       console.error('N8N sync error:', error);
