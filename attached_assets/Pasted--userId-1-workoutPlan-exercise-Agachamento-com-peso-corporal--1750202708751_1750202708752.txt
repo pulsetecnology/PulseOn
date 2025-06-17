@@ -1,0 +1,71 @@
+{
+  "userId": 1,
+  "workoutPlan": [
+    {
+      "exercise": "Agachamento com peso corporal",
+      "muscleGroup": "Pernas",
+      "type": "Força",
+      "instructions": "Fique de pé, afaste os pés na largura dos ombros, dobre os joelhos e abaixe o corpo até os quadris estarem alinhados com os joelhos.",
+      "series": 4,
+      "repetitions": 12,
+      "restBetweenSeries": 60,
+      "restBetweenExercises": 90,
+      "weight": 0
+    },
+    {
+      "exercise": "Flexão de braço no chão",
+      "muscleGroup": "Peitoral",
+      "type": "Força",
+      "instructions": "Deite-se de bruços, coloque as mãos ao nível dos ombros, empurre o corpo para cima até os braços estarem quase retos e volte à posição inicial.",
+      "series": 3,
+      "repetitions": 10,
+      "restBetweenSeries": 60,
+      "restBetweenExercises": 90,
+      "weight": 0
+    },
+    {
+      "exercise": "Elevação lateral com halteres",
+      "muscleGroup": "Ombros",
+      "type": "Força",
+      "instructions": "Fique de pé, pegue halteres nas mãos, mantenha os braços retos e elevação os halteres para os lados até a altura dos ombros.",
+      "series": 3,
+      "repetitions": 12,
+      "restBetweenSeries": 60,
+      "restBetweenExercises": 90,
+      "weight": 8
+    },
+    {
+      "exercise": "Prancha",
+      "muscleGroup": "Core",
+      "type": "Resistência",
+      "instructions": "Deite-se de bruços sobre os antebraços, mantenha o corpo reto e retê esta posição pelo tempo indicado.",
+      "series": 3,
+      "repetitions": 30,
+      "restBetweenSeries": 60,
+      "restBetweenExercises": 90,
+      "weight": 0
+    },
+    {
+      "exercise": "Puxada alta com corda",
+      "muscleGroup": "Costas",
+      "type": "Força",
+      "instructions": "Fique de pé, segure a corda com as mãos na altura dos ombros, puxe a corda para baixo até os cotovelos estarem dobrados e volte à posição inicial.",
+      "series": 3,
+      "repetitions": 12,
+      "restBetweenSeries": 60,
+      "restBetweenExercises": 90,
+      "weight": 0
+    },
+    {
+      "exercise": "Caminhada na esteira",
+      "muscleGroup": "Cardio",
+      "type": "Cardio",
+      "instructions": "Caminhe na esteira em inclinação moderada por 10 minutos.",
+      "series": 1,
+      "repetitions": 600,
+      "restBetweenSeries": 0,
+      "restBetweenExercises": 0,
+      "weight": 0
+    }
+  ]
+}

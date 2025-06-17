@@ -40,41 +40,54 @@ export const sessions = pgTable("sessions", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
-export const workouts = pgTable("workouts", {
+// Scheduled workouts from AI
+export const scheduledWorkouts = pgTable("scheduled_workouts", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
+  userId: integer("user_id").references(() => users.id).notNull(),
   name: text("name").notNull(),
-  description: text("description"),
-  duration: integer("duration"), // in minutes
-  difficulty: text("difficulty"), // "beginner", "intermediate", "advanced"
-  exercises: jsonb("exercises").$type<Exercise[]>(),
+  exercises: jsonb("exercises").$type<AIExercise[]>(),
+  totalCalories: integer("total_calories"),
+  totalDuration: integer("total_duration"), // in minutes
+  status: text("status").default("pending"), // "pending", "completed", "skipped"
+  createdAt: timestamp("created_at").defaultNow(),
+  scheduledFor: timestamp("scheduled_for").defaultNow()
+});
+
+// Completed workout sessions
+export const workoutSessions = pgTable("workout_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  scheduledWorkoutId: integer("scheduled_workout_id").references(() => scheduledWorkouts.id),
+  name: text("name").notNull(),
+  startedAt: timestamp("started_at").notNull(),
   completedAt: timestamp("completed_at"),
+  exercises: jsonb("exercises").$type<CompletedExercise[]>(),
+  totalDuration: integer("total_duration"), // in minutes (actual)
+  totalCalories: integer("total_calories"), // actual calories burned
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
-export const workoutSessions = pgTable("workout_sessions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  workoutId: integer("workout_id").references(() => workouts.id),
-  startedAt: timestamp("started_at").defaultNow(),
-  completedAt: timestamp("completed_at"),
-  exercises: jsonb("exercises").$type<CompletedExercise[]>(),
-  totalDuration: integer("total_duration") // in minutes
-});
-
-export interface Exercise {
-  id: string;
-  name: string;
-  sets: number;
-  reps: number;
-  suggestedWeight?: number;
-  restTime: number; // in seconds
-  instructions?: string;
-  muscleGroups: string[];
+// AI Exercise format from N8N
+export interface AIExercise {
+  exercise: string;
+  muscleGroup: string;
+  type: string; // "Cardio", "Força", "Resistência", "Mobilidade", "Funcional"
+  instructions: string;
+  time: number; // in minutes (0 if not applicable)
+  series: number;
+  repetitions: number;
+  restBetweenSeries: number; // in seconds
+  restBetweenExercises: number; // in seconds
+  weight: number; // in kg (0 if not applicable)
+  calories: number; // in kcal
 }
 
-export interface CompletedExercise extends Exercise {
+// Completed exercise tracking
+export interface CompletedExercise extends AIExercise {
   actualWeight?: number;
+  actualTime?: number; // actual time spent in minutes
+  actualCalories?: number;
   effortLevel: number; // 1-10 scale
   completed: boolean;
   notes?: string;
@@ -104,10 +117,9 @@ export const insertSessionSchema = createInsertSchema(sessions).omit({
   createdAt: true
 });
 
-export const insertWorkoutSchema = createInsertSchema(workouts).omit({
+export const insertScheduledWorkoutSchema = createInsertSchema(scheduledWorkouts).omit({
   id: true,
-  createdAt: true,
-  completedAt: true
+  createdAt: true
 });
 
 export const insertWorkoutSessionSchema = createInsertSchema(workoutSessions).omit({
@@ -192,8 +204,8 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
-export type InsertWorkout = z.infer<typeof insertWorkoutSchema>;
-export type Workout = typeof workouts.$inferSelect;
+export type InsertScheduledWorkout = z.infer<typeof insertScheduledWorkoutSchema>;
+export type ScheduledWorkout = typeof scheduledWorkouts.$inferSelect;
 export type InsertWorkoutSession = z.infer<typeof insertWorkoutSessionSchema>;
 export type WorkoutSession = typeof workoutSessions.$inferSelect;
 export type RegisterData = z.infer<typeof registerSchema>;

@@ -1,0 +1,70 @@
+{
+  "userId": 1,
+  "workoutPlan": [
+    {
+      "exercise": "Corrida na esteira",
+      "muscleGroup": "Cardio",
+      "type": "Cardio",
+      "instructions": "Ajuste a esteira para uma inclinação suave e mantenha um ritmo constante.",
+      "time": 30,
+      "series": 1,
+      "repetitions": 0,
+      "restBetweenSeries": 0,
+      "restBetweenExercises": 90,
+      "weight": 0,
+      "calories": 150
+    },
+    {
+      "exercise": "Supino inclinado com halteres",
+      "muscleGroup": "Peitoral",
+      "type": "Força",
+      "instructions": "Deite-se no banco inclinado e empurre os halteres para cima, mantendo os cotovelos ligeiramente afastados.",
+      "time": 0,
+      "series": 3,
+      "repetitions": 12,
+      "restBetweenSeries": 60,
+      "restBetweenExercises": 90,
+      "weight": 12,
+      "calories": 60
+    },
+    {
+      "exercise": "Leg Press",
+      "muscleGroup": "Pernas",
+      "type": "Força",
+      "instructions": "Sente-se na máquina e empurre a plataforma com os pés, mantendo joelhos levemente afastados.",
+      "time": 0,
+      "series": 3,
+      "repetitions": 15,
+      "restBetweenSeries": 60,
+      "restBetweenExercises": 90,
+      "weight": 15,
+      "calories": 80
+    },
+    {
+      "exercise": "Prancha",
+      "muscleGroup": "Core",
+      "type": "Resistência",
+      "instructions": "Mantenha a posição de prancha, mantendo o corpo reto e estável.",
+      "time": 3,
+      "series": 3,
+      "repetitions": 0,
+      "restBetweenSeries": 30,
+      "restBetweenExercises": 60,
+      "weight": 0,
+      "calories": 20
+    },
+    {
+      "exercise": "Alongamento dinâmico",
+      "muscleGroup": "Mobilidade",
+      "type": "Mobilidade",
+      "instructions": "Faça movimentos suaves e controlados, alongando cada grupo muscular trabalhado.",
+      "time": 10,
+      "series": 1,
+      "repetitions": 0,
+      "restBetweenSeries": 0,
+      "restBetweenExercises": 0,
+      "weight": 0,
+      "calories": 10
+    }
+  ]
+}
