@@ -1,60 +1,35 @@
-import type { N8NWorkoutRequest } from "@shared/schema";
+import type { N8NWorkoutRequest, AIExercise } from "@shared/schema";
 
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://n8n.example.com/webhook/pulseon-workout";
 
 export interface AIWorkoutResponse {
-  workoutName: string;
-  description: string;
-  duration: number;
-  difficulty: "beginner" | "intermediate" | "advanced";
-  exercises: Array<{
-    id: string;
-    name: string;
-    sets: number;
-    reps: number;
-    suggestedWeight?: number;
-    restTime: number;
-    instructions?: string;
-    muscleGroups: string[];
-  }>;
+  userId: number;
+  workoutPlan: AIExercise[];
 }
 
 export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIWorkoutResponse> {
   try {
+    console.log("Sending request to N8N:", N8N_WEBHOOK_URL);
+    
     const response = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        userId: data.userId,
-        userProfile: {
-          age: data.age,
-          weight: data.weight,
-          height: data.height,
-          fitnessGoal: data.fitnessGoal,
-          experienceLevel: data.experienceLevel,
-          weeklyFrequency: data.weeklyFrequency,
-          availableEquipment: data.availableEquipment,
-          physicalRestrictions: data.physicalRestrictions
-        }
-      })
+      body: JSON.stringify(data),
+      signal: AbortSignal.timeout(30000) // 30 second timeout
     });
 
     if (!response.ok) {
+      console.error(`N8N API error: ${response.status} ${response.statusText}`);
       throw new Error(`N8N API error: ${response.status}`);
     }
 
     const aiResponse = await response.json();
+    console.log("N8N Response received:", JSON.stringify(aiResponse, null, 2));
     
-    // Validate and transform AI response
-    return {
-      workoutName: aiResponse.workoutName || `Treino Personalizado`,
-      description: aiResponse.description || `Treino gerado pela IA baseado no seu perfil`,
-      duration: aiResponse.duration || 45,
-      difficulty: aiResponse.difficulty || data.experienceLevel,
-      exercises: aiResponse.exercises || generateFallbackExercises(data)
-    };
+    // Return the response as-is since it should match our expected format
+    return aiResponse as AIWorkoutResponse;
 
   } catch (error) {
     console.error('Error calling N8N AI service:', error);
@@ -65,55 +40,56 @@ export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIW
 }
 
 function generatePersonalizedFallback(data: N8NWorkoutRequest): AIWorkoutResponse {
-  const { fitnessGoal, experienceLevel, availableEquipment } = data;
+  const { fitnessGoal, experienceLevel } = data;
   
-  let workoutName = "Treino Personalizado";
-  let exercises = [];
-  
-  if (fitnessGoal === "lose_weight") {
-    workoutName = "Treino para Emagrecimento";
-    exercises = [
-      {
-        id: "cardio-1",
-        name: "Caminhada Rápida",
-        sets: 1,
-        reps: 30,
-        restTime: 60,
-        instructions: "Mantenha um ritmo constante e respiração controlada",
-        muscleGroups: ["cardio", "pernas"]
-      },
-      {
-        id: "strength-1",
-        name: "Agachamento",
-        sets: experienceLevel === "beginner" ? 2 : 3,
-        reps: experienceLevel === "beginner" ? 10 : 15,
-        restTime: 90,
-        instructions: "Mantenha as costas retas e desça até formar 90 graus",
-        muscleGroups: ["quadriceps", "glúteos"]
-      }
-    ];
-  } else if (fitnessGoal === "gain_muscle") {
-    workoutName = "Treino para Hipertrofia";
-    exercises = [
-      {
-        id: "strength-2",
-        name: availableEquipment.includes("Halteres") ? "Supino com Halteres" : "Flexão de Braço",
-        sets: experienceLevel === "beginner" ? 3 : 4,
-        reps: experienceLevel === "beginner" ? 8 : 12,
-        suggestedWeight: availableEquipment.includes("Halteres") ? 15 : undefined,
-        restTime: 120,
-        instructions: "Movimento controlado, concentre-se na contração muscular",
-        muscleGroups: ["peitoral", "tríceps"]
-      }
-    ];
-  } else {
-    workoutName = "Treino de Condicionamento";
-    exercises = [
-      {
-        id: "cardio-2",
-        name: "Burpees",
-        sets: 3,
-        reps: experienceLevel === "beginner" ? 5 : 10,
+  // Generate realistic fallback workout based on the actual JSON format
+  const fallbackExercises: AIExercise[] = [
+    {
+      exercise: "Corrida na esteira",
+      muscleGroup: "Cardio",
+      type: "Cardio",
+      instructions: "Ajuste a esteira para uma inclinação suave e mantenha um ritmo constante.",
+      time: 30,
+      series: 1,
+      repetitions: 0,
+      restBetweenSeries: 0,
+      restBetweenExercises: 90,
+      weight: 0,
+      calories: 150
+    },
+    {
+      exercise: "Agachamento com peso corporal",
+      muscleGroup: "Pernas",
+      type: "Força",
+      instructions: "Mantenha as costas retas, desça até os joelhos formarem 90 graus.",
+      time: 0,
+      series: experienceLevel === "beginner" ? 2 : 3,
+      repetitions: experienceLevel === "beginner" ? 10 : 15,
+      restBetweenSeries: 60,
+      restBetweenExercises: 90,
+      weight: 0,
+      calories: 80
+    },
+    {
+      exercise: "Flexão de braço",
+      muscleGroup: "Peito",
+      type: "Força",
+      instructions: "Mantenha o corpo alinhado, desça até quase tocar o chão.",
+      time: 0,
+      series: experienceLevel === "beginner" ? 2 : 3,
+      repetitions: experienceLevel === "beginner" ? 8 : 12,
+      restBetweenSeries: 60,
+      restBetweenExercises: 90,
+      weight: 0,
+      calories: 60
+    }
+  ];
+
+  return {
+    userId: data.userId,
+    workoutPlan: fallbackExercises
+  };
+}
         restTime: 60,
         instructions: "Movimento explosivo, mantenha o core ativo",
         muscleGroups: ["corpo todo", "cardio"]

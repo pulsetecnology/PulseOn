@@ -372,42 +372,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   
 
-  // Workout routes
-  app.get("/api/workouts", async (req, res) => {
+  // AI Workout Generation - "Atualizar IA" button functionality
+  app.post("/api/ai/generate-workout", authenticateToken, async (req: Request, res: Response) => {
     try {
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
-      const workouts = await storage.getWorkouts(userId);
-      res.json(workouts);
-    } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
+      const user = req.user!;
+      
+      // Get user profile data for AI request
+      const userProfile = await storage.getUser(user.id);
+      if (!userProfile) {
+        return res.status(404).json({ message: "Perfil do usuário não encontrado" });
+      }
+
+      // Check if user has completed onboarding
+      if (!userProfile.onboardingCompleted) {
+        return res.status(400).json({ message: "Complete o onboarding primeiro para gerar treinos personalizados" });
+      }
+
+      // Prepare data for N8N AI request
+      const aiRequestData = {
+        userId: user.id,
+        age: userProfile.age || 25,
+        weight: userProfile.weight || 70,
+        height: userProfile.height || 170,
+        fitnessGoal: userProfile.fitnessGoal || "improve_conditioning",
+        experienceLevel: userProfile.experienceLevel || "intermediate",
+        weeklyFrequency: userProfile.weeklyFrequency || 3,
+        availableEquipment: userProfile.availableEquipment || ["basic"],
+        physicalRestrictions: userProfile.physicalRestrictions || ""
+      };
+
+      console.log("Requesting AI workout for user:", user.id, aiRequestData);
+
+      // Call N8N service for AI workout generation
+      const aiWorkoutResponse = await requestWorkoutFromAI(aiRequestData);
+      
+      // Calculate total duration and calories
+      const totalDuration = aiWorkoutResponse.exercises.reduce((sum, exercise) => {
+        return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60)); // estimate minutes for strength exercises
+      }, 0);
+
+      const totalCalories = aiWorkoutResponse.exercises.reduce((sum, exercise) => sum + exercise.calories, 0);
+
+      // Generate workout name
+      const workoutName = aiWorkoutResponse.workoutName || `Treino Personalizado - ${new Date().toLocaleDateString('pt-BR')}`;
+
+      // Save scheduled workout to database
+      const scheduledWorkout = await storage.createScheduledWorkout({
+        userId: user.id,
+        name: workoutName,
+        exercises: aiWorkoutResponse.exercises.map(exercise => ({
+          exercise: exercise.name,
+          muscleGroup: exercise.muscleGroups[0] || "Geral",
+          type: exercise.type || "Força",
+          instructions: exercise.instructions || "Siga as instruções do exercício",
+          time: exercise.time || 0,
+          series: exercise.sets,
+          repetitions: exercise.reps,
+          restBetweenSeries: exercise.restTime,
+          restBetweenExercises: 90,
+          weight: exercise.suggestedWeight || 0,
+          calories: Math.round(exercise.calories || 50)
+        })),
+        totalCalories: Math.round(totalCalories),
+        totalDuration: Math.round(totalDuration),
+        status: "pending"
+      });
+
+      console.log("AI workout generated and saved:", scheduledWorkout.id);
+
+      res.status(201).json({
+        message: "Treino gerado pela IA com sucesso!",
+        workout: scheduledWorkout
+      });
+
+    } catch (error: any) {
+      console.error("AI workout generation error:", error);
+      res.status(500).json({ 
+        message: "Erro ao gerar treino com IA",
+        error: error.message 
+      });
     }
   });
 
-  app.get("/api/workouts/:id", async (req, res) => {
+  // Scheduled workouts routes
+  app.get("/api/scheduled-workouts", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      const workouts = await storage.getScheduledWorkouts(user.id);
+      res.json(workouts);
+    } catch (error) {
+      console.error("Error fetching scheduled workouts:", error);
+      res.status(500).json({ message: "Erro ao buscar treinos programados" });
+    }
+  });
+
+  app.get("/api/scheduled-workouts/:id", authenticateToken, async (req: Request, res: Response) => {
     try {
       const workoutId = parseInt(req.params.id);
-      const workout = await storage.getWorkout(workoutId);
+      const workout = await storage.getScheduledWorkout(workoutId);
 
       if (!workout) {
-        return res.status(404).json({ message: "Workout not found" });
+        return res.status(404).json({ message: "Treino não encontrado" });
+      }
+
+      // Check if user owns this workout
+      if (workout.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Acesso negado" });
       }
 
       res.json(workout);
     } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
+      console.error("Error fetching scheduled workout:", error);
+      res.status(500).json({ message: "Erro ao buscar treino" });
     }
   });
 
-  app.post("/api/workouts", async (req, res) => {
+  // Start workout session
+  app.post("/api/workout-sessions/start", authenticateToken, async (req: Request, res: Response) => {
     try {
-      const workoutData = insertWorkoutSchema.parse(req.body);
-      const workout = await storage.createWorkout(workoutData);
-      res.status(201).json(workout);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      const user = req.user!;
+      const { scheduledWorkoutId } = req.body;
+
+      const scheduledWorkout = await storage.getScheduledWorkout(scheduledWorkoutId);
+      if (!scheduledWorkout) {
+        return res.status(404).json({ message: "Treino programado não encontrado" });
       }
-      res.status(500).json({ message: "Internal server error" });
+
+      if (scheduledWorkout.userId !== user.id) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Create workout session
+      const session = await storage.createWorkoutSession({
+        userId: user.id,
+        scheduledWorkoutId: scheduledWorkoutId,
+        name: scheduledWorkout.name,
+        startedAt: new Date(),
+        exercises: scheduledWorkout.exercises?.map(ex => ({
+          ...ex,
+          completed: false,
+          effortLevel: 5
+        })) || []
+      });
+
+      res.status(201).json({
+        message: "Treino iniciado com sucesso!",
+        session
+      });
+
+    } catch (error) {
+      console.error("Error starting workout session:", error);
+      res.status(500).json({ message: "Erro ao iniciar treino" });
     }
   });
 
