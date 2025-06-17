@@ -36,20 +36,46 @@ app.use((req, res, next) => {
   next();
 });
 
+// Auto-restart mechanism
+let restartAttempts = 0;
+const MAX_RESTART_ATTEMPTS = 10;
+let serverInstance: any = null;
+
+function scheduleRestart(delay = 3000) {
+  if (restartAttempts < MAX_RESTART_ATTEMPTS) {
+    restartAttempts++;
+    log(`Scheduling restart attempt ${restartAttempts}/${MAX_RESTART_ATTEMPTS} in ${delay}ms`);
+    setTimeout(() => {
+      startServer();
+    }, delay);
+  } else {
+    log('Max restart attempts reached. Server will remain stopped.');
+  }
+}
+
 // Prevent uncaught exceptions from crashing the server
 process.on('uncaughtException', (error) => {
   log(`Uncaught exception: ${error.message}`);
-  // Don't exit, just log the error
+  scheduleRestart();
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  log(`Unhandled rejection at: ${promise}, reason: ${reason}`);
-  // Don't exit, just log the error
+  log(`Unhandled rejection: ${reason}`);
+  scheduleRestart();
 });
 
-(async () => {
+async function startServer(): Promise<any> {
   try {
+    if (serverInstance) {
+      try {
+        serverInstance.close();
+      } catch (e) {
+        // Ignore close errors
+      }
+    }
+
     const server = await registerRoutes(app);
+    serverInstance = server;
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
@@ -77,30 +103,62 @@ process.on('unhandledRejection', (reason, promise) => {
     
     server.on('error', (error: any) => {
       if (error.code === 'EADDRINUSE') {
-        log(`Port ${port} is in use, attempting restart in 3 seconds...`);
-        setTimeout(() => {
-          server.close(() => {
-            server.listen(port, "0.0.0.0", () => {
-              log(`serving on port ${port} (restarted)`);
-            });
-          });
-        }, 3000);
+        log(`Port ${port} is in use, scheduling restart...`);
+        scheduleRestart(5000);
       } else {
         log(`Server error: ${error.message}`);
+        scheduleRestart();
       }
+    });
+
+    server.on('close', () => {
+      log('Server closed, scheduling restart...');
+      scheduleRestart();
     });
 
     server.listen(port, "0.0.0.0", () => {
       log(`serving on port ${port}`);
+      restartAttempts = 0; // Reset restart counter on successful start
     });
 
-    // Keep process alive
-    setInterval(() => {
-      // Heartbeat to keep process running
-    }, 30000);
+    return server;
 
   } catch (error: any) {
     log(`Server initialization error: ${error.message}`);
-    // Don't exit, try to continue
+    scheduleRestart();
   }
-})();
+}
+
+// Start the server initially
+startServer();
+
+// Health check and auto-restart monitoring
+setInterval(() => {
+  if (!serverInstance || serverInstance.listening === false) {
+    log('Server health check failed, restarting...');
+    startServer();
+  }
+}, 15000);
+
+// Graceful shutdown handlers
+process.on('SIGTERM', () => {
+  log('SIGTERM received, shutting down gracefully');
+  if (serverInstance) {
+    serverInstance.close(() => {
+      process.exit(0);
+    });
+  } else {
+    process.exit(0);
+  }
+});
+
+process.on('SIGINT', () => {
+  log('SIGINT received, shutting down gracefully');
+  if (serverInstance) {
+    serverInstance.close(() => {
+      process.exit(0);
+    });
+  } else {
+    process.exit(0);
+  }
+});
