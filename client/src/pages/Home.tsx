@@ -922,7 +922,7 @@ export default function Home() {
                 <Link href="/workout">
                   <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                     <Play className="mr-2 h-4 w-4" />
-                    Iniciar Treino
+                    Ir para treino
                   </Button>
                 </Link>
                 <div className="text-right">
