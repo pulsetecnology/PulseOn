@@ -604,6 +604,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sync user data with N8N
+  app.post("/api/n8n/sync-user-data", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Remove sensitive data
+      const { password, ...userData } = user;
+
+      // Calculate age if birthDate exists
+      let age = null;
+      if (userData.birthDate) {
+        const today = new Date();
+        const birth = new Date(userData.birthDate);
+        age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+          age--;
+        }
+      }
+
+      // Prepare the data structure for N8N
+      const n8nData = {
+        userId: userData.id,
+        timestamp: new Date().toISOString(),
+        personalInfo: {
+          name: userData.name,
+          email: userData.email,
+          birthDate: userData.birthDate,
+          age: age || userData.age,
+          weight: userData.weight,
+          height: userData.height,
+          gender: userData.gender
+        },
+        fitnessProfile: {
+          fitnessGoal: userData.fitnessGoal,
+          experienceLevel: userData.experienceLevel,
+          weeklyFrequency: userData.weeklyFrequency,
+          availableEquipment: userData.availableEquipment,
+          customEquipment: userData.customEquipment,
+          physicalRestrictions: userData.physicalRestrictions,
+          preferredWorkoutTime: userData.preferredWorkoutTime,
+          availableDaysPerWeek: userData.availableDaysPerWeek,
+          averageWorkoutDuration: userData.averageWorkoutDuration,
+          preferredLocation: userData.preferredLocation
+        },
+        lifestyle: {
+          smokingStatus: userData.smokingStatus,
+          alcoholConsumption: userData.alcoholConsumption,
+          dietType: userData.dietType,
+          sleepHours: userData.sleepHours,
+          stressLevel: userData.stressLevel
+        },
+        metadata: {
+          onboardingCompleted: userData.onboardingCompleted,
+          avatarUrl: userData.avatarUrl,
+          lastUpdated: new Date().toISOString()
+        }
+      };
+
+      // Send to N8N webhook
+      const N8N_WEBHOOK_URL = process.env.N8N_USER_SYNC_WEBHOOK_URL || process.env.N8N_WEBHOOK_URL;
+      
+      if (N8N_WEBHOOK_URL) {
+        try {
+          const webhookResponse = await fetch(N8N_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(n8nData)
+          });
+
+          if (!webhookResponse.ok) {
+            console.error('N8N webhook error:', webhookResponse.status, await webhookResponse.text());
+          }
+        } catch (webhookError) {
+          console.error('Error sending to N8N webhook:', webhookError);
+        }
+      }
+
+      res.json({ 
+        message: "Dados sincronizados com sucesso",
+        dataSent: n8nData
+      });
+
+    } catch (error) {
+      console.error("Error syncing user data:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -336,6 +336,31 @@ export default function Profile() {
     }
   });
 
+  const sendToN8NMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/n8n/sync-user-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to sync data: ${response.status}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      showSuccess("Dados sincronizados com IA com sucesso!");
+    },
+    onError: (error: Error) => {
+      console.error('N8N sync error:', error);
+      showError("Erro ao sincronizar dados com IA. Tente novamente.");
+    }
+  });
+
   const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -357,6 +382,10 @@ export default function Profile() {
 
     // Reset the input so the same file can be selected again if needed
     event.target.value = '';
+  };
+
+  const handleSendToN8N = () => {
+    sendToN8NMutation.mutate();
   };
 
   const handleCancelEdit = () => {
@@ -445,6 +474,22 @@ export default function Profile() {
                 {userAge} anos • {user.gender === 'female' ? 'Feminino' : user.gender === 'male' ? 'Masculino' : 'Não informado'}
               </span>
             </div>
+          </div>
+          <div className="flex-shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSendToN8N}
+              disabled={sendToN8NMutation.isPending}
+              className="flex items-center gap-2"
+            >
+              {sendToN8NMutation.isPending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              ) : (
+                <Activity className="h-4 w-4" />
+              )}
+              Atualizar IA
+            </Button>
           </div>
         </div>
       </div>
