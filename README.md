@@ -1,106 +1,117 @@
 
-# PulseOn - Plataforma de Treinos Personalizados
-# Autor: André Silva - Giulio Vittorio
-# Data: 17/06/2025
+# PulseOn - Piattaforma di Allenamenti Personalizzati
 
-## 📋 Descrição
+**Autori:** André Silva - Giulio Vittorio  
+**Data:** 17/06/2025
 
-PulseOn é uma plataforma web moderna para criação e acompanhamento de treinos personalizados, utilizando inteligência artificial para gerar exercícios adaptados ao perfil do usuário. O sistema oferece uma experiência completa de fitness com autenticação, perfis detalhados e integração com IA.
+## 📋 Descrizione
 
-## 🚀 Tecnologias Utilizadas
+PulseOn è una piattaforma web moderna per la creazione e il monitoraggio di allenamenti personalizzati, che utilizza l'intelligenza artificiale per generare esercizi adattati al profilo dell'utente. Il sistema offre un'esperienza fitness completa con autenticazione, profili dettagliati e integrazione AI tramite N8N.
+
+## 🚀 Tecnologie Utilizzate
 
 ### Frontend
-- **React 18** - Biblioteca para interface de usuário
-- **TypeScript** - Tipagem estática
-- **Vite** - Build tool e dev server
-- **Tailwind CSS** - Framework CSS utilitário
-- **Radix UI** - Componentes acessíveis
-- **React Hook Form** - Gerenciamento de formulários
-- **TanStack Query** - Gerenciamento de estado servidor
-- **Framer Motion** - Animações
-- **Wouter** - Roteamento
-- **Lucide React** - Ícones
+- **React 18** - Libreria per interfacce utente
+- **TypeScript** - Tipizzazione statica
+- **Vite** - Build tool e server di sviluppo
+- **Tailwind CSS** - Framework CSS utility-first
+- **Radix UI** - Componenti accessibili
+- **React Hook Form** - Gestione form
+- **TanStack Query** - Gestione stato server
+- **Framer Motion** - Animazioni
+- **Wouter** - Routing
+- **Lucide React** - Icone
 
 ### Backend
 - **Node.js** - Runtime JavaScript
 - **Express.js** - Framework web
-- **TypeScript** - Tipagem estática
-- **SQLite** com **Better-SQLite3** - Banco de dados
-- **Drizzle ORM** - ORM para TypeScript
-- **JWT** - Autenticação
-- **bcryptjs** - Hash de senhas
-- **Multer** - Upload de arquivos
-- **Zod** - Validação de schemas
+- **TypeScript** - Tipizzazione statica
+- **SQLite** con **Better-SQLite3** - Database
+- **Drizzle ORM** - ORM per TypeScript
+- **JWT** - Autenticazione
+- **bcryptjs** - Hash password
+- **Multer** - Upload file
+- **Zod** - Validazione schemi
 
-### Integrações
-- **N8N** - Integração com IA para geração de treinos
-- **PostgreSQL** - Suporte opcional para produção
+### Integrazioni
+- **N8N** - Integrazione AI per generazione allenamenti
+- **PostgreSQL** - Supporto opzionale per produzione
 
-## 📁 Estrutura do Projeto
+## 📁 Struttura del Progetto
 
 ```
 pulseon/
-├── client/                 # Frontend React
+├── client/                    # Frontend React
 │   ├── src/
-│   │   ├── components/     # Componentes reutilizáveis
-│   │   ├── pages/         # Páginas da aplicação
-│   │   ├── hooks/         # Hooks customizados
-│   │   └── lib/           # Utilitários
-├── server/                # Backend Express
-│   ├── migrations/        # Migrações do banco
-│   ├── auth.ts           # Sistema de autenticação
-│   ├── routes.ts         # Definição de rotas
-│   ├── storage.ts        # Camada de persistência
-│   └── n8n-service.ts    # Integração com IA
-├── shared/               # Schemas compartilhados
-└── uploads/              # Arquivos enviados pelos usuários
+│   │   ├── components/        # Componenti riutilizzabili
+│   │   │   ├── ui/           # Componenti UI base
+│   │   │   ├── Layout.tsx    # Layout principale
+│   │   │   ├── Header.tsx    # Header con navigazione
+│   │   │   └── ...
+│   │   ├── pages/            # Pagine applicazione
+│   │   │   ├── Home.tsx      # Dashboard principale
+│   │   │   ├── Profile.tsx   # Profilo utente
+│   │   │   ├── Workout.tsx   # Allenamenti
+│   │   │   └── ...
+│   │   ├── hooks/            # Hook personalizzati
+│   │   └── lib/              # Utilità
+├── server/                   # Backend Express
+│   ├── migrations/           # Migrazioni database
+│   ├── auth.ts              # Sistema autenticazione
+│   ├── routes.ts            # Definizione rotte
+│   ├── storage.ts           # Layer persistenza
+│   ├── middleware.ts        # Middleware Express
+│   └── n8n-service.ts       # Integrazione AI
+├── shared/                  # Schemi condivisi
+│   └── schema.ts
+└── uploads/                 # File caricati dagli utenti
 ```
 
-## 🔧 Instalação e Configuração
+## 🔧 Installazione e Configurazione
 
-### Pré-requisitos
+### Prerequisiti
 - Node.js 20+
-- npm ou yarn
+- npm
 
-### Passos de Instalação
+### Installazione
 
-1. **Clone o repositório:**
+1. **Clona il repository:**
 ```bash
 git clone <repository-url>
 cd pulseon
 ```
 
-2. **Instale as dependências:**
+2. **Installa le dipendenze:**
 ```bash
 npm install
 ```
 
-3. **Configure variáveis de ambiente:**
+3. **Configura le variabili d'ambiente:**
 ```bash
-# Crie um arquivo .env na raiz do projeto
-JWT_SECRET=sua_chave_secreta_jwt
-N8N_API_KEY=sua_chave_api_n8n
-N8N_WEBHOOK_URL=url_do_webhook_n8n
+# Crea un file .env nella root del progetto
+JWT_SECRET=tua_chiave_segreta_jwt
+N8N_API_KEY=tua_chiave_api_n8n
+N8N_WEBHOOK_URL=url_webhook_n8n
 ```
 
-4. **Inicialize o banco de dados:**
+4. **Inizializza il database:**
 ```bash
 npm run db:push
 ```
 
-5. **Execute o projeto:**
+5. **Avvia il progetto:**
 ```bash
 npm run dev
 ```
 
-A aplicação estará disponível em `http://localhost:5000`
+L'applicazione sarà disponibile su `http://localhost:5000`
 
-## 📡 API Endpoints
+## 📡 Endpoints API
 
-### 🔐 Autenticação
+### 🔐 Autenticazione
 
 #### POST `/api/auth/setup`
-Criação completa de usuário com onboarding.
+Creazione completa utente con onboarding in un singolo passaggio.
 
 **Body:**
 ```json
@@ -109,9 +120,10 @@ Criação completa de usuário com onboarding.
   "password": "string",
   "name": "string",
   "birthDate": "YYYY-MM-DD",
+  "age": "number",
   "weight": "number",
   "height": "number",
-  "gender": "male|female|other",
+  "gender": "male|female|other|not_specified",
   "fitnessGoal": "lose_weight|gain_muscle|improve_conditioning",
   "experienceLevel": "beginner|intermediate|advanced",
   "weeklyFrequency": "number",
@@ -121,288 +133,310 @@ Criação completa de usuário com onboarding.
 ```
 
 #### POST `/api/auth/register`
-Registro básico de usuário.
-
-**Body:**
-```json
-{
-  "email": "string",
-  "password": "string",
-  "name": "string"
-}
-```
+Registrazione base utente.
 
 #### POST `/api/auth/login`
-Login de usuário.
-
-**Body:**
-```json
-{
-  "email": "string",
-  "password": "string"
-}
-```
+Login utente.
 
 #### GET `/api/auth/me`
-Obter dados do usuário logado.
-
-**Headers:** `Authorization: Bearer <token>`
+Ottieni dati utente autenticato.
 
 #### POST `/api/auth/logout`
-Logout do usuário.
+Logout utente.
 
-### 👤 Usuários
+### 👤 Utenti
 
 #### GET `/api/users/:id`
-Obter dados de usuário específico.
+Ottieni dati utente specifico.
 
 #### PATCH `/api/users/:id`
-Atualizar dados do usuário.
+Aggiorna dati utente.
+
+#### PATCH `/api/profile/update`
+Aggiorna profilo utente con validazione estesa.
 
 #### POST `/api/profile/photo`
-Upload de foto de perfil.
+Upload foto profilo.
 
-**Headers:** `Authorization: Bearer <token>`
-**Body:** `multipart/form-data` com campo `photo`
+#### POST `/api/profile/avatar`
+Upload avatar utente.
 
-### 🏋️ Treinos
+### 🏋️ Allenamenti
 
 #### GET `/api/workouts`
-Listar treinos (com filtro opcional por usuário).
-
-**Query Params:**
-- `userId`: number (opcional)
+Lista allenamenti (con filtro opzionale per utente).
 
 #### GET `/api/workouts/:id`
-Obter treino específico.
+Ottieni allenamento specifico.
 
 #### POST `/api/workouts`
-Criar novo treino.
+Crea nuovo allenamento.
 
-**Body:**
-```json
-{
-  "userId": "number",
-  "name": "string",
-  "description": "string",
-  "duration": "number",
-  "difficulty": "beginner|intermediate|advanced",
-  "exercises": "object[]"
-}
-```
-
-### 📊 Sessões de Treino
+### 📊 Sessioni Allenamento
 
 #### GET `/api/workout-sessions`
-Listar sessões de treino do usuário.
-
-**Query Params:**
-- `userId`: number (obrigatório)
+Lista sessioni allenamento utente.
 
 #### POST `/api/workout-sessions`
-Criar nova sessão de treino.
+Crea nuova sessione allenamento.
 
 #### PUT `/api/workout-sessions/:id`
-Atualizar sessão de treino.
+Aggiorna sessione allenamento.
 
-### 🤖 Integração N8N
+### 🤖 Integrazione N8N
 
 #### GET `/api/n8n/users`
-Listar usuários (para integração externa).
-
-**Headers:** `X-API-Key: <N8N_API_KEY>`
+Lista utenti (per integrazione esterna).
 
 #### GET `/api/n8n/users/:id`
-Obter usuário específico (para integração externa).
+Ottieni utente specifico (per integrazione esterna).
 
 #### POST `/api/n8n/workout-sessions`
-Criar sessão via integração externa.
+Crea sessione via integrazione esterna.
 
 #### GET `/api/n8n/workouts`
-Listar treinos via integração externa.
+Lista allenamenti via integrazione esterna.
+
+### 📁 Upload File
+
+#### GET `/api/uploads/:filename`
+Serve file caricati.
 
 ### 🔄 Sistema
 
 #### GET `/api/health`
-Health check da aplicação.
+Health check applicazione.
 
-**Response:**
-```json
-{
-  "status": "ok",
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
+## 🗄️ Database
 
-## 🗄️ Banco de Dados
-
-### Tabelas Principais
+### Tabelle Principali
 
 #### users
-- `id` - Identificador único
-- `email` - Email do usuário (único)
-- `password` - Senha hash
+- `id` - Identificatore unico
+- `email` - Email utente (unico)
+- `password` - Password hash
 - `name` - Nome completo
-- `birthDate` - Data de nascimento
+- `birth_date` - Data di nascita
+- `age` - Età
 - `weight` - Peso (kg)
-- `height` - Altura (cm)
-- `gender` - Gênero
-- `fitnessGoal` - Objetivo fitness
-- `experienceLevel` - Nível de experiência
-- `weeklyFrequency` - Frequência semanal
-- `availableEquipment` - Equipamentos disponíveis (JSON)
-- `physicalRestrictions` - Restrições físicas
-- `onboardingCompleted` - Status do onboarding
-- `avatarUrl` - URL do avatar
+- `height` - Altezza (cm)
+- `gender` - Genere
+- `fitness_goal` - Obiettivo fitness
+- `experience_level` - Livello esperienza
+- `weekly_frequency` - Frequenza settimanale
+- `available_equipment` - Attrezzature disponibili (JSON)
+- `custom_equipment` - Attrezzature personalizzate
+- `physical_restrictions` - Restrizioni fisiche
+- `onboarding_completed` - Status onboarding
+- `avatar_url` - URL avatar
+- `smoking_status` - Status fumatore
+- `sleep_quality` - Qualità sonno
+- `stress_level` - Livello stress
+- `preferred_workout_time` - Orario preferito allenamento
+- `available_days_per_week` - Giorni disponibili per settimana
+- `average_workout_duration` - Durata media allenamento
+- `preferred_location` - Luogo preferito allenamento
 
 #### workouts
-- `id` - Identificador único
-- `userId` - Referência ao usuário
-- `name` - Nome do treino
-- `description` - Descrição
-- `duration` - Duração em minutos
-- `difficulty` - Nível de dificuldade
-- `exercises` - Exercícios (JSON)
+- `id` - Identificatore unico
+- `user_id` - Riferimento utente
+- `name` - Nome allenamento
+- `description` - Descrizione
+- `duration` - Durata in minuti
+- `difficulty` - Livello difficoltà
+- `exercises` - Esercizi (JSON)
+- `completed_at` - Data completamento
+- `created_at` - Data creazione
 
 #### workout_sessions
-- `id` - Identificador único
-- `userId` - Referência ao usuário
-- `workoutId` - Referência ao treino
-- `completedAt` - Data de conclusão
-- `duration` - Duração real
-- `notes` - Observações
+- `id` - Identificatore unico
+- `user_id` - Riferimento utente
+- `workout_id` - Riferimento allenamento
+- `started_at` - Data inizio
+- `completed_at` - Data completamento
+- `exercises` - Esercizi eseguiti (JSON)
+- `total_duration` - Durata totale
 
-## 🔒 Segurança
+## 🔒 Sicurezza
 
-### Autenticação
-- **JWT Tokens** para autenticação stateless
-- **bcryptjs** para hash de senhas
-- **Middleware de autenticação** para rotas protegidas
+### Autenticazione
+- **JWT Tokens** per autenticazione stateless
+- **bcryptjs** per hash password
+- **Middleware autenticazione** per rotte protette
 
-### Validação
-- **Zod schemas** para validação de entrada
-- **Sanitização** de dados de usuário
-- **Validação de tipos de arquivo** para uploads
+### Validazione
+- **Schemi Zod** per validazione input
+- **Sanitizzazione** dati utente
+- **Validazione tipi file** per upload
 
-### API Externa
-- **API Key** para integração N8N
-- **Headers personalizados** para autenticação externa
+### API Esterna
+- **API Key** per integrazione N8N
+- **Header personalizzati** per autenticazione esterna
+
+## 🎨 Interfaccia Utente
+
+### Caratteristiche UI
+- **Design responsive** per mobile e desktop
+- **Tema scuro** di default
+- **Navigazione bottom** per mobile
+- **Header con avatar** e notifiche
+- **Toasts** per feedback utente
+- **Modali** per azioni importanti
+
+### Pagine Principali
+- **Home** - Dashboard con statistiche e completamento profilo
+- **Profile** - Gestione profilo utente completo
+- **Workout** - Visualizzazione e gestione allenamenti
+- **History** - Storico sessioni allenamento
+- **Login/Register** - Autenticazione
+- **Onboarding** - Setup iniziale utente
 
 ## 🚀 Deploy
 
-### Desenvolvimento
+### Sviluppo
 ```bash
 npm run dev
 ```
 
-### Produção
+### Produzione
 ```bash
 npm run build
 npm start
 ```
 
-### Variáveis de Ambiente Necessárias
+### Variabili Ambiente Necessarie
 ```bash
 NODE_ENV=production
-JWT_SECRET=chave_secreta_forte
-N8N_API_KEY=chave_api_n8n
+JWT_SECRET=chiave_segreta_forte
+N8N_API_KEY=chiave_api_n8n
 N8N_WEBHOOK_URL=url_webhook_n8n
 ```
 
 ## 📈 Performance
 
-### Otimizações Implementadas
-- **Índices de banco** para consultas frequentes
-- **Monitoramento de queries lentas** (>100ms)
-- **Compressão de assets** via Vite
-- **Lazy loading** de componentes React
-- **Query caching** com TanStack Query
+### Ottimizzazioni Implementate
+- **Indici database** per query frequenti
+- **Monitoraggio query lente** (>100ms)
+- **Compressione asset** via Vite
+- **Lazy loading** componenti React
+- **Query caching** con TanStack Query
+- **Error boundaries** per gestione errori
 
-### Métricas de Performance
-- **Time to First Byte**: < 200ms
-- **First Contentful Paint**: < 1s
-- **Largest Contentful Paint**: < 2.5s
+### Gestione Errori
+- **Error boundary** React globale
+- **Try-catch** nei componenti critici
+- **Fallback UI** per stati di errore
+- **Logging** errori server
 
-## 🧪 Testes
+## 🧪 Testing
 
-### Estrutura de Testes
+### Script Disponibili
 ```bash
-# Executar testes unitários
-npm run test
+# Esegui in modalità sviluppo
+npm run dev
 
-# Executar testes com coverage
-npm run test:coverage
+# Build per produzione
+npm run build
 
-# Executar testes E2E
-npm run test:e2e
+# Avvia server produzione
+npm start
+
+# Verifica TypeScript
+npm run check
+
+# Push schema database
+npm run db:push
 ```
 
-## 📱 Responsividade
+## 📱 Responsività
 
 ### Breakpoints
-- **Mobile**: < 768px
+- **Mobile**: < 768px (navigazione bottom)
 - **Tablet**: 768px - 1024px
-- **Desktop**: > 1024px
+- **Desktop**: > 1024px (navigazione header)
 
-### Componentes Adaptativos
-- **Navigation** com drawer em mobile
-- **Cards** responsivos
-- **Formulários** otimizados para touch
+### Componenti Adattivi
+- **Navigation** con drawer in mobile
+- **Cards** responsive
+- **Form** ottimizzati per touch
+- **Avatar** e profili scalabili
 
-## 🔄 Integrações
+## 🔄 Integrazioni
 
-### N8N AI Service
-- **Geração automática** de treinos baseada no perfil
-- **Webhook endpoints** para comunicação bidirecional
-- **Fallback local** quando IA não disponível
+### Servizio AI N8N
+- **Generazione automatica** allenamenti basata su profilo
+- **Endpoint webhook** per comunicazione bidirezionale
+- **Fallback locale** quando AI non disponibile
+- **Autenticazione API key** per sicurezza
 
-### Upload de Arquivos
-- **Multer** para processamento
-- **Validação de tipos** (JPEG, PNG, GIF, WebP)
-- **Limite de tamanho** (5MB)
-- **Armazenamento local** com URLs públicas
+### Upload File
+- **Multer** per processamento
+- **Validazione tipi** (JPEG, PNG, GIF, WebP)
+- **Limite dimensione** (5MB)
+- **Storage locale** con URL pubblici
+- **Gestione avatar** e foto profilo
+
+## 🔧 Configurazione Database
+
+### SQLite (Sviluppo)
+- **Database locale** `pulseon.db`
+- **Migrazioni automatiche** all'avvio
+- **Seeding utente test** per sviluppo
+
+### PostgreSQL (Produzione)
+- **Supporto opzionale** via Drizzle ORM
+- **Configurazione via environment**
 
 ## 🐛 Troubleshooting
 
-### Problemas Comuns
+### Problemi Comuni
 
 #### Database locked
 ```bash
-# Reiniciar o servidor
+# Riavvia il server
 npm run dev
 ```
 
 #### JWT Invalid
 ```bash
-# Limpar localStorage no browser
+# Pulisci localStorage nel browser
 localStorage.clear()
 ```
 
-#### Port already in use
+#### Porta già in uso
 ```bash
-# Verificar processos na porta 5000
+# Verifica processi sulla porta 5000
 lsof -i :5000
+# Termina processo se necessario
+kill -9 <PID>
 ```
 
-## 📄 Licença
+#### Errori di build
+```bash
+# Pulisci cache e reinstalla
+rm -rf node_modules package-lock.json
+npm install
+```
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+## 📄 Licenza
 
-## 👥 Contribuição
+Questo progetto è sotto licenza MIT. Vedi il file [LICENSE](LICENSE) per maggiori dettagli.
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+## 👥 Contribuzione
 
-## 📞 Suporte
+1. Fork del progetto
+2. Crea branch per la tua feature (`git checkout -b feature/NuovaFeature`)
+3. Commit delle modifiche (`git commit -m 'Aggiungi NuovaFeature'`)
+4. Push della branch (`git push origin feature/NuovaFeature`)
+5. Apri una Pull Request
 
-Para suporte e dúvidas:
-- **Email**: suporte@pulseon.com
+## 📞 Supporto
+
+Per supporto e domande:
+- **Email**: supporto@pulseon.com
 - **Issues**: [GitHub Issues](github-repo-url/issues)
-- **Documentação**: [Wiki do Projeto](github-repo-url/wiki)
+- **Documentazione**: [Wiki del Progetto](github-repo-url/wiki)
 
 ---
 
-**Desenvolvido com ❤️ por [Seu Nome/Equipe]**
+**Sviluppato con ❤️ da André Silva e Giulio Vittorio**
