@@ -526,85 +526,141 @@ export default function Home() {
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <Card 
-          className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
-          onClick={() => toggleStatsCard('workouts')}
-        >
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">Treinos Concluídos</span>
-              <div className="flex items-center gap-1">
-                <FitnessIcon className="h-3 w-3" />
-                {expandedStatsCard === 'workouts' ? (
-                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                )}
-              </div>
-            </div>
-            <span className="text-xl font-bold">{completedWorkouts}</span>
-            {completedWorkouts > 0 && (
-              <Badge variant="secondary" className="mt-1 text-xs">
-                +3 esta semana
-              </Badge>
-            )}
-
-            {/* Expanded Content */}
-            {expandedStatsCard === 'workouts' && (
-              <div className="mt-3 pt-3 border-t border-border space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Esta semana:</span>
-                  <span className="font-medium">3 treinos</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Este mês:</span>
-                  <span className="font-medium">12 treinos</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Média/semana:</span>
-                  <span className="font-medium">2.8 treinos</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Maior sequência:</span>
-                  <span className="font-medium text-orange-600">14 dias</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Treino favorito:</span>
-                  <span className="font-medium">Pernas</span>
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <Card 
+            className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
+              expandedStatsCard === 'workouts' ? 'col-span-2' : ''
+            }`}
+            onClick={() => toggleStatsCard('workouts')}
+          >
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-muted-foreground">Treinos Concluídos</span>
+                <div className="flex items-center gap-1">
+                  <FitnessIcon className="h-3 w-3" />
+                  {expandedStatsCard === 'workouts' ? (
+                    <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                  )}
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card 
-          className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
-          onClick={() => toggleStatsCard('streak')}
-        >
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">Sequência Atual</span>
-              <div className="flex items-center gap-1">
-                <Flame className="h-3 w-3 text-orange-500" />
-                {expandedStatsCard === 'streak' ? (
-                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                )}
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xl font-bold">{currentStreak} dias</span>
-              {currentStreak >= 7 && (
-                <Badge variant="destructive" className="text-xs">
-                  Em chamas!
+              <span className="text-xl font-bold">{completedWorkouts}</span>
+              {completedWorkouts > 0 && (
+                <Badge variant="secondary" className="mt-1 text-xs">
+                  +3 esta semana
                 </Badge>
               )}
-            </div>
 
-            {/* Expanded Content */}
-            {expandedStatsCard === 'streak' && (
+              {/* Expanded Content */}
+              {expandedStatsCard === 'workouts' && (
+                <div className="mt-3 pt-3 border-t border-border space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Esta semana:</span>
+                    <span className="font-medium">3 treinos</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Este mês:</span>
+                    <span className="font-medium">12 treinos</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Média/semana:</span>
+                    <span className="font-medium">2.8 treinos</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Maior sequência:</span>
+                    <span className="font-medium text-orange-600">14 dias</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Treino favorito:</span>
+                    <span className="font-medium">Pernas</span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {expandedStatsCard !== 'workouts' && (
+            <Card 
+              className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
+                expandedStatsCard === 'streak' ? 'col-span-2' : ''
+              }`}
+              onClick={() => toggleStatsCard('streak')}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Sequência Atual</span>
+                  <div className="flex items-center gap-1">
+                    <Flame className="h-3 w-3 text-orange-500" />
+                    {expandedStatsCard === 'streak' ? (
+                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xl font-bold">{currentStreak} dias</span>
+                  {currentStreak >= 7 && (
+                    <Badge variant="destructive" className="text-xs">
+                      Em chamas!
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Expanded Content */}
+                {expandedStatsCard === 'streak' && (
+                  <div className="mt-3 pt-3 border-t border-border space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Iniciou em:</span>
+                      <span className="font-medium">05/01/2025</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Próxima meta:</span>
+                      <span className="font-medium text-blue-600">10 dias</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Recorde pessoal:</span>
+                      <span className="font-medium text-green-600">14 dias</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Último treino:</span>
+                      <span className="font-medium">Hoje</span>
+                    </div>
+                    <div className="w-full mt-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">Progresso até 10 dias</span>
+                        <span className="font-medium">70%</span>
+                      </div>
+                      <Progress value={70} className="h-1" />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {expandedStatsCard === 'streak' && (
+          <Card className="hover:shadow-md transition-all duration-200 cursor-pointer" onClick={() => toggleStatsCard('streak')}>
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-muted-foreground">Sequência Atual</span>
+                <div className="flex items-center gap-1">
+                  <Flame className="h-3 w-3 text-orange-500" />
+                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl font-bold">{currentStreak} dias</span>
+                {currentStreak >= 7 && (
+                  <Badge variant="destructive" className="text-xs">
+                    Em chamas!
+                  </Badge>
+                )}
+              </div>
+
               <div className="mt-3 pt-3 border-t border-border space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Iniciou em:</span>
@@ -630,96 +686,154 @@ export default function Home() {
                   <Progress value={70} className="h-1" />
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Extended Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <Card 
-          className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
-          onClick={() => toggleStatsCard('calories')}
-        >
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">Calorias Queimadas</span>
-              <div className="flex items-center gap-1">
-                <Flame className="h-3 w-3 text-red-500" />
-                {expandedStatsCard === 'calories' ? (
-                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                )}
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <Card 
+            className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
+              expandedStatsCard === 'calories' ? 'col-span-2' : ''
+            }`}
+            onClick={() => toggleStatsCard('calories')}
+          >
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-muted-foreground">Calorias Queimadas</span>
+                <div className="flex items-center gap-1">
+                  <Flame className="h-3 w-3 text-red-500" />
+                  {expandedStatsCard === 'calories' ? (
+                    <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                  )}
+                </div>
               </div>
-            </div>
-            <span className="text-xl font-bold">{hasCompletedOnboarding ? "1,845" : "0"}</span>
-            {hasCompletedOnboarding && (
-              <Badge variant="secondary" className="mt-1 text-xs">
-                Esta semana
-              </Badge>
-            )}
+              <span className="text-xl font-bold">{hasCompletedOnboarding ? "1,845" : "0"}</span>
+              {hasCompletedOnboarding && (
+                <Badge variant="secondary" className="mt-1 text-xs">
+                  Esta semana
+                </Badge>
+              )}
 
-            {/* Expanded Content */}
-            {expandedStatsCard === 'calories' && hasCompletedOnboarding && (
-              <div className="mt-3 pt-3 border-t border-border space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Hoje:</span>
-                  <span className="font-medium">420 kcal</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Ontem:</span>
-                  <span className="font-medium">385 kcal</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Média/dia:</span>
-                  <span className="font-medium">263 kcal</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Meta semanal:</span>
-                  <span className="font-medium text-blue-600">2,100 kcal</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Maior queima:</span>
-                  <span className="font-medium text-orange-600">520 kcal</span>
-                </div>
-                <div className="w-full mt-2">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Meta semanal</span>
-                    <span className="font-medium">88%</span>
+              {/* Expanded Content */}
+              {expandedStatsCard === 'calories' && hasCompletedOnboarding && (
+                <div className="mt-3 pt-3 border-t border-border space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Hoje:</span>
+                    <span className="font-medium">420 kcal</span>
                   </div>
-                  <Progress value={88} className="h-1" />
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Ontem:</span>
+                    <span className="font-medium">385 kcal</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Média/dia:</span>
+                    <span className="font-medium">263 kcal</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Meta semanal:</span>
+                    <span className="font-medium text-blue-600">2,100 kcal</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Maior queima:</span>
+                    <span className="font-medium text-orange-600">520 kcal</span>
+                  </div>
+                  <div className="w-full mt-2">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground">Meta semanal</span>
+                      <span className="font-medium">88%</span>
+                    </div>
+                    <Progress value={88} className="h-1" />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {expandedStatsCard !== 'calories' && (
+            <Card 
+              className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
+                expandedStatsCard === 'time' ? 'col-span-2' : ''
+              }`}
+              onClick={() => toggleStatsCard('time')}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Tempo Total</span>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-blue-500" />
+                    {expandedStatsCard === 'time' ? (
+                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+                <span className="text-xl font-bold">{hasCompletedOnboarding ? "18h" : "0h"}</span>
+                {hasCompletedOnboarding && (
+                  <Badge variant="secondary" className="mt-1 text-xs">
+                    Este mês
+                  </Badge>
+                )}
+
+                {/* Expanded Content */}
+                {expandedStatsCard === 'time' && hasCompletedOnboarding && (
+                  <div className="mt-3 pt-3 border-t border-border space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Esta semana:</span>
+                      <span className="font-medium">2h 15min</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Último treino:</span>
+                      <span className="font-medium">45min</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Média/treino:</span>
+                      <span className="font-medium">45min</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Maior treino:</span>
+                      <span className="font-medium text-green-600">1h 20min</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Meta mensal:</span>
+                      <span className="font-medium text-blue-600">20h</span>
+                    </div>
+                    <div className="w-full mt-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">Meta mensal</span>
+                        <span className="font-medium">90%</span>
+                      </div>
+                      <Progress value={90} className="h-1" />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {expandedStatsCard === 'time' && (
+          <Card className="hover:shadow-md transition-all duration-200 cursor-pointer" onClick={() => toggleStatsCard('time')}>
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-muted-foreground">Tempo Total</span>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-blue-500" />
+                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <span className="text-xl font-bold">{hasCompletedOnboarding ? "18h" : "0h"}</span>
+              {hasCompletedOnboarding && (
+                <Badge variant="secondary" className="mt-1 text-xs">
+                  Este mês
+                </Badge>
+              )}
 
-        <Card 
-          className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
-          onClick={() => toggleStatsCard('time')}
-        >
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">Tempo Total</span>
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3 text-blue-500" />
-                {expandedStatsCard === 'time' ? (
-                  <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                )}
-              </div>
-            </div>
-            <span className="text-xl font-bold">{hasCompletedOnboarding ? "18h" : "0h"}</span>
-            {hasCompletedOnboarding && (
-              <Badge variant="secondary" className="mt-1 text-xs">
-                Este mês
-              </Badge>
-            )}
-
-            {/* Expanded Content */}
-            {expandedStatsCard === 'time' && hasCompletedOnboarding && (
               <div className="mt-3 pt-3 border-t border-border space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Esta semana:</span>
@@ -749,9 +863,9 @@ export default function Home() {
                   <Progress value={90} className="h-1" />
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Weekly Progress */}
