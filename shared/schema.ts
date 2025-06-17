@@ -212,3 +212,23 @@ export type RegisterData = z.infer<typeof registerSchema>;
 export type LoginData = z.infer<typeof loginSchema>;
 export type OnboardingData = z.infer<typeof onboardingSchema>;
 export type N8NWorkoutRequest = z.infer<typeof n8nWorkoutRequestSchema>;
+
+// AI Workout Response Schema (from N8N)
+export const aiWorkoutResponseSchema = z.object({
+  userId: z.number(),
+  workoutPlan: z.array(z.object({
+    exercise: z.string(),
+    muscleGroup: z.string(),
+    type: z.string(),
+    instructions: z.string(),
+    time: z.number(),
+    series: z.number(),
+    repetitions: z.number(),
+    restBetweenSeries: z.number(),
+    restBetweenExercises: z.number(),
+    weight: z.number(),
+    calories: z.number()
+  }))
+});
+
+export type AIWorkoutResponse = z.infer<typeof aiWorkoutResponseSchema>;
