@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
+import "./hmr-fix";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -19,13 +20,17 @@ import Register from "@/pages/Register";
 import Onboarding from "@/pages/Onboarding";
 
 // Error Boundary Component
-class ErrorBoundary extends React.Component {
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends React.Component<any, ErrorBoundaryState> {
   constructor(props: any) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError(error: any): ErrorBoundaryState {
     return { hasError: true };
   }
 
@@ -34,14 +39,17 @@ class ErrorBoundary extends React.Component {
   }
 
   render() {
-    if ((this.state as any).hasError) {
+    if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-background">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Oops! Algo deu errado</h1>
             <p className="text-muted-foreground mb-4">O aplicativo encontrou um erro inesperado.</p>
             <button 
-              onClick={() => window.location.reload()} 
+              onClick={() => {
+                this.setState({ hasError: false });
+                window.location.reload();
+              }} 
               className="px-4 py-2 bg-primary text-white rounded-md"
             >
               Recarregar Página
@@ -60,12 +68,16 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAuth = async () => {
       const token = localStorage.getItem("authToken");
 
       if (!token) {
-        setIsAuthenticated(false);
-        setIsLoading(false);
+        if (isMounted) {
+          setIsAuthenticated(false);
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -75,6 +87,8 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
             Authorization: `Bearer ${token}`
           }
         });
+
+        if (!isMounted) return;
 
         if (response.ok) {
           const userData = await response.json();
@@ -89,14 +103,22 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
           setIsAuthenticated(false);
         }
       } catch (error) {
-        localStorage.removeItem("authToken");
-        setIsAuthenticated(false);
+        if (isMounted) {
+          localStorage.removeItem("authToken");
+          setIsAuthenticated(false);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     checkAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (isLoading) {
