@@ -1,6 +1,7 @@
 import { Home, Dumbbell, BarChart3, User } from "lucide-react";
 import { useLocation } from "wouter";
 import { Link } from "wouter";
+import { useEffect } from "react";
 
 export default function BottomNavigation() {
   const [location] = useLocation();
@@ -11,6 +12,10 @@ export default function BottomNavigation() {
     { href: "/history", icon: BarChart3, label: "Histórico" },
     { href: "/profile", icon: User, label: "Perfil" },
   ];
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border px-4 py-2 bottom-nav-shadow"
@@ -23,6 +28,7 @@ export default function BottomNavigation() {
           return (
             <Link key={item.href} href={item.href}>
               <button
+                onClick={scrollToTop}
                 className={`flex flex-col items-center py-2 px-4 rounded-lg transition-all duration-200 ${
                   isActive 
                     ? "text-primary bg-primary/10 dark:bg-primary/20" 
