@@ -2,19 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
-// Prevent process crashes from unhandled errors
-process.on('uncaughtException', (error) => {
-  log(`Uncaught Exception: ${error.message}`);
-  log(`Stack: ${error.stack}`);
-  // Don't exit - let the process continue
-});
-
-process.on('unhandledRejection', (reason: any, promise) => {
-  log(`Unhandled Rejection at: ${promise}`);
-  log(`Reason: ${reason}`);
-  // Don't exit - let the process continue
-});
-
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -49,84 +36,31 @@ app.use((req, res, next) => {
   next();
 });
 
-let serverInstance: any = null;
-let isStarting = false;
+(async () => {
+  const server = await registerRoutes(app);
 
-async function startServer() {
-  if (isStarting) return;
-  isStarting = true;
-  
-  try {
-    if (serverInstance) {
-      try {
-        serverInstance.close();
-      } catch (e) {}
-    }
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
 
-    const server = await registerRoutes(app);
-    serverInstance = server;
+    res.status(status).json({ message });
+    throw err;
+  });
 
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-
-      log(`Error ${status}: ${message}`);
-      res.status(status).json({ message });
-      // Don't throw to prevent crash
-    });
-
-    // Setup Vite with error handling
-    if (app.get("env") === "development") {
-      try {
-        await setupVite(app, server);
-      } catch (viteError: any) {
-        log(`Vite setup failed: ${viteError.message}`);
-        serveStatic(app);
-      }
-    } else {
-      serveStatic(app);
-    }
-
-    const port = 5000;
-    
-    server.on('error', (error: any) => {
-      log(`Server error: ${error.message}`);
-      if (error.code === 'EADDRINUSE') {
-        setTimeout(() => {
-          isStarting = false;
-          startServer();
-        }, 3000);
-      }
-    });
-
-    server.listen(port, "0.0.0.0", () => {
-      log(`serving on port ${port}`);
-      isStarting = false;
-    });
-
-  } catch (error: any) {
-    log(`Failed to start server: ${error.message}`);
-    isStarting = false;
-    setTimeout(startServer, 3000);
-  }
-}
-
-// Auto-restart mechanism
-setInterval(() => {
-  if (!serverInstance || !serverInstance.listening) {
-    log('Server not listening, restarting...');
-    startServer();
-  }
-}, 10000);
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  log('SIGTERM received');
-  if (serverInstance) {
-    serverInstance.close(() => process.exit(0));
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
   } else {
-    process.exit(0);
+    serveStatic(app);
   }
-});
 
-startServer();
+  // ALWAYS serve the app on port 5000
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = 5000;
+  server.listen(port, "0.0.0.0", () => {
+    log(`serving on port ${port}`);
+  });
+})();
