@@ -407,32 +407,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const aiWorkoutResponse = await requestWorkoutFromAI(aiRequestData);
       
       // Calculate total duration and calories
-      const totalDuration = aiWorkoutResponse.exercises.reduce((sum, exercise) => {
+      const totalDuration = aiWorkoutResponse.workoutPlan.reduce((sum: number, exercise: any) => {
         return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60)); // estimate minutes for strength exercises
       }, 0);
 
-      const totalCalories = aiWorkoutResponse.exercises.reduce((sum, exercise) => sum + exercise.calories, 0);
+      const totalCalories = aiWorkoutResponse.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
 
       // Generate workout name
-      const workoutName = aiWorkoutResponse.workoutName || `Treino Personalizado - ${new Date().toLocaleDateString('pt-BR')}`;
+      const workoutName = `Treino Personalizado - ${new Date().toLocaleDateString('pt-BR')}`;
 
       // Save scheduled workout to database
       const scheduledWorkout = await storage.createScheduledWorkout({
         userId: user.id,
         name: workoutName,
-        exercises: aiWorkoutResponse.exercises.map(exercise => ({
-          exercise: exercise.name,
-          muscleGroup: exercise.muscleGroups[0] || "Geral",
-          type: exercise.type || "Força",
-          instructions: exercise.instructions || "Siga as instruções do exercício",
-          time: exercise.time || 0,
-          series: exercise.sets,
-          repetitions: exercise.reps,
-          restBetweenSeries: exercise.restTime,
-          restBetweenExercises: 90,
-          weight: exercise.suggestedWeight || 0,
-          calories: Math.round(exercise.calories || 50)
-        })),
+        exercises: aiWorkoutResponse.workoutPlan,
         totalCalories: Math.round(totalCalories),
         totalDuration: Math.round(totalDuration),
         status: "pending"
@@ -507,7 +495,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id,
         scheduledWorkoutId: scheduledWorkoutId,
         name: scheduledWorkout.name,
-        startedAt: new Date(),
         exercises: scheduledWorkout.exercises?.map(ex => ({
           ...ex,
           completed: false,

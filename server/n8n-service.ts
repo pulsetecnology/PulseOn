@@ -90,32 +90,3 @@ function generatePersonalizedFallback(data: N8NWorkoutRequest): AIWorkoutRespons
     workoutPlan: fallbackExercises
   };
 }
-        restTime: 60,
-        instructions: "Movimento explosivo, mantenha o core ativo",
-        muscleGroups: ["corpo todo", "cardio"]
-      }
-    ];
-  }
-
-  return {
-    workoutName,
-    description: `Treino personalizado para ${fitnessGoal.replace('_', ' ')} - nível ${experienceLevel}`,
-    duration: experienceLevel === "beginner" ? 30 : 45,
-    difficulty: experienceLevel as "beginner" | "intermediate" | "advanced",
-    exercises
-  };
-}
-
-function generateFallbackExercises(data: N8NWorkoutRequest) {
-  return [
-    {
-      id: "1",
-      name: "Exercício Básico",
-      sets: 3,
-      reps: 10,
-      restTime: 60,
-      instructions: "Execute o movimento de forma controlada",
-      muscleGroups: ["geral"]
-    }
-  ];
-}
