@@ -37,12 +37,16 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  log("Starting application...");
+  
   const server = await registerRoutes(app);
+  log("Routes registered successfully");
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
+    
+    log(`Error: ${status} - ${message}`);
     res.status(status).json({ message });
     throw err;
   });
@@ -50,21 +54,25 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  const isDevelopment = process.env.NODE_ENV === "development";
+  log(`Environment: ${isDevelopment ? 'development' : 'production'}`);
+  
+  if (isDevelopment) {
+    log("Setting up Vite development server...");
     await setupVite(app, server);
+    log("Vite setup completed");
   } else {
+    log("Setting up static file serving...");
     serveStatic(app);
+    log("Static file serving setup completed");
   }
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  const port = process.env.PORT || 5000;
+  server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
+    log(`Application available at: http://0.0.0.0:${port}`);
   });
 })();
