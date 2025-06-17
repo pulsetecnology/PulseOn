@@ -1,6 +1,7 @@
 
 # PulseOn - Plataforma de Treinos Personalizados
 # Autor: André silva
+# Data: 17/06/2025
 
 ## 📋 Descrição
 
