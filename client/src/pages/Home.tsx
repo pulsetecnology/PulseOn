@@ -476,7 +476,7 @@ export default function Home() {
       <div>
         <h1 className="text-2xl font-bold">Olá, {user?.name?.split(' ')[0] || 'usuário'}!</h1>
         <p className="text-muted-foreground">
-          {user?.gender === "female" ? "Pronta" : "Pronto"} para iniciar seu treino?
+          Acompanhe seu progresso e veja seus treinos planejados
         </p>
       </div>
 
