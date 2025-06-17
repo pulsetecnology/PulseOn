@@ -6,7 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
-import { Clock, Dumbbell, User, Trophy, CheckCircle, AlertCircle, BarChart3, Calendar, Target, ChevronDown, ChevronUp, X, Scale, Heart, Flame, Play } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Clock, Dumbbell, User, Trophy, CheckCircle, AlertCircle, BarChart3, Calendar, Target, ChevronDown, ChevronUp, X, Scale, Heart, Flame, Play, Loader2, Sparkles } from "lucide-react";
 import FitnessIcon from "@/components/FitnessIcon";
 
 // Mock workout data with exercise details
@@ -454,17 +457,55 @@ function OnboardingCard({ user }: { user: any }) {
 
 export default function Home() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [expandedTodaysWorkout, setExpandedTodaysWorkout] = useState(false);
   const [expandedUpcomingWorkout, setExpandedUpcomingWorkout] = useState<number | null>(null);
   const [expandedStatsCard, setExpandedStatsCard] = useState<string | null>(null);
   const [expandedWeeklyProgress, setExpandedWeeklyProgress] = useState(false);
   const [expandedCaloriesCard, setExpandedCaloriesCard] = useState(false);
 
-  // Simulate user onboarding status and workout data
   const hasCompletedOnboarding = user?.onboardingCompleted || false;
-  const hasWorkoutsAvailable = true; // This would come from API
-  const completedWorkouts = hasCompletedOnboarding ? 24 : 0;
-  const currentStreak = hasCompletedOnboarding ? 7 : 0;
+
+  // Fetch scheduled workouts from database
+  const { data: scheduledWorkouts = [], isLoading: workoutsLoading } = useQuery({
+    queryKey: ["/api/scheduled-workouts"],
+    enabled: hasCompletedOnboarding,
+  });
+
+  // Fetch workout sessions for statistics
+  const { data: workoutSessions = [], isLoading: sessionsLoading } = useQuery({
+    queryKey: ["/api/workout-sessions"],
+    enabled: hasCompletedOnboarding,
+  });
+
+  // AI workout generation mutation
+  const generateWorkoutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/ai/generate-workout", {
+        method: "POST",
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Treino gerado com sucesso!",
+        description: "Seu novo treino personalizado está pronto.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao gerar treino",
+        description: "Tente novamente em alguns minutos.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const completedWorkouts = workoutSessions.filter((session: any) => session.completedAt).length;
+  const currentStreak = 7; // Calculate based on consecutive workout days
+  const hasWorkoutsAvailable = scheduledWorkouts.length > 0;
+  const todaysWorkout = scheduledWorkouts.find((workout: any) => workout.status === "pending");
 
   const toggleUpcomingWorkout = (workoutId: number) => {
     setExpandedUpcomingWorkout(expandedUpcomingWorkout === workoutId ? null : workoutId);
@@ -921,27 +962,58 @@ export default function Home() {
       {/* Today's Workout */}
       {hasCompletedOnboarding && (
         <div>
-          <h2 className="text-lg font-semibold mb-3">Treino de Hoje</h2>
-          <Card 
-            className="cursor-pointer transition-all duration-200 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950"
-            onClick={() => setExpandedTodaysWorkout(!expandedTodaysWorkout)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg text-blue-800 dark:text-blue-200">{mockTodaysWorkout.name}</h3>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    {mockTodaysWorkout.exercises.length} exercícios • {mockTodaysWorkout.duration} min • {mockTodaysWorkout.difficulty}
-                  </p>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Treino de Hoje</h2>
+            <Button
+              onClick={() => generateWorkoutMutation.mutate()}
+              disabled={generateWorkoutMutation.isPending}
+              size="sm"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            >
+              {generateWorkoutMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Gerando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Atualizar IA
+                </>
+              )}
+            </Button>
+          </div>
+          
+          {workoutsLoading ? (
+            <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  <span className="text-blue-800 dark:text-blue-200">Carregando treino...</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-blue-600 text-white">Hoje</Badge>
-                  {expandedTodaysWorkout ? (
-                    <ChevronUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  )}
-                </div>
+              </CardContent>
+            </Card>
+          ) : todaysWorkout ? (
+            <Card 
+              className="cursor-pointer transition-all duration-200 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950"
+              onClick={() => setExpandedTodaysWorkout(!expandedTodaysWorkout)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg text-blue-800 dark:text-blue-200">{todaysWorkout.name}</h3>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      {todaysWorkout.exercises?.length || 0} exercícios • {todaysWorkout.totalDuration || 0} min • {todaysWorkout.totalCalories || 0} kcal
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-blue-600 text-white">Hoje</Badge>
+                    {expandedTodaysWorkout ? (
+                      <ChevronUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    )}
+                  </div>
               </div>
 
               <div className="flex items-center justify-between mb-3">
@@ -962,18 +1034,18 @@ export default function Home() {
                 <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-700">
                   <h4 className="font-semibold text-sm mb-3 text-blue-800 dark:text-blue-200">Exercícios do Treino</h4>
                   <div className="space-y-2">
-                    {mockTodaysWorkout.exercises.map((exercise, index) => (
+                    {todaysWorkout.exercises?.map((exercise: any, index: number) => (
                       <div 
-                        key={exercise.id} 
+                        key={index} 
                         className="flex items-center justify-between py-2 px-3 rounded-md bg-blue-100 dark:bg-blue-900/30"
                       >
                         <div className="flex-1">
                           <div className="flex flex-col">
                             <h5 className="font-medium text-sm text-blue-800 dark:text-blue-200">
-                              {exercise.name}
+                              {exercise.exercise}
                             </h5>
                             <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                              {exercise.sets} séries × {exercise.reps} reps
+                              {exercise.series} séries × {exercise.repetitions} reps
                             </p>
                             <p className="text-xs text-blue-600 dark:text-blue-400">
                               {exercise.instructions}
@@ -982,11 +1054,11 @@ export default function Home() {
                         </div>
                         <div className="text-right ml-3">
                           <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                            {exercise.weight}
+                            {exercise.weight > 0 ? `${exercise.weight}kg` : 'Peso corporal'}
                           </span>
                           <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center justify-end">
-                            <Clock className="mr-1 h-2 w-2" />
-                            {exercise.restTime}s
+                            <Flame className="mr-1 h-2 w-2" />
+                            {exercise.calories} kcal
                           </p>
                         </div>
                       </div>
@@ -996,6 +1068,23 @@ export default function Home() {
               )}
             </CardContent>
           </Card>
+          ) : (
+            <Card className="border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950">
+              <CardContent className="p-4">
+                <div className="text-center space-y-3">
+                  <Clock className="h-8 w-8 text-gray-400 mx-auto" />
+                  <div>
+                    <h3 className="font-medium text-gray-700 dark:text-gray-300">
+                      Nenhum treino encontrado
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Clique em "Atualizar IA" para gerar um novo treino personalizado
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
