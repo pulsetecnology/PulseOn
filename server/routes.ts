@@ -45,10 +45,6 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Create a single HTTP server instance
-  const server = createServer(app);
-
-  console.log("Registering routes...");
   // New simplified auth setup route
   app.post("/api/auth/setup", async (req, res) => {
     try {
@@ -374,7 +370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
+  
 
   // Workout routes
   app.get("/api/workouts", async (req, res) => {
@@ -492,7 +488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userId = parseInt(req.params.id);
       const user = await storage.getUser(userId);
-
+      
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
