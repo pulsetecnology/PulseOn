@@ -482,9 +482,7 @@ export default function Home() {
   // AI workout generation mutation
   const generateWorkoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/ai/generate-workout", {
-        method: "POST",
-      });
+      return await apiRequest("/api/ai/generate-workout", "POST");
     },
     onSuccess: (data) => {
       toast({
@@ -502,10 +500,10 @@ export default function Home() {
     },
   });
 
-  const completedWorkouts = workoutSessions.filter((session: any) => session.completedAt).length;
+  const completedWorkouts = (workoutSessions as any[]).filter((session: any) => session.completedAt).length;
   const currentStreak = 7; // Calculate based on consecutive workout days
-  const hasWorkoutsAvailable = scheduledWorkouts.length > 0;
-  const todaysWorkout = scheduledWorkouts.find((workout: any) => workout.status === "pending");
+  const hasWorkoutsAvailable = (scheduledWorkouts as any[]).length > 0;
+  const todaysWorkout = (scheduledWorkouts as any[]).find((workout: any) => workout.status === "pending");
 
   const toggleUpcomingWorkout = (workoutId: number) => {
     setExpandedUpcomingWorkout(expandedUpcomingWorkout === workoutId ? null : workoutId);
@@ -1014,60 +1012,60 @@ export default function Home() {
                       <ChevronDown className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     )}
                   </div>
-              </div>
-
-              <div className="flex items-center justify-between mb-3">
-                <Link href="/workout">
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                    <Play className="mr-2 h-4 w-4" />
-                    Ir para treino
-                  </Button>
-                </Link>
-                <div className="text-right">
-                  <p className="text-xs text-blue-600 dark:text-blue-400">Recomendado pela IA</p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300">Baseado no seu progresso</p>
                 </div>
-              </div>
 
-              {/* Expanded Exercise Details */}
-              {expandedTodaysWorkout && (
-                <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-700">
-                  <h4 className="font-semibold text-sm mb-3 text-blue-800 dark:text-blue-200">Exercícios do Treino</h4>
-                  <div className="space-y-2">
-                    {todaysWorkout.exercises?.map((exercise: any, index: number) => (
-                      <div 
-                        key={index} 
-                        className="flex items-center justify-between py-2 px-3 rounded-md bg-blue-100 dark:bg-blue-900/30"
-                      >
-                        <div className="flex-1">
-                          <div className="flex flex-col">
-                            <h5 className="font-medium text-sm text-blue-800 dark:text-blue-200">
-                              {exercise.exercise}
-                            </h5>
-                            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                              {exercise.series} séries × {exercise.repetitions} reps
-                            </p>
-                            <p className="text-xs text-blue-600 dark:text-blue-400">
-                              {exercise.instructions}
+                <div className="flex items-center justify-between mb-3">
+                  <Link href="/workout">
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Play className="mr-2 h-4 w-4" />
+                      Ir para treino
+                    </Button>
+                  </Link>
+                  <div className="text-right">
+                    <p className="text-xs text-blue-600 dark:text-blue-400">Recomendado pela IA</p>
+                    <p className="text-xs text-blue-700 dark:text-blue-300">Baseado no seu progresso</p>
+                  </div>
+                </div>
+
+                {/* Expanded Exercise Details */}
+                {expandedTodaysWorkout && (
+                  <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-700">
+                    <h4 className="font-semibold text-sm mb-3 text-blue-800 dark:text-blue-200">Exercícios do Treino</h4>
+                    <div className="space-y-2">
+                      {todaysWorkout.exercises?.map((exercise: any, index: number) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center justify-between py-2 px-3 rounded-md bg-blue-100 dark:bg-blue-900/30"
+                        >
+                          <div className="flex-1">
+                            <div className="flex flex-col">
+                              <h5 className="font-medium text-sm text-blue-800 dark:text-blue-200">
+                                {exercise.exercise}
+                              </h5>
+                              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                {exercise.series} séries × {exercise.repetitions} reps
+                              </p>
+                              <p className="text-xs text-blue-600 dark:text-blue-400">
+                                {exercise.instructions}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right ml-3">
+                            <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                              {exercise.weight > 0 ? `${exercise.weight}kg` : 'Peso corporal'}
+                            </span>
+                            <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center justify-end">
+                              <Flame className="mr-1 h-2 w-2" />
+                              {exercise.calories} kcal
                             </p>
                           </div>
                         </div>
-                        <div className="text-right ml-3">
-                          <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                            {exercise.weight > 0 ? `${exercise.weight}kg` : 'Peso corporal'}
-                          </span>
-                          <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center justify-end">
-                            <Flame className="mr-1 h-2 w-2" />
-                            {exercise.calories} kcal
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
           ) : (
             <Card className="border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950">
               <CardContent className="p-4">
