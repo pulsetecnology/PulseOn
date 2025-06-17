@@ -20,6 +20,15 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add detailed request logging
+app.use((req, res, next) => {
+  log(`Incoming: ${req.method} ${req.path} from ${req.ip}`);
+  if (req.path === "/" || req.path.startsWith("/api") || req.path === "/health" || req.path === "/debug") {
+    log(`Headers: ${JSON.stringify(req.headers, null, 2)}`);
+  }
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -56,13 +65,19 @@ app.use((req, res, next) => {
   const server = await registerRoutes(app);
   log("Routes registered successfully");
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     
-    log(`Error: ${status} - ${message}`);
-    res.status(status).json({ message });
-    throw err;
+    log(`Error on ${req.method} ${req.path}: ${status} - ${message}`);
+    log(`Error stack: ${err.stack}`);
+    
+    res.status(status).json({ 
+      message,
+      path: req.path,
+      method: req.method,
+      timestamp: new Date().toISOString()
+    });
   });
 
   // Add health check route
@@ -73,6 +88,25 @@ app.use((req, res, next) => {
   // Add root route for testing
   app.get("/", (_req, res) => {
     res.json({ message: "PulseOn API is running", timestamp: new Date().toISOString() });
+  });
+
+  // Add comprehensive debug endpoint
+  app.get("/debug", (_req, res) => {
+    res.json({
+      status: "ok",
+      environment: process.env.NODE_ENV,
+      port: port,
+      timestamp: new Date().toISOString(),
+      routes: [
+        "/health",
+        "/api/health", 
+        "/debug",
+        "/api/auth/me",
+        "/api/auth/login",
+        "/api/auth/register"
+      ],
+      vite_mode: isDevelopment ? "development" : "production"
+    });
   });
 
   // importantly only setup vite in development and after
