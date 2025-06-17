@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -548,7 +547,7 @@ export default function Home() {
                 +3 esta semana
               </Badge>
             )}
-            
+
             {/* Expanded Content */}
             {expandedStatsCard === 'workouts' && (
               <div className="mt-3 pt-3 border-t border-border space-y-2">
@@ -576,7 +575,7 @@ export default function Home() {
             )}
           </CardContent>
         </Card>
-        
+
         <Card 
           className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
           onClick={() => setExpandedStatsCard(expandedStatsCard === 'streak' ? null : 'streak')}
@@ -601,7 +600,7 @@ export default function Home() {
                 </Badge>
               )}
             </div>
-            
+
             {/* Expanded Content */}
             {expandedStatsCard === 'streak' && (
               <div className="mt-3 pt-3 border-t border-border space-y-2">
@@ -658,7 +657,7 @@ export default function Home() {
                 Esta semana
               </Badge>
             )}
-            
+
             {/* Expanded Content */}
             {expandedStatsCard === 'calories' && hasCompletedOnboarding && (
               <div className="mt-3 pt-3 border-t border-border space-y-2">
@@ -693,7 +692,7 @@ export default function Home() {
             )}
           </CardContent>
         </Card>
-        
+
         <Card 
           className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
           onClick={() => setExpandedStatsCard(expandedStatsCard === 'time' ? null : 'time')}
@@ -716,7 +715,7 @@ export default function Home() {
                 Este mês
               </Badge>
             )}
-            
+
             {/* Expanded Content */}
             {expandedStatsCard === 'time' && hasCompletedOnboarding && (
               <div className="mt-3 pt-3 border-t border-border space-y-2">
@@ -780,7 +779,7 @@ export default function Home() {
               </div>
               <Progress value={100} className="h-2" />
             </div>
-            
+
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Calorias</p>
@@ -804,21 +803,22 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            
+
             {/* Expanded Content */}
             {expandedWeeklyProgress && (
               <div className="mt-4 pt-4 border-t border-border space-y-4">
                 <h4 className="font-semibold text-sm">Detalhes Semanais</h4>
-                
+
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Segunda-feira</span>
+                    <span```python
+className="text-sm text-muted-foreground">Segunda-feira</span>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
                       <span className="text-sm font-medium">Pernas - 45min</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Terça-feira</span>
                     <div className="flex items-center gap-2">
@@ -826,7 +826,7 @@ export default function Home() {
                       <span className="text-sm text-muted-foreground">Descanso</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Quarta-feira</span>
                     <div className="flex items-center gap-2">
@@ -834,7 +834,7 @@ export default function Home() {
                       <span className="text-sm font-medium">Peito - 50min</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Quinta-feira</span>
                     <div className="flex items-center gap-2">
@@ -842,7 +842,7 @@ export default function Home() {
                       <span className="text-sm text-muted-foreground">Descanso</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Sexta-feira</span>
                     <div className="flex items-center gap-2">
@@ -850,7 +850,7 @@ export default function Home() {
                       <span className="text-sm font-medium">Costas - 40min</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Sábado</span>
                     <div className="flex items-center gap-2">
@@ -858,7 +858,7 @@ export default function Home() {
                       <span className="text-sm text-muted-foreground">Descanso</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Domingo</span>
                     <div className="flex items-center gap-2">
@@ -867,7 +867,7 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-muted/30 p-3 rounded-lg">
                   <h5 className="text-sm font-medium mb-2">Resumo da Semana</h5>
                   <div className="grid grid-cols-2 gap-2 text-xs">
@@ -896,312 +896,6 @@ export default function Home() {
       )}
 
       {/* Today's Workout */}
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Treino de Hoje</h2>
-        <Card className="bg-slate-50 dark:bg-slate-900 light:bg-slate-100/80 cursor-pointer transition-all duration-200">
-          <CardContent className="p-4">
-            <div 
-              className="mb-3"
-              onClick={() => setExpandedTodaysWorkout(!expandedTodaysWorkout)}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-bold">{mockTodaysWorkout.name}</h3>
-                <div className="flex items-center space-x-2">
-                  <span className="bg-primary/10 dark:bg-primary/20 px-2 py-1 rounded-full text-xs text-primary">
-                    {mockTodaysWorkout.duration} min
-                  </span>
-                  {expandedTodaysWorkout ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </div>
-              </div>
-              <p className="text-muted-foreground text-sm">
-                {mockTodaysWorkout.exercises.length} exercícios • Nível {mockTodaysWorkout.difficulty}
-              </p>
-            </div>
-
-            {/* Expanded Exercise Details */}
-            {expandedTodaysWorkout && (
-              <div className="mb-4 pt-3 border-t border-border">
-                <h4 className="font-semibold text-sm mb-3 text-foreground">Exercícios do Treino</h4>
-                <div className="space-y-2">
-                  {mockTodaysWorkout.exercises.map((exercise, index) => (
-                    <div 
-                      key={exercise.id} 
-                      className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/30"
-                    >
-                      <div className="flex-1">
-                        <div className="flex flex-col">
-                          <h5 className="font-medium text-sm text-foreground">
-                            {exercise.name}
-                          </h5>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {exercise.sets} séries × {exercise.reps} reps
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {exercise.instructions}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right ml-3">
-                        <span className="text-sm font-semibold text-primary">
-                          {exercise.weight}
-                        </span>
-                        <p className="text-xs text-muted-foreground flex items-center">
-                          <Clock className="mr-1 h-2 w-2" />
-                          {exercise.restTime}s
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <Link href="/active-workout">
-              <Button className="w-full py-2 bg-primary hover:bg-primary/90 font-semibold">
-                <Play className="mr-2 h-4 w-4" />
-                Iniciar Treino
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Calories Breakdown */}
-      {hasCompletedOnboarding && (
-        <Card 
-          className="cursor-pointer transition-all duration-200"
-          onClick={() => setExpandedCaloriesCard(!expandedCaloriesCard)}
-        >
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-base">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-yellow-500" />
-                Análise de Calorias
-              </div>
-              {expandedCaloriesCard ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Hoje</span>
-                  <span className="text-sm font-semibold">420 kcal</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Ontem</span>
-                  <span className="text-sm font-semibold">385 kcal</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Esta semana</span>
-                  <span className="text-sm font-semibold">1,845 kcal</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Média/dia</span>
-                  <span className="text-sm font-semibold">263 kcal</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Recorde</span>
-                  <span className="text-sm font-semibold text-orange-600">520 kcal</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total mês</span>
-                  <span className="text-sm font-semibold">7,890 kcal</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Calories by exercise type */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Por tipo de exercício</p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    <span className="text-xs">Cardio</span>
-                  </div>
-                  <span className="text-xs font-medium">780 kcal</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-xs">Força</span>
-                  </div>
-                  <span className="text-xs font-medium">1,065 kcal</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Expanded Content */}
-            {expandedCaloriesCard && (
-              <div className="mt-4 pt-4 border-t border-border space-y-4">
-                <h4 className="font-semibold text-sm">Análise Detalhada</h4>
-                
-                {/* Historical data */}
-                <div className="space-y-3">
-                  <h5 className="text-sm font-medium">Histórico dos últimos 7 dias</h5>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">Hoje (Dom)</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-muted rounded-full h-1">
-                          <div className="bg-red-500 h-1 rounded-full" style={{ width: '85%' }}></div>
-                        </div>
-                        <span className="text-xs font-medium">420 kcal</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">Sáb</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-muted rounded-full h-1">
-                          <div className="bg-red-500 h-1 rounded-full" style={{ width: '78%' }}></div>
-                        </div>
-                        <span className="text-xs font-medium">385 kcal</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">Sex</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-muted rounded-full h-1">
-                          <div className="bg-red-500 h-1 rounded-full" style={{ width: '92%' }}></div>
-                        </div>
-                        <span className="text-xs font-medium">450 kcal</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">Qui</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-muted rounded-full h-1">
-                          <div className="bg-muted-foreground h-1 rounded-full" style={{ width: '0%' }}></div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">0 kcal</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">Qua</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-muted rounded-full h-1">
-                          <div className="bg-red-500 h-1 rounded-full" style={{ width: '88%' }}></div>
-                        </div>
-                        <span className="text-xs font-medium">430 kcal</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">Ter</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-muted rounded-full h-1">
-                          <div className="bg-muted-foreground h-1 rounded-full" style={{ width: '0%' }}></div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">0 kcal</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">Seg</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-muted rounded-full h-1">
-                          <div className="bg-red-500 h-1 rounded-full" style={{ width: '100%' }}></div>
-                        </div>
-                        <span className="text-xs font-medium text-orange-600">520 kcal</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Exercise breakdown */}
-                <div className="space-y-3">
-                  <h5 className="text-sm font-medium">Detalhamento por exercício (Esta semana)</h5>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                        <span className="text-xs">Esteira</span>
-                      </div>
-                      <span className="text-xs font-medium">320 kcal</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                        <span className="text-xs">Bicicleta</span>
-                      </div>
-                      <span className="text-xs font-medium">280 kcal</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-red-300 rounded-full"></div>
-                        <span className="text-xs">Elíptico</span>
-                      </div>
-                      <span className="text-xs font-medium">180 kcal</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-xs">Agachamento</span>
-                      </div>
-                      <span className="text-xs font-medium">285 kcal</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                        <span className="text-xs">Supino</span>
-                      </div>
-                      <span className="text-xs font-medium">260 kcal</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
-                        <span className="text-xs">Remada</span>
-                      </div>
-                      <span className="text-xs font-medium">240 kcal</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-200 rounded-full"></div>
-                        <span className="text-xs">Outros</span>
-                      </div>
-                      <span className="text-xs font-medium">280 kcal</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Goals and projections */}
-                <div className="bg-muted/30 p-3 rounded-lg space-y-2">
-                  <h5 className="text-sm font-medium">Metas e Projeções</h5>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Meta diária:</span>
-                      <span className="font-medium">350 kcal</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Meta semanal:</span>
-                      <span className="font-medium">2,100 kcal</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Projeção mensal:</span>
-                      <span className="font-medium text-blue-600">8,400 kcal</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Para bater meta:</span>
-                      <span className="font-medium text-green-600">+255 kcal</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Upcoming Workouts */}
       <div>
         <h2 className="text-lg font-semibold mb-3">Próximos Treinos</h2>
         <div className="space-y-2">
