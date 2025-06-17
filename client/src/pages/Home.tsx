@@ -644,7 +644,7 @@ export default function Home() {
           )}
         </div>
 
-        
+
       </div>
 
       {/* Extended Stats */}
@@ -776,7 +776,7 @@ export default function Home() {
         </div>
         </div>
 
-        
+
       </div>
 
       {/* Weekly Progress */}
