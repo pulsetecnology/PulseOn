@@ -42,4 +42,4 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "NODE_ENV=development npm run dev"
