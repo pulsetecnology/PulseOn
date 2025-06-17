@@ -470,6 +470,10 @@ export default function Home() {
     setExpandedUpcomingWorkout(expandedUpcomingWorkout === workoutId ? null : workoutId);
   };
 
+  const toggleStatsCard = (cardId: string) => {
+    setExpandedStatsCard(expandedStatsCard === cardId ? null : cardId);
+  };
+
   return (
     <div className="px-4 py-6 space-y-6">
       {/* Welcome Section */}
@@ -525,7 +529,7 @@ export default function Home() {
       <div className="grid grid-cols-2 gap-3">
         <Card 
           className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
-          onClick={() => setExpandedStatsCard(expandedStatsCard === 'workouts' ? null : 'workouts')}
+          onClick={() => toggleStatsCard('workouts')}
         >
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
@@ -576,7 +580,7 @@ export default function Home() {
 
         <Card 
           className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
-          onClick={() => setExpandedStatsCard(expandedStatsCard === 'streak' ? null : 'streak')}
+          onClick={() => toggleStatsCard('streak')}
         >
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
@@ -635,7 +639,7 @@ export default function Home() {
       <div className="grid grid-cols-2 gap-3">
         <Card 
           className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
-          onClick={() => setExpandedStatsCard(expandedStatsCard === 'calories' ? null : 'calories')}
+          onClick={() => toggleStatsCard('calories')}
         >
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">
@@ -693,7 +697,7 @@ export default function Home() {
 
         <Card 
           className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
-          onClick={() => setExpandedStatsCard(expandedStatsCard === 'time' ? null : 'time')}
+          onClick={() => toggleStatsCard('time')}
         >
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-1">

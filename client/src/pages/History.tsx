@@ -201,29 +201,7 @@ export default function History() {
     <div className="px-4 py-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Histórico de Treinos</h1>
-        <p className="text-muted-foreground">Acompanhe seu progresso e performance</p>
-      </div>
-
-      {/* Stats Summary */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">24</div>
-            <div className="text-sm text-muted-foreground">Treinos</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-success">18h</div>
-            <div className="text-sm text-muted-foreground">Total</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-error">7</div>
-            <div className="text-sm text-muted-foreground">Sequência</div>
-          </CardContent>
-        </Card>
+        <p className="text-muted-foreground">Visualize todos os treinos realizados e seu desempenho</p>
       </div>
 
       {/* Workout History */}
