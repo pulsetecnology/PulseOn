@@ -811,8 +811,7 @@ export default function Home() {
 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span```python
-className="text-sm text-muted-foreground">Segunda-feira</span>
+                    <span className="text-sm text-muted-foreground">Segunda-feira</span>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
                       <span className="text-sm font-medium">Pernas - 45min</span>
