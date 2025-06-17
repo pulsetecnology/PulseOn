@@ -6,9 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Clock, Plus, Dumbbell, User, Trophy, TrendingUp, CheckCircle, AlertCircle, BarChart3, Calendar, Target, Zap, ChevronDown, ChevronUp, X, Scale, Heart, Flame, Play } from "lucide-react";
+import { Clock, Dumbbell, User, Trophy, CheckCircle, AlertCircle, BarChart3, Calendar, Target, ChevronDown, ChevronUp, X, Scale, Heart, Flame, Play } from "lucide-react";
 import FitnessIcon from "@/components/FitnessIcon";
 
 // Mock workout data with exercise details
