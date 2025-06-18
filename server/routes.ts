@@ -375,62 +375,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Workout Generation - "Atualizar IA" button functionality
   app.post("/api/ai/generate-workout", authenticateToken, async (req: Request, res: Response) => {
     try {
-      const user = req.user!;
-      
-      // Get user profile data for AI request
-      const userProfile = await storage.getUser(user.id);
-      if (!userProfile) {
-        return res.status(404).json({ message: "Perfil do usuário não encontrado" });
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
       }
 
-      // Check if user has completed onboarding
-      if (!userProfile.onboardingCompleted) {
-        return res.status(400).json({ message: "Complete o onboarding primeiro para gerar treinos personalizados" });
+      // Remove sensitive data
+      const { password, ...userData } = user;
+
+      // Calculate age if birthDate exists
+      let age = null;
+      if (userData.birthDate) {
+        const today = new Date();
+        const birth = new Date(userData.birthDate);
+        age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+          age--;
+        }
       }
 
-      // Prepare data for N8N AI request
-      const aiRequestData = {
-        userId: user.id,
-        age: userProfile.age || 25,
-        weight: userProfile.weight || 70,
-        height: userProfile.height || 170,
-        fitnessGoal: userProfile.fitnessGoal || "improve_conditioning",
-        experienceLevel: userProfile.experienceLevel || "intermediate",
-        weeklyFrequency: userProfile.weeklyFrequency || 3,
-        availableEquipment: userProfile.availableEquipment || ["basic"],
-        physicalRestrictions: userProfile.physicalRestrictions || ""
+      // Prepare the data structure for N8N
+      const n8nData = {
+        userId: userData.id,
+        timestamp: new Date().toISOString(),
+        personalInfo: {
+          name: userData.name,
+          email: userData.email,
+          birthDate: userData.birthDate,
+          age: age || userData.age,
+          weight: userData.weight,
+          height: userData.height,
+          gender: userData.gender
+        },
+        fitnessProfile: {
+          fitnessGoal: userData.fitnessGoal,
+          experienceLevel: userData.experienceLevel,
+          weeklyFrequency: userData.weeklyFrequency,
+          availableEquipment: userData.availableEquipment,
+          customEquipment: userData.customEquipment,
+          physicalRestrictions: userData.physicalRestrictions,
+          preferredWorkoutTime: userData.preferredWorkoutTime,
+          availableDaysPerWeek: userData.availableDaysPerWeek,
+          averageWorkoutDuration: userData.averageWorkoutDuration,
+          preferredLocation: userData.preferredLocation
+        },
+        lifestyle: {
+          smokingStatus: userData.smokingStatus,
+          alcoholConsumption: userData.alcoholConsumption,
+          dietType: userData.dietType,
+          sleepHours: userData.sleepHours,
+          stressLevel: userData.stressLevel
+        },
+        metadata: {
+          onboardingCompleted: userData.onboardingCompleted,
+          avatarUrl: userData.avatarUrl,
+          lastUpdated: new Date().toISOString()
+        },
+        validationField: "test-connection-railway-n8n"
       };
 
-      console.log("Requesting AI workout for user:", user.id, aiRequestData);
-
-      // Call N8N service for AI workout generation
-      const aiWorkoutResponse = await requestWorkoutFromAI(aiRequestData);
+      // Send to Railway N8N webhook
+      const RAILWAY_WEBHOOK_URL = "https://primary-production-3b832.up.railway.app/webhook-test/onboarding-recebido";
+      let n8nResponse = null;
       
-      // Calculate total duration and calories
-      const totalDuration = aiWorkoutResponse.workoutPlan.reduce((sum: number, exercise: any) => {
-        return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60)); // estimate minutes for strength exercises
-      }, 0);
+      try {
+        console.log('Sending data to Railway N8N webhook:', RAILWAY_WEBHOOK_URL);
+        const webhookResponse = await fetch(RAILWAY_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(n8nData)
+        });
 
-      const totalCalories = aiWorkoutResponse.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
+        if (webhookResponse.ok) {
+          const responseClone = webhookResponse.clone();
+          try {
+            n8nResponse = await webhookResponse.json();
+            console.log('N8N webhook response:', n8nResponse);
+            
+            // Process AI workout response if present
+            if (n8nResponse && n8nResponse.output) {
+              try {
+                // Extract JSON from the output string
+                const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch) {
+                  const workoutData = JSON.parse(jsonMatch[1]);
+                  console.log('Parsed workout data:', workoutData);
+                  
+                  if (workoutData.workoutPlan && Array.isArray(workoutData.workoutPlan)) {
+                    // Calculate total duration and calories
+                    const totalDuration = workoutData.workoutPlan.reduce((sum: number, exercise: any) => {
+                      return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60));
+                    }, 0);
 
-      // Generate workout name
-      const workoutName = `Treino Personalizado - ${new Date().toLocaleDateString('pt-BR')}`;
+                    const totalCalories = workoutData.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
 
-      // Save scheduled workout to database
-      const scheduledWorkout = await storage.createScheduledWorkout({
-        userId: user.id,
-        name: workoutName,
-        exercises: aiWorkoutResponse.workoutPlan,
-        totalCalories: Math.round(totalCalories),
-        totalDuration: Math.round(totalDuration),
-        status: "pending"
-      });
+                    // Generate workout name
+                    const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR')}`;
 
-      console.log("AI workout generated and saved:", scheduledWorkout.id);
+                    // Save scheduled workout to database
+                    const scheduledWorkout = await storage.createScheduledWorkout({
+                      userId: userId,
+                      name: workoutName,
+                      exercises: workoutData.workoutPlan,
+                      totalCalories: Math.round(totalCalories),
+                      totalDuration: Math.round(totalDuration),
+                      status: "pending"
+                    });
 
-      res.status(201).json({
-        message: "Treino gerado pela IA com sucesso!",
-        workout: scheduledWorkout
+                    console.log("AI workout saved to database:", scheduledWorkout.id);
+                    
+                    return res.json({
+                      message: "Treino gerado com sucesso!",
+                      workout: scheduledWorkout,
+                      n8nResponse: n8nResponse
+                    });
+                  }
+                }
+              } catch (parseWorkoutError) {
+                console.error('Error parsing workout from N8N response:', parseWorkoutError);
+              }
+            }
+            
+          } catch (parseError) {
+            console.error('Error parsing N8N response:', parseError);
+          }
+        } else {
+          const errorText = await webhookResponse.text();
+          console.error('N8N webhook error:', webhookResponse.status, errorText);
+          n8nResponse = { error: `HTTP ${webhookResponse.status}`, details: errorText };
+        }
+      } catch (webhookError) {
+        console.error('Error sending to N8N webhook:', webhookError);
+        n8nResponse = { error: webhookError.message };
+      }
+
+      res.json({ 
+        message: "Processamento concluído",
+        n8nResponse: n8nResponse
       });
 
     } catch (error: any) {
@@ -821,6 +907,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             n8nResponse = await webhookResponse.json();
             console.log('N8N webhook response:', n8nResponse);
+            
+            // Process AI workout response if present
+            if (n8nResponse && n8nResponse.output) {
+              try {
+                // Extract JSON from the output string
+                const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch) {
+                  const workoutData = JSON.parse(jsonMatch[1]);
+                  console.log('Parsed workout data:', workoutData);
+                  
+                  if (workoutData.workoutPlan && Array.isArray(workoutData.workoutPlan)) {
+                    // Calculate total duration and calories
+                    const totalDuration = workoutData.workoutPlan.reduce((sum: number, exercise: any) => {
+                      return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60));
+                    }, 0);
+
+                    const totalCalories = workoutData.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
+
+                    // Generate workout name
+                    const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR')}`;
+
+                    // Save scheduled workout to database
+                    const scheduledWorkout = await storage.createScheduledWorkout({
+                      userId: userId,
+                      name: workoutName,
+                      exercises: workoutData.workoutPlan,
+                      totalCalories: Math.round(totalCalories),
+                      totalDuration: Math.round(totalDuration),
+                      status: "pending"
+                    });
+
+                    console.log("AI workout saved to database:", scheduledWorkout.id);
+                    n8nResponse.savedWorkout = scheduledWorkout;
+                  }
+                }
+              } catch (parseWorkoutError) {
+                console.error('Error parsing workout from N8N response:', parseWorkoutError);
+              }
+            }
             
             // Save response to file for validation
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

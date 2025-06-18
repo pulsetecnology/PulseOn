@@ -12,215 +12,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { Clock, Dumbbell, User, Trophy, CheckCircle, AlertCircle, BarChart3, Calendar, Target, ChevronDown, ChevronUp, X, Scale, Heart, Flame, Play, Loader2, Sparkles } from "lucide-react";
 import FitnessIcon from "@/components/FitnessIcon";
 
-// Mock workout data with exercise details
-const mockTodaysWorkout = {
-  id: 1,
-  name: "Treino de Pernas",
-  duration: 45,
-  difficulty: "Intermediário",
-  exercises: [
-    {
-      id: "leg-1",
-      name: "Agachamento",
-      sets: 4,
-      reps: 12,
-      weight: "80kg",
-      restTime: 90,
-      instructions: "Mantenha os pés paralelos, desça até formar 90° nos joelhos",
-      muscleGroups: ["quadríceps", "glúteos"]
-    },
-    {
-      id: "leg-2", 
-      name: "Leg Press",
-      sets: 3,
-      reps: 15,
-      weight: "120kg",
-      restTime: 60,
-      instructions: "Posicione os pés na largura dos ombros, controle a descida",
-      muscleGroups: ["quadríceps", "glúteos"]
-    },
-    {
-      id: "leg-3",
-      name: "Extensão de Pernas",
-      sets: 3,
-      reps: 12,
-      weight: "40kg", 
-      restTime: 45,
-      instructions: "Movimento controlado, pausa de 1 segundo no topo",
-      muscleGroups: ["quadríceps"]
-    },
-    {
-      id: "leg-4",
-      name: "Flexão de Pernas",
-      sets: 3,
-      reps: 12,
-      weight: "35kg",
-      restTime: 45,
-      instructions: "Controle a fase excêntrica, não deixe o peso bater",
-      muscleGroups: ["isquiotibiais"]
-    },
-    {
-      id: "leg-5",
-      name: "Panturrilha em Pé",
-      sets: 4,
-      reps: 20,
-      weight: "60kg",
-      restTime: 30,
-      instructions: "Amplitude completa, pausa de 1 segundo no topo",
-      muscleGroups: ["panturrilha"]
-    }
-  ]
-};
-
-const mockUpcomingWorkouts = [
-  {
-    id: 2,
-    name: "Treino de Peito",
-    date: "Amanhã",
-    difficulty: "Intermediário",
-    exercises: [
-      {
-        id: "chest-1",
-        name: "Supino Reto",
-        sets: 4,
-        reps: 10,
-        weight: "70kg",
-        restTime: 90,
-        instructions: "Controle a barra, toque levemente no peito",
-        muscleGroups: ["peitoral", "tríceps"]
-      },
-      {
-        id: "chest-2",
-        name: "Supino Inclinado",
-        sets: 3,
-        reps: 12,
-        weight: "60kg",
-        restTime: 75,
-        instructions: "Inclinação de 45°, foco na porção superior do peitoral",
-        muscleGroups: ["peitoral superior"]
-      },
-      {
-        id: "chest-3",
-        name: "Flexão de Braços",
-        sets: 3,
-        reps: 15,
-        weight: "Peso Corporal",
-        restTime: 60,
-        instructions: "Mantenha o corpo alinhado, descida controlada",
-        muscleGroups: ["peitoral", "tríceps"]
-      },
-      {
-        id: "chest-4",
-        name: "Voador",
-        sets: 3,
-        reps: 12,
-        weight: "25kg",
-        restTime: 45,
-        instructions: "Movimento em arco, contração no final",
-        muscleGroups: ["peitoral"]
-      },
-      {
-        id: "chest-5",
-        name: "Crucifixo",
-        sets: 3,
-        reps: 12,
-        weight: "20kg",
-        restTime: 45,
-        instructions: "Leve flexão dos cotovelos, movimento controlado",
-        muscleGroups: ["peitoral"]
-      },
-      {
-        id: "chest-6",
-        name: "Paralelas",
-        sets: 3,
-        reps: 10,
-        weight: "Peso Corporal",
-        restTime: 75,
-        instructions: "Incline o tronco levemente para frente",
-        muscleGroups: ["peitoral inferior", "tríceps"]
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: "Treino de Costas",
-    date: "Quinta-feira",
-    difficulty: "Avançado",
-    exercises: [
-      {
-        id: "back-1",
-        name: "Barra Fixa",
-        sets: 4,
-        reps: 8,
-        weight: "Peso Corporal",
-        restTime: 90,
-        instructions: "Pegada pronada, puxada até o queixo",
-        muscleGroups: ["latíssimo", "bíceps"]
-      },
-      {
-        id: "back-2",
-        name: "Remada Curvada",
-        sets: 4,
-        reps: 10,
-        weight: "65kg",
-        restTime: 75,
-        instructions: "Tronco inclinado 45°, puxada até o abdômen",
-        muscleGroups: ["latíssimo", "rombóides"]
-      },
-      {
-        id: "back-3",
-        name: "Puxada Frontal",
-        sets: 3,
-        reps: 12,
-        weight: "55kg",
-        restTime: 60,
-        instructions: "Pegada aberta, puxada até a altura do peito",
-        muscleGroups: ["latíssimo", "rombóides"]
-      },
-      {
-        id: "back-4",
-        name: "Remada Sentado",
-        sets: 3,
-        reps: 12,
-        weight: "50kg",
-        restTime: 60,
-        instructions: "Tronco ereto, puxada até o abdômen",
-        muscleGroups: ["latíssimo", "rombóides"]
-      },
-      {
-        id: "back-5",
-        name: "Levantamento Terra",
-        sets: 4,
-        reps: 8,
-        weight: "90kg",
-        restTime: 120,
-        instructions: "Mantenha as costas retas, força nas pernas",
-        muscleGroups: ["lombar", "glúteos", "isquiotibiais"]
-      },
-      {
-        id: "back-6",
-        name: "Pullover",
-        sets: 3,
-        reps: 12,
-        weight: "25kg",
-        restTime: 45,
-        instructions: "Movimento em arco, abertura da caixa torácica",
-        muscleGroups: ["latíssimo", "serrátil"]
-      },
-      {
-        id: "back-7",
-        name: "Encolhimento",
-        sets: 3,
-        reps: 15,
-        weight: "30kg",
-        restTime: 45,
-        instructions: "Movimento vertical, contração no topo",
-        muscleGroups: ["trapézio"]
-      }
-    ]
-  }
-];
-
 // Component for expandable onboarding card
 function OnboardingCard({ user }: { user: any }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -292,7 +83,6 @@ function OnboardingCard({ user }: { user: any }) {
       });
     }
 
-    // Adicionar validações para campos de estilo de vida se necessário
     if (!user?.smokingStatus) {
       missingFields.push({
         field: "Status de tabagismo",
@@ -500,8 +290,30 @@ export default function Home() {
     },
   });
 
+  // Generate N8N sync mutation for dashboard
+  const syncN8NMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/n8n/sync-user-data", "POST");
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Dados sincronizados!",
+        description: "Seus dados foram sincronizados com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workout-sessions"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao sincronizar dados",
+        description: "Tente novamente em alguns minutos.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const completedWorkouts = Array.isArray(workoutSessions) ? workoutSessions.filter((session: any) => session.completedAt).length : 0;
-  const currentStreak = 7; // Calculate based on consecutive workout days
+  const currentStreak = Array.isArray(workoutSessions) ? workoutSessions.filter((session: any) => session.completedAt).length : 0; // Calculate based on consecutive workout days
   const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) ? scheduledWorkouts.length > 0 : false;
   const todaysWorkout = Array.isArray(scheduledWorkouts) ? scheduledWorkouts.find((workout: any) => workout.status === "pending") : null;
 
@@ -511,6 +323,14 @@ export default function Home() {
 
   const toggleStatsCard = (cardId: string) => {
     setExpandedStatsCard(expandedStatsCard === cardId ? null : cardId);
+  };
+
+  const toggleWeeklyProgress = () => {
+    setExpandedWeeklyProgress(!expandedWeeklyProgress);
+  };
+
+  const toggleCaloriesCard = () => {
+    setExpandedCaloriesCard(!expandedCaloriesCard);
   };
 
   return (
@@ -564,397 +384,35 @@ export default function Home() {
         </Card>
       )}
 
-      {/* Quick Stats */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          {expandedStatsCard !== 'streak' && (
-            <Card 
-              className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
-                expandedStatsCard === 'workouts' ? 'col-span-2' : ''
-              }`}
-              onClick={() => toggleStatsCard('workouts')}
-            >
+      {/* Quick Stats - Only show if there are completed workouts */}
+      {completedWorkouts > 0 && (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="hover:shadow-md transition-all duration-200">
               <CardContent className="p-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-muted-foreground">Treinos Concluídos</span>
                   <div className="flex items-center gap-1">
                     <FitnessIcon className="h-3 w-3" />
-                    {expandedStatsCard === 'workouts' ? (
-                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                    )}
                   </div>
                 </div>
                 <span className="text-xl font-bold">{completedWorkouts}</span>
-                {completedWorkouts > 0 && (
-                  <Badge variant="secondary" className="mt-1 text-xs">
-                    +3 esta semana
-                  </Badge>
-                )}
-
-                {/* Expanded Content */}
-                {expandedStatsCard === 'workouts' && (
-                  <div className="mt-3 pt-3 border-t border-border space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Esta semana:</span>
-                      <span className="font-medium">3 treinos</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Este mês:</span>
-                      <span className="font-medium">12 treinos</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Média/semana:</span>
-                      <span className="font-medium">2.8 treinos</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Maior sequência:</span>
-                      <span className="font-medium text-orange-600">14 dias</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Treino favorito:</span>
-                      <span className="font-medium">Pernas</span>
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
-          )}
 
-          {expandedStatsCard !== 'workouts' && (
-            <Card 
-              className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
-                expandedStatsCard === 'streak' ? 'col-span-2' : ''
-              }`}
-              onClick={() => toggleStatsCard('streak')}
-            >
+            <Card className="hover:shadow-md transition-all duration-200">
               <CardContent className="p-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-muted-foreground">Sequência Atual</span>
                   <div className="flex items-center gap-1">
                     <Flame className="h-3 w-3 text-orange-500" />
-                    {expandedStatsCard === 'streak' ? (
-                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                    )}
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold">{currentStreak} dias</span>
-                  {currentStreak >= 7 && (
-                    <Badge variant="destructive" className="text-xs">
-                      Em chamas!
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Expanded Content */}
-                {expandedStatsCard === 'streak' && (
-                  <div className="mt-3 pt-3 border-t border-border space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Iniciou em:</span>
-                      <span className="font-medium">05/01/2025</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Próxima meta:</span>
-                      <span className="font-medium text-blue-600">10 dias</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Recorde pessoal:</span>
-                      <span className="font-medium text-green-600">14 dias</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Último treino:</span>
-                      <span className="font-medium">Hoje</span>
-                    </div>
-                    <div className="w-full mt-2">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Progresso até 10 dias</span>
-                        <span className="font-medium">70%</span>
-                      </div>
-                      <Progress value={70} className="h-1" />
-                    </div>
-                  </div>
-                )}
+                <span className="text-xl font-bold">{currentStreak}</span>
               </CardContent>
             </Card>
-          )}
+          </div>
         </div>
-
-
-      </div>
-
-      {/* Extended Stats */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          {expandedStatsCard !== 'time' && (
-            <Card 
-              className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
-                expandedStatsCard === 'calories' ? 'col-span-2' : ''
-              }`}
-              onClick={() => toggleStatsCard('calories')}
-            >
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-muted-foreground">Calorias Queimadas</span>
-                  <div className="flex items-center gap-1">
-                    <Flame className="h-3 w-3 text-red-500" />
-                    {expandedStatsCard === 'calories' ? (
-                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                    )}
-                  </div>
-                </div>
-                <span className="text-xl font-bold">{hasCompletedOnboarding ? "1,845" : "0"}</span>
-                {hasCompletedOnboarding && (
-                  <Badge variant="secondary" className="mt-1 text-xs">
-                    Esta semana
-                  </Badge>
-                )}
-
-                {/* Expanded Content */}
-                {expandedStatsCard === 'calories' && hasCompletedOnboarding && (
-                  <div className="mt-3 pt-3 border-t border-border space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Hoje:</span>
-                      <span className="font-medium">420 kcal</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Ontem:</span>
-                      <span className="font-medium">385 kcal</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Média/dia:</span>
-                      <span className="font-medium">263 kcal</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Meta semanal:</span>
-                      <span className="font-medium text-blue-600">2,100 kcal</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Maior queima:</span>
-                      <span className="font-medium text-orange-600">520 kcal</span>
-                    </div>
-                    <div className="w-full mt-2">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Meta semanal</span>
-                        <span className="font-medium">88%</span>
-                      </div>
-                      <Progress value={88} className="h-1" />
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {expandedStatsCard !== 'calories' && (
-            <Card 
-              className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
-                expandedStatsCard === 'time' ? 'col-span-2' : ''
-              }`}
-              onClick={() => toggleStatsCard('time')}
-            >
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-muted-foreground">Tempo Total</span>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3 text-blue-500" />
-                    {expandedStatsCard === 'time' ? (
-                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                    )}
-                  </div>
-                </div>
-                <span className="text-xl font-bold">{hasCompletedOnboarding ? "18h" : "0h"}</span>
-                {hasCompletedOnboarding && (
-                  <Badge variant="secondary" className="mt-1 text-xs">
-                    Este mês
-                  </Badge>
-                )}
-
-                {/* Expanded Content */}
-                {expandedStatsCard === 'time' && hasCompletedOnboarding && (
-                  <div className="mt-3 pt-3 border-t border-border space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Esta semana:</span>
-                      <span className="font-medium">2h 15min</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Último treino:</span>
-                      <span className="font-medium">45min</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Média/treino:</span>
-                      <span className="font-medium">45min</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Maior treino:</span>
-                      <span className="font-medium text-green-600">1h 20min</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Meta mensal:</span>
-                      <span className="font-medium text-blue-600">20h</span>
-                    </div>
-                    <div className="w-full mt-2">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Meta mensal</span>
-                        <span className="font-medium">90%</span>
-                      </div>
-                      <Progress value={90} className="h-1" />
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
-
-      {/* Weekly Progress */}
-      {hasCompletedOnboarding && (
-        <Card 
-          className="cursor-pointer transition-all duration-200"
-          onClick={() => setExpandedWeeklyProgress(!expandedWeeklyProgress)}
-        >
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-base">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Progresso da Semana
-              </div>
-              {expandedWeeklyProgress ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Meta Semanal</span>
-                <span className="text-muted-foreground">3/3 treinos</span>
-              </div>
-              <Progress value={100} className="h-2" />
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Calorias</p>
-                <p className="text-sm font-semibold">645 kcal</p>
-                <div className="w-full bg-muted rounded-full h-1">
-                  <div className="bg-red-500 h-1 rounded-full" style={{ width: '80%' }}></div>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Tempo</p>
-                <p className="text-sm font-semibold">2h 15min</p>
-                <div className="w-full bg-muted rounded-full h-1">
-                  <div className="bg-blue-500 h-1 rounded-full" style={{ width: '75%' }}></div>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Exercícios</p>
-                <p className="text-sm font-semibold">15</p>
-                <div className="w-full bg-muted rounded-full h-1">
-                  <div className="bg-green-500 h-1 rounded-full" style={{ width: '90%' }}></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Expanded Content */}
-            {expandedWeeklyProgress && (
-              <div className="mt-4 pt-4 border-t border-border space-y-4">
-                <h4 className="font-semibold text-sm">Detalhes Semanais</h4>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Segunda-feira</span>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">Pernas - 45min</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Terça-feira</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Quarta-feira</span>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">Peito - 50min</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Quinta-feira</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Sexta-feira</span>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">Costas - 40min</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Sábado</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Domingo</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-muted/30 p-3 rounded-lg">
-                  <h5 className="text-sm font-medium mb-2">Resumo da Semana</h5>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total de calorias:</span>
-                      <span className="font-medium">1,845 kcal</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Tempo total:</span>
-                      <span className="font-medium">2h 15min</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Exercícios únicos:</span>
-                      <span className="font-medium">15</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Grupos musculares:</span>
-                      <span className="font-medium">8</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       )}
 
       {/* Today's Workout */}
@@ -963,25 +421,25 @@ export default function Home() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold">Treino de Hoje</h2>
             <Button
-              onClick={() => generateWorkoutMutation.mutate()}
-              disabled={generateWorkoutMutation.isPending}
+              onClick={() => syncN8NMutation.mutate()}
+              disabled={syncN8NMutation.isPending}
               size="sm"
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
-              {generateWorkoutMutation.isPending ? (
+              {syncN8NMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Gerando...
+                  Sincronizando...
                 </>
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Atualizar IA
+                  Sincronizar Dados
                 </>
               )}
             </Button>
           </div>
-          
+
           {workoutsLoading ? (
             <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
               <CardContent className="p-4">
@@ -1076,7 +534,7 @@ export default function Home() {
                       Nenhum treino encontrado
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Clique em "Atualizar IA" para gerar um novo treino personalizado
+                      Sincronize seus dados para obter um novo treino personalizado
                     </p>
                   </div>
                 </div>
@@ -1087,7 +545,7 @@ export default function Home() {
       )}
 
       {/* Upcoming Workouts */}
-      <div>
+      {/* <div>
         <h2 className="text-lg font-semibold mb-3">Próximos Treinos</h2>
         <div className="space-y-2">
           {mockUpcomingWorkouts.map((workout) => (
@@ -1112,7 +570,7 @@ export default function Home() {
                 </div>
 
                 {/* Expanded Exercise Details */}
-                {expandedUpcomingWorkout === workout.id && (
+                {/* {expandedUpcomingWorkout === workout.id && (
                   <div className="mt-4 pt-3 border-t border-border">
                     <h4 className="font-semibold text-sm mb-3 text-foreground">Exercícios do Treino</h4>
                     <div className="space-y-2">
@@ -1152,7 +610,7 @@ export default function Home() {
             </Card>
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
