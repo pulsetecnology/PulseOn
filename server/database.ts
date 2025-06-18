@@ -32,6 +32,16 @@ export function initializeDatabase() {
       weekly_frequency INTEGER,
       available_equipment TEXT,
       physical_restrictions TEXT,
+      preferred_workout_time TEXT,
+      available_days_per_week INTEGER,
+      average_workout_duration TEXT,
+      preferred_location TEXT,
+      smoking_status TEXT,
+      alcohol_consumption TEXT,
+      diet_type TEXT,
+      sleep_hours TEXT,
+      stress_level TEXT,
+      avatar_url TEXT,
       onboarding_completed INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`;
@@ -69,14 +79,31 @@ export function initializeDatabase() {
       completed_at TEXT,
       exercises TEXT,
       total_duration INTEGER,
+      total_calories INTEGER DEFAULT 0,
+      notes TEXT,
       FOREIGN KEY (user_id) REFERENCES users(id),
       FOREIGN KEY (workout_id) REFERENCES workouts(id)
+    )`;
+
+    const createScheduledWorkoutsTable = `
+    CREATE TABLE IF NOT EXISTS scheduled_workouts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      exercises TEXT NOT NULL,
+      total_calories INTEGER DEFAULT 0,
+      total_duration INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'pending',
+      scheduled_for TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
     )`;
 
     sqlite.exec(createUsersTable);
     sqlite.exec(createSessionsTable);
     sqlite.exec(createWorkoutsTable);
     sqlite.exec(createWorkoutSessionsTable);
+    sqlite.exec(createScheduledWorkoutsTable);
 
     // Check if test user exists
     const existingUser = sqlite.prepare("SELECT id FROM users WHERE email = ?").get("teste@pulseon.com");
@@ -84,8 +111,8 @@ export function initializeDatabase() {
     if (!existingUser) {
       // Insert test user
       const insertUser = sqlite.prepare(`
-        INSERT INTO users (email, password, name, birth_date, age, weight, height, gender, fitness_goal, experience_level, weekly_frequency, available_equipment, physical_restrictions, onboarding_completed)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO users (email, password, name, birth_date, age, weight, height, gender, fitness_goal, experience_level, weekly_frequency, available_equipment, physical_restrictions, preferred_workout_time, available_days_per_week, average_workout_duration, preferred_location, smoking_status, alcohol_consumption, diet_type, sleep_hours, stress_level, avatar_url, onboarding_completed)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       insertUser.run(
@@ -102,6 +129,16 @@ export function initializeDatabase() {
         3,
         JSON.stringify(["dumbbells", "resistance_bands"]),
         "Nenhuma",
+        "morning",
+        3,
+        "30min_to_1h",
+        "gym",
+        "no",
+        "never",
+        "balanced",
+        "6-7",
+        "low",
+        null,
         1
       );
 

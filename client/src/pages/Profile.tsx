@@ -307,6 +307,8 @@ export default function Profile() {
 
   const avatarUploadMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log('Starting avatar upload for file:', file.name, 'size:', file.size);
+      
       const formData = new FormData();
       formData.append('avatar', file);
 
@@ -319,20 +321,66 @@ export default function Profile() {
         body: formData
       });
 
+      console.log('Avatar upload response status:', response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Avatar upload error:', errorText);
-        throw new Error(`Failed to upload avatar: ${response.status}`);
+        console.error('Avatar upload error response:', errorText);
+        
+        let errorMessage = "Erro ao fazer upload da imagem";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorMessage;
+        } catch {
+          // Fallback to default message if parsing fails
+        }
+        
+        throw new Error(errorMessage);
       }
-      return response.json();
+      
+      const result = await response.json();
+      console.log('Avatar upload success:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Avatar upload mutation success:', data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       showSuccess("Avatar atualizado com sucesso!");
     },
     onError: (error: Error) => {
       console.error('Avatar upload mutation error:', error);
-      showError("Erro ao fazer upload da imagem. Tente novamente.");
+      showError(error.message || "Erro ao fazer upload da imagem. Tente novamente.");
+    }
+  });
+
+  const sendToN8NMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/n8n/sync-user-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to sync data: ${response.status}`);
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log('N8N sync response:', data);
+      if (data.n8nResponse) {
+        console.log('N8N webhook response:', data.n8nResponse);
+        showSuccess("Treino atualizado com sucesso!");
+      } else {
+        showSuccess("Treino atualizado com sucesso!");
+      }
+    },
+    onError: (error: Error) => {
+      console.error('N8N sync error:', error);
+      showError("Erro ao atualizar treino. Tente novamente.");
     }
   });
 
@@ -357,6 +405,10 @@ export default function Profile() {
 
     // Reset the input so the same file can be selected again if needed
     event.target.value = '';
+  };
+
+  const handleSendToN8N = () => {
+    sendToN8NMutation.mutate();
   };
 
   const handleCancelEdit = () => {
@@ -405,7 +457,12 @@ export default function Profile() {
           <div className="relative">
             <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 border-2 border-primary/20">
               <AvatarImage 
-                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
+                src={user.avatarUrl ? `${window.location.origin}${user.avatarUrl}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
+                alt="Avatar do usuário"
+                onError={(e) => {
+                  console.log('Error loading avatar:', user.avatarUrl);
+                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`;
+                }}
               />
               <AvatarFallback className="text-xl sm:text-2xl bg-primary text-primary-foreground">
                 {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
@@ -446,6 +503,7 @@ export default function Profile() {
               </span>
             </div>
           </div>
+          
         </div>
       </div>
 
