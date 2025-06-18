@@ -457,7 +457,12 @@ export default function Profile() {
           <div className="relative">
             <Avatar className="h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 border-2 border-primary/20">
               <AvatarImage 
-                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
+                src={user.avatarUrl ? `${window.location.origin}${user.avatarUrl}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`} 
+                alt="Avatar do usuário"
+                onError={(e) => {
+                  console.log('Error loading avatar:', user.avatarUrl);
+                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=80`;
+                }}
               />
               <AvatarFallback className="text-xl sm:text-2xl bg-primary text-primary-foreground">
                 {user.name?.split(' ').map(n => n[0]).join('') || 'U'}

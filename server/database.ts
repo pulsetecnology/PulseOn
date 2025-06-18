@@ -41,7 +41,7 @@ export function initializeDatabase() {
       diet_type TEXT,
       sleep_hours TEXT,
       stress_level TEXT,
-      profile_photo TEXT,
+      avatar_url TEXT,
       onboarding_completed INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`;
@@ -111,7 +111,7 @@ export function initializeDatabase() {
     if (!existingUser) {
       // Insert test user
       const insertUser = sqlite.prepare(`
-        INSERT INTO users (email, password, name, birth_date, age, weight, height, gender, fitness_goal, experience_level, weekly_frequency, available_equipment, physical_restrictions, preferred_workout_time, available_days_per_week, average_workout_duration, preferred_location, smoking_status, alcohol_consumption, diet_type, sleep_hours, stress_level, profile_photo, onboarding_completed)
+        INSERT INTO users (email, password, name, birth_date, age, weight, height, gender, fitness_goal, experience_level, weekly_frequency, available_equipment, physical_restrictions, preferred_workout_time, available_days_per_week, average_workout_duration, preferred_location, smoking_status, alcohol_consumption, diet_type, sleep_hours, stress_level, avatar_url, onboarding_completed)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
