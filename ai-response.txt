@@ -1,12 +1,12 @@
 AI Response Log - PulseOn (Sync Data)
 =========================
 
-Data da última atualização: 18/06/2025, 03:24:37
+Data da última atualização: 18/06/2025, 03:34:54
 
 Sync Request Data:
 {
   "userId": 1,
-  "timestamp": "2025-06-18T03:24:37.775Z",
+  "timestamp": "2025-06-18T03:34:50.550Z",
   "personalInfo": {
     "name": "André Luis da Silva",
     "email": "andre.luiss75@gmail.com",
@@ -40,14 +40,14 @@ Sync Request Data:
   },
   "metadata": {
     "onboardingCompleted": true,
-    "lastUpdated": "2025-06-18T03:24:37.775Z"
+    "lastUpdated": "2025-06-18T03:34:50.550Z"
   },
   "validationField": "test-connection-railway-n8n"
 }
 
 N8N Sync Response:
 {
-  "error": "HTTP 404"
+  "output": "```json\n{\n  \"userId\": 1,\n  \"workoutPlan\": [\n    {\n      \"exercise\": \"Agachamento com barra\",\n      \"muscleGroup\": \"Pernas\",\n      \"type\": \"Força\",\n      \"instructions\": \"Coloque a barra nas costas e agache-se até que as coxas fiquem paralelas ao chão.\",\n      \"time\": 0,\n      \"series\": 3,\n      \"repetitions\": 12,\n      \"restBetweenSeries\": 90,\n      \"restBetweenExercises\": 120,\n      \"weight\": 20,\n      \"calories\": 70\n    },\n    {\n      \"exercise\": \"Puxada alta com barra\",\n      \"muscleGroup\": \"Costas\",\n      \"type\": \"Força\",\n      \"instructions\": \"Puxe a barra para cima até que os cotovelos fiquem estendidos.\",\n      \"time\": 0,\n      \"series\": 3,\n      \"repetitions\": 10,\n      \"restBetweenSeries\": 90,\n      \"restBetweenExercises\": 120,\n      \"weight\": 15,\n      \"calories\": 60\n    },\n    {\n      \"exercise\": \"Supino reto com halteres\",\n      \"muscleGroup\": \"Peitoral\",\n      \"type\": \"Força\",\n      \"instructions\": \"Deite-se no banco reto e empurre os halteres para cima até esticar os braços.\",\n      \"time\": 0,\n      \"series\": 3,\n      \"repetitions\": 12,\n      \"restBetweenSeries\": 90,\n      \"restBetweenExercises\": 120,\n      \"weight\": 10,\n      \"calories\": 50\n    },\n    {\n      \"exercise\": \"Esteira\",\n      \"muscleGroup\": \"Cardio\",\n      \"type\": \"Cardio\",\n      \"instructions\": \"Corra ou caminhe na esteira por 20 minutos.\",\n      \"time\": 20,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 120,\n      \"weight\": 0,\n      \"calories\": 150\n    },\n    {\n      \"exercise\": \"Abdominal retor\",\n      \"muscleGroup\": \"Core\",\n      \"type\": \"Força\",\n      \"instructions\": \"Deite-se no banco reto e levante as pernas até que fiquem estendidas.\",\n      \"time\": 0,\n      \"series\": 3,\n      \"repetitions\": 12,\n      \"restBetweenSeries\": 90,\n      \"restBetweenExercises\": 120,\n      \"weight\": 0,\n      \"calories\": 40\n    },\n    {\n      \"exercise\": \"Bicicleta ergométrica\",\n      \"muscleGroup\": \"Cardio\",\n      \"type\": \"Cardio\",\n      \"instructions\": \"Pedale na bicicleta ergométrica por 15 minutos.\",\n      \"time\": 15,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 120,\n      \"weight\": 0,\n      \"calories\": 120\n    },\n    {\n      \"exercise\": \"Alongamento\",\n      \"muscleGroup\": \"Mobilidade\",\n      \"type\": \"Mobilidade\",\n      \"instructions\": \"Faça alongamento para relaxar os músculos.\",\n      \"time\": 10,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 0,\n      \"weight\": 0,\n      \"calories\": 10\n    }\n  ]\n}\n```"
 }
 
 =========================
