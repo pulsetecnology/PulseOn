@@ -915,9 +915,9 @@ ${JSON.stringify(n8nResponse, null, 2)}
             console.log('N8N webhook response (text):', n8nResponse);
           }
         } else {
-        console.error('N8N webhook error:', webhookResponse.status, await webhookResponse.text());
-        n8nResponse = { error: `HTTP ${webhookResponse.status}` };
-      }
+          console.error('N8N webhook error:', webhookResponse.status, await webhookResponse.text());
+          n8nResponse = { error: `HTTP ${webhookResponse.status}` };
+        }
 
       } catch (webhookError) {
         console.error("Error calling N8N webhook:", webhookError);
