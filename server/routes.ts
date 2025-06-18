@@ -1026,7 +1026,7 @@ N8N Sync Response:
         try {
           console.log("Calling N8N for AI workout generation...");
           
-          const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || "https://automacao.inovaeagencia.com.br/webhook/pulseon-workout";
+          const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || "https://pulseon-n8n-automacao.up.railway.app/webhook/pulseon-workout";
           
           const response = await fetch(n8nWebhookUrl, {
             method: "POST",
