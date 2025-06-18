@@ -474,8 +474,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                     const totalCalories = workoutData.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
 
-                    // Generate workout name
-                    const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR')}`;
+                    // Generate workout name with timestamp for uniqueness
+                    const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 
                     // Save scheduled workout to database
                     const scheduledWorkout = await storage.createScheduledWorkout({
@@ -492,12 +492,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     return res.json({
                       message: "Treino gerado com sucesso!",
                       workout: scheduledWorkout,
-                      n8nResponse: n8nResponse
+                      n8nResponse: n8nResponse,
+                      success: true
                     });
                   }
                 }
               } catch (parseWorkoutError) {
                 console.error('Error parsing workout from N8N response:', parseWorkoutError);
+              }
+            }
+            
+            // Also check if n8nResponse has workoutPlan directly (in case format changes)
+            if (n8nResponse && n8nResponse.workoutPlan && Array.isArray(n8nResponse.workoutPlan)) {
+              try {
+                const totalDuration = n8nResponse.workoutPlan.reduce((sum: number, exercise: any) => {
+                  return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60));
+                }, 0);
+
+                const totalCalories = n8nResponse.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
+
+                const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+                const scheduledWorkout = await storage.createScheduledWorkout({
+                  userId: userId,
+                  name: workoutName,
+                  exercises: n8nResponse.workoutPlan,
+                  totalCalories: Math.round(totalCalories),
+                  totalDuration: Math.round(totalDuration),
+                  status: "pending"
+                });
+
+                console.log("AI workout saved to database (direct format):", scheduledWorkout.id);
+                
+                return res.json({
+                  message: "Treino gerado com sucesso!",
+                  workout: scheduledWorkout,
+                  n8nResponse: n8nResponse,
+                  success: true
+                });
+              } catch (directParseError) {
+                console.error('Error parsing direct workout format:', directParseError);
               }
             }
             
@@ -925,8 +959,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
                     const totalCalories = workoutData.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
 
-                    // Generate workout name
-                    const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR')}`;
+                    // Generate workout name with timestamp for uniqueness
+                    const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 
                     // Save scheduled workout to database
                     const scheduledWorkout = await storage.createScheduledWorkout({
@@ -944,6 +978,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               } catch (parseWorkoutError) {
                 console.error('Error parsing workout from N8N response:', parseWorkoutError);
+              }
+            }
+            
+            // Also check if n8nResponse has workoutPlan directly
+            if (n8nResponse && n8nResponse.workoutPlan && Array.isArray(n8nResponse.workoutPlan)) {
+              try {
+                const totalDuration = n8nResponse.workoutPlan.reduce((sum: number, exercise: any) => {
+                  return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60));
+                }, 0);
+
+                const totalCalories = n8nResponse.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
+
+                const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+                const scheduledWorkout = await storage.createScheduledWorkout({
+                  userId: userId,
+                  name: workoutName,
+                  exercises: n8nResponse.workoutPlan,
+                  totalCalories: Math.round(totalCalories),
+                  totalDuration: Math.round(totalDuration),
+                  status: "pending"
+                });
+
+                console.log("AI workout saved to database (direct format):", scheduledWorkout.id);
+                n8nResponse.savedWorkout = scheduledWorkout;
+              } catch (directParseError) {
+                console.error('Error parsing direct workout format:', directParseError);
               }
             }
             

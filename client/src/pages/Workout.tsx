@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,7 @@ export default function Workout() {
   const [showSetFeedback, setShowSetFeedback] = useState(false);
 
   // Fetch scheduled workouts from database
-  const { data: scheduledWorkouts = [], isLoading, error } = useQuery({
+  const { data: scheduledWorkouts = [], isLoading, error, refetch } = useQuery({
     queryKey: ["/api/scheduled-workouts"],
     enabled: !!user
   });
@@ -45,7 +44,7 @@ export default function Workout() {
 
   const startIndividualExercise = (exerciseIndex: number) => {
     if (!todaysWorkout?.exercises?.[exerciseIndex]) return;
-    
+
     const exercise = todaysWorkout.exercises[exerciseIndex];
     setActiveExercise(exerciseIndex.toString());
     setCurrentSet(1);
@@ -59,7 +58,7 @@ export default function Workout() {
 
   const completeSet = () => {
     if (!todaysWorkout?.exercises) return;
-    
+
     const exerciseIndex = parseInt(activeExercise!);
     const exercise = todaysWorkout.exercises[exerciseIndex];
     if (!exercise) return;
@@ -153,7 +152,7 @@ export default function Workout() {
             Você ainda não possui treinos programados
           </p>
         </div>
-        
+
         <Card className="border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950">
           <CardContent className="p-6">
             <div className="text-center space-y-4">
