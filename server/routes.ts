@@ -744,18 +744,27 @@ ${JSON.stringify(n8nResponse, null, 2)}
     }
   });
 
-  app.post("/api/workout-sessions", async (req, res) => {
+  app.post("/api/workout-sessions", authenticateToken, async (req, res) => {
     try {
-      const sessionData = insertWorkoutSessionSchema.parse(req.body);
+      const sessionData = {
+        ...req.body,
+        userId: req.user!.id, // Use authenticated user ID
+        startedAt: req.body.startedAt || new Date().toISOString(),
+      };
+      
       const session = await storage.createWorkoutSession(sessionData);
-      res.status(201).json(session);
+      res.status(201).json({
+        message: "Treino salvo com sucesso!",
+        session
+      });
     } catch (error) {
+      console.error("Error creating workout session:", error);
       if (error instanceof z.ZodError) {
         return res
           .status(400)
-          .json({ message: "Validation error", errors: error.errors });
+          .json({ message: "Dados inválidos", errors: error.errors });
       }
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
