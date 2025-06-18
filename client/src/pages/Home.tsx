@@ -489,7 +489,9 @@ export default function Home() {
         title: "Treino atualizado com sucesso!",
         description: "Seu novo treino personalizado está pronto.",
       });
+      // Invalidate both scheduled workouts queries
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["scheduled-workouts"] });
     },
     onError: (error) => {
       toast({

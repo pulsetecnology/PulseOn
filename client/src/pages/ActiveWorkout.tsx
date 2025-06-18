@@ -45,11 +45,11 @@ const fetchScheduledWorkouts = async (): Promise<ScheduledWorkout[]> => {
       'Authorization': `Bearer ${token}`,
     },
   });
-  
+
   if (!response.ok) {
     throw new Error('Erro ao carregar treinos programados');
   }
-  
+
   return response.json();
 };
 
@@ -155,7 +155,7 @@ export default function ActiveWorkout() {
     setTimeout(() => {
       setShowSetFeedback(false);
 
-      if (currentSet < currentExercise.sets) {
+      if (currentSet < currentExercise.series) {
         setCurrentSet(currentSet + 1);
         setIsResting(true);
         setRestTime(currentExercise.restBetweenSeries);
@@ -297,7 +297,7 @@ export default function ActiveWorkout() {
                     Concluir Série
                     <CheckCircle2 className="ml-2 h-5 w-5" />
                   </Button>
-                  
+
                   <div className="grid grid-cols-2 gap-2">
                     <Button 
                       onClick={skipExercise}
