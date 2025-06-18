@@ -1022,10 +1022,151 @@ N8N Sync Response:
           console.error("Error saving sync data to file:", fileError);
         }
 
-        res.json({
-          message: "Dados do usuário sincronizados com sucesso",
-          syncData: syncData
-        });
+        // Call N8N webhook for AI workout generation
+        try {
+          console.log("Calling N8N for AI workout generation...");
+          
+          const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || "https://n8n-pulseon-railway.up.railway.app/webhook/pulseon-workout";
+          
+          const response = await fetch(n8nWebhookUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(syncData),
+            signal: AbortSignal.timeout(30000),
+          });
+
+          if (!response.ok) {
+            throw new Error(`N8N API error: ${response.status}`);
+          }
+
+          const n8nResponse = await response.json();
+          console.log("N8N Response:", JSON.stringify(n8nResponse, null, 2));
+
+          // Check if we have a savedWorkout in the response
+          if (n8nResponse.savedWorkout) {
+            console.log("Found savedWorkout in N8N response, using it directly");
+            
+            res.json({
+              message: "Treino gerado com sucesso pela IA!",
+              workout: n8nResponse.savedWorkout,
+              syncData: syncData
+            });
+          } else if (n8nResponse.output) {
+            // Try to parse workout from output
+            try {
+              const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/) || n8nResponse.output.match(/({[\s\S]*})/);
+              if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[1]);
+                if (parsed.workoutPlan) {
+                  // Generate workout name
+                  const workoutName = `Treino IA - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+                  
+                  // Calculate total duration and calories
+                  const totalDuration = parsed.workoutPlan.reduce((sum: number, exercise: any) => {
+                    return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5) / 60);
+                  }, 0);
+
+                  const totalCalories = parsed.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
+
+                  // Save scheduled workout to database
+                  const scheduledWorkout = await storage.createScheduledWorkout({
+                    userId: user.id,
+                    name: workoutName,
+                    exercises: parsed.workoutPlan,
+                    totalCalories: Math.round(totalCalories),
+                    totalDuration: Math.round(totalDuration),
+                    status: "pending",
+                  });
+
+                  res.json({
+                    message: "Treino gerado com sucesso pela IA!",
+                    workout: scheduledWorkout,
+                    syncData: syncData
+                  });
+                  return;
+                }
+              }
+            } catch (parseError) {
+              console.error("Error parsing N8N output:", parseError);
+            }
+          }
+
+          throw new Error("No valid workout data found in N8N response");
+
+        } catch (n8nError) {
+          console.error("N8N API error:", n8nError);
+          
+          // Generate fallback workout
+          const fallbackWorkout = {
+            userId: user.id,
+            workoutPlan: [
+              {
+                exercise: "Agachamento com peso corporal",
+                muscleGroup: "Pernas",
+                type: "strength",
+                instructions: "Mantenha os pés paralelos, desça até formar 90° nos joelhos e volte à posição inicial",
+                time: 0,
+                series: 3,
+                repetitions: 15,
+                restBetweenSeries: 60,
+                restBetweenExercises: 90,
+                weight: 0,
+                calories: 45
+              },
+              {
+                exercise: "Flexão de braço",
+                muscleGroup: "Peito",
+                type: "strength", 
+                instructions: "Mantenha o corpo alinhado, desça o peito próximo ao chão e empurre de volta",
+                time: 0,
+                series: 3,
+                repetitions: 10,
+                restBetweenSeries: 60,
+                restBetweenExercises: 90,
+                weight: 0,
+                calories: 35
+              },
+              {
+                exercise: "Prancha",
+                muscleGroup: "Core",
+                type: "isometric",
+                instructions: "Mantenha o corpo reto apoiado nos antebraços e pontas dos pés",
+                time: 30,
+                series: 3,
+                repetitions: 1,
+                restBetweenSeries: 60,
+                restBetweenExercises: 90,
+                weight: 0,
+                calories: 25
+              }
+            ]
+          };
+
+          const totalDuration = fallbackWorkout.workoutPlan.reduce((sum: number, exercise: any) => {
+            return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5) / 60);
+          }, 0);
+
+          const totalCalories = fallbackWorkout.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
+
+          const workoutName = `Treino Offline - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+
+          const scheduledWorkout = await storage.createScheduledWorkout({
+            userId: user.id,
+            name: workoutName,
+            exercises: fallbackWorkout.workoutPlan,
+            totalCalories: Math.round(totalCalories),
+            totalDuration: Math.round(totalDuration),
+            status: "pending",
+          });
+
+          res.json({
+            message: "Treino gerado com sucesso (modo offline)!",
+            workout: scheduledWorkout,
+            syncData: syncData
+          });
+        }
       } catch (error) {
         console.error("Sync user data error:", error);
         res.status(500).json({ message: "Erro interno do servidor" });
