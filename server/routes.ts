@@ -425,12 +425,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Check if user has completed onboarding
         if (!userProfile.onboardingCompleted) {
-          return res
-            .status(400)
-            .json({
-              message:
-                "Complete o onboarding primeiro para gerar treinos personalizados",
-            });
+          return res.status(400).json({
+            message:
+              "Complete o onboarding primeiro para gerar treinos personalizados",
+          });
         }
 
         // Prepare data for N8N AI request
@@ -1006,11 +1004,11 @@ ${JSON.stringify(n8nResponse, null, 2)}
         // Send to Railway N8N webhook
 
         // TESTE
-        const RAILWAY_WEBHOOK_URL =
-          "https://primary-production-3b832.up.railway.app/webhook-test/onboarding-recebido";
+        //const RAILWAY_WEBHOOK_URL = "https://primary-production-3b832.up.railway.app/webhook-test/onboarding-recebido";
 
         // PRODUCAO
-        //const RAILWAY_WEBHOOK_URL = "https://primary-production-3b832.up.railway.app/webhook/onboarding-recebido";
+        const RAILWAY_WEBHOOK_URL =
+          "https://primary-production-3b832.up.railway.app/webhook/onboarding-recebido";
 
         let n8nResponse = null;
 
