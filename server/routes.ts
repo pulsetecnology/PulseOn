@@ -5,12 +5,12 @@ import { insertUserSchema, insertScheduledWorkoutSchema, insertWorkoutSessionSch
 import { z } from "zod";
 import { hashPassword, verifyPassword, generateJWT, sanitizeUser } from "./auth";
 import { authenticateToken } from "./middleware";
-import { requestWorkoutFromAI } from "./n8n-service";
 import { Request, Response } from "express";
 import { db } from "./database";
 import { eq } from "drizzle-orm";
-import { requireAuth } from "./middleware";
-import { generateWorkout } from "./n8n-service";
+import { authenticateToken, optionalAuth } from "./middleware";
+import { requestWorkoutFromAI } from "./n8n-service";
+import { generateAIWorkout } from "./ai-workout-endpoint";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -373,28 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
 
   // AI Workout Generation - "Atualizar IA" button functionality
-  app.post("/api/ai/generate-workout", authenticateToken, async (req: Request, res: Response) => {
-    try {
-      const userId = req.user!.id;
-      const user = await storage.getUser(userId);
-
-      if (!user) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
-      }
-
-      // Remove sensitive data
-      const { password, ...userData } = user;
-
-      // Calculate age if birthDate exists
-      let age = null;
-      if (userData.birthDate) {
-        const today = new Date();
-        const birth = new Date(userData.birthDate);
-        age = today.getFullYear() - birth.getFullYear();
-        const monthDiff = today.getMonth() - birth.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-          age--;
-        }
+  app.post("/api/ai/generate-workout", authenticateToken, generateAIWorkout);
       }
 
       // Prepare the data structure for N8N
