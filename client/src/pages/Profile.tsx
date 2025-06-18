@@ -345,7 +345,7 @@ export default function Profile() {
     onSuccess: (data) => {
       console.log('Avatar upload mutation success:', data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      showSuccess("Avatar atualizado com sucesso!");
+      showSuccess("Foto de perfil atualizada com sucesso! 📸");
     },
     onError: (error: Error) => {
       console.error('Avatar upload mutation error:', error);
@@ -469,6 +469,7 @@ export default function Profile() {
               className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full p-0 shadow-md hover:shadow-lg transition-all border border-primary/20"
               onClick={() => document.getElementById('avatar-upload')?.click()}
               disabled={avatarUploadMutation.isPending}
+              title={avatarUploadMutation.isPending ? "Carregando..." : "Alterar foto de perfil"}
             >
               {avatarUploadMutation.isPending ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
