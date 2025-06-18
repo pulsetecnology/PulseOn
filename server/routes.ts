@@ -370,13 +370,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  
+
 
   // AI Workout Generation - "Atualizar IA" button functionality
   app.post("/api/ai/generate-workout", authenticateToken, async (req: Request, res: Response) => {
     try {
       const user = req.user!;
-      
+
       // Get user profile data for AI request
       const userProfile = await storage.getUser(user.id);
       if (!userProfile) {
@@ -406,7 +406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Call N8N service for AI workout generation
       try {
         console.log("Calling N8N for AI workout generation...");
-        
+
         const response = await fetch(process.env.N8N_WEBHOOK_URL || "https://n8n-pulseon.example.com/webhook/pulseon-workout", {
           method: 'POST',
           headers: {
@@ -440,7 +440,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
 =========================
 `;
-        
+
         try {
           fs.writeFileSync(path.join(process.cwd(), 'ai-response.txt'), logContent, 'utf8');
           console.log("AI response saved to ai-response.txt");
@@ -451,7 +451,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
         // Check if N8N already saved the workout (savedWorkout field)
         if (n8nResponse.savedWorkout) {
           console.log("N8N already saved workout with ID:", n8nResponse.savedWorkout.id);
-          
+
           // Return the workout that was already saved by N8N
           return res.status(201).json({
             message: "Treino gerado pela IA com sucesso!",
@@ -500,7 +500,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
         });
 
         console.log("Fallback: AI workout saved to local database:", scheduledWorkout.id);
-        
+
         return res.status(201).json({
           message: "Treino gerado pela IA com sucesso!",
           workout: scheduledWorkout
@@ -508,7 +508,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
       } catch (n8nError) {
         console.error('N8N service error:', n8nError);
-        
+
         // Generate fallback workout using local logic
         const fallbackExercises = [
           {
@@ -549,7 +549,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
         });
 
         console.log("Fallback workout created:", fallbackWorkout.id);
-        
+
         return res.status(201).json({
           message: "Treino gerado com sucesso (modo offline)!",
           workout: fallbackWorkout
@@ -713,7 +713,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
       const userId = parseInt(req.params.id);
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -870,8 +870,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
         fitnessProfile: {
           fitnessGoal: userData.fitnessGoal,
           experienceLevel: userData.experienceLevel,
-          weeklyFrequency: userData.weeklyFrequency,
-          availableEquipment: userData.availableEquipment,
+          weeklyFrequency: userData.availableEquipment,
           customEquipment: userData.customEquipment,
           physicalRestrictions: userData.physicalRestrictions,
           preferredWorkoutTime: userData.preferredWorkoutTime,
@@ -898,7 +897,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
       // Send to Railway N8N webhook
       const RAILWAY_WEBHOOK_URL = "https://primary-production-3b832.up.railway.app/webhook-test/onboarding-recebido";
       let n8nResponse = null;
-      
+
       try {
         console.log('Sending data to Railway N8N webhook:', RAILWAY_WEBHOOK_URL);
         const webhookResponse = await fetch(RAILWAY_WEBHOOK_URL, {
@@ -918,12 +917,33 @@ ${JSON.stringify(n8nResponse, null, 2)}
             console.log('N8N webhook response (text):', n8nResponse);
           }
         } else {
-          console.error('N8N webhook error:', webhookResponse.status, await webhookResponse.text());
-          n8nResponse = { error: `HTTP ${webhookResponse.status}` };
-        }
-      } catch (webhookError) {
-        console.error('Error sending to N8N webhook:', webhookError);
-        n8nResponse = { error: webhookError.message };
+        console.error('N8N webhook error:', webhookResponse.status, await webhookResponse.text());
+        n8nResponse = { error: `HTTP ${webhookResponse.status}` };
+      }
+
+      // Save sync response to file
+      const fs = require('fs');
+      const path = require('path');
+      const timestamp = new Date().toLocaleString('pt-BR');
+      const syncLogContent = `AI Response Log - PulseOn (Sync Data)
+=========================
+
+Data da última atualização: ${timestamp}
+
+Sync Request Data:
+${JSON.stringify(n8nData, null, 2)}
+
+N8N Sync Response:
+${JSON.stringify(n8nResponse, null, 2)}
+
+=========================
+`;
+
+      try {
+        fs.writeFileSync(path.join(process.cwd(), 'ai-response.txt'), syncLogContent, 'utf8');
+        console.log("Sync response saved to ai-response.txt");
+      } catch (fileError) {
+        console.error("Error saving sync response to file:", fileError);
       }
 
       res.json({ 
