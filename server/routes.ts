@@ -919,9 +919,9 @@ ${JSON.stringify(n8nResponse, null, 2)}
           n8nResponse = { error: `HTTP ${webhookResponse.status}` };
         }
 
-      } catch (webhookError) {
+      } catch (webhookError: any) {
         console.error("Error calling N8N webhook:", webhookError);
-        n8nResponse = { error: webhookError.message };
+        n8nResponse = { error: webhookError?.message || "Unknown error" };
       }
 
       // Save sync response to file

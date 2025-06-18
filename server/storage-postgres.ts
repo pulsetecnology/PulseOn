@@ -195,17 +195,37 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWorkoutSession(insertSession: InsertWorkoutSession): Promise<WorkoutSession> {
-    const [session] = await db
-      .insert(workoutSessions)
-      .values(insertSession)
-      .returning();
-    return session;
+    try {
+      const [session] = await db
+        .insert(workoutSessions)
+        .values({
+          userId: insertSession.userId,
+          name: insertSession.name,
+          startedAt: new Date(),
+          scheduledWorkoutId: insertSession.scheduledWorkoutId,
+          exercises: insertSession.exercises as any,
+          totalDuration: insertSession.totalDuration,
+          totalCalories: insertSession.totalCalories,
+          notes: insertSession.notes,
+          completedAt: insertSession.completedAt
+        })
+        .returning();
+      return session;
+    } catch (error) {
+      console.error("Error creating workout session:", error);
+      throw error;
+    }
   }
 
   async updateWorkoutSession(id: number, updates: Partial<InsertWorkoutSession>): Promise<WorkoutSession | undefined> {
+    const updateData = {
+      ...updates,
+      exercises: updates.exercises as any
+    };
+    
     const [session] = await db
       .update(workoutSessions)
-      .set(updates)
+      .set(updateData)
       .where(eq(workoutSessions.id, id))
       .returning();
     return session || undefined;
