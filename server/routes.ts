@@ -949,4 +949,11 @@ ${JSON.stringify(n8nResponse, null, 2)}
         // Calculate age if birthDate exists
         let age = null;
         if (userData.birthDate) {
-          const today = newjson\n([\s\S]*?)\n
+          const today = new Date();
+          const birthDate = new Date(userData.birthDate);
+          age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+        }
