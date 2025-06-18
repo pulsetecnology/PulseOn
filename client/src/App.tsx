@@ -12,6 +12,7 @@ import Home from "./pages/Home";
 import Workout from "./pages/Workout";
 import ActiveWorkout from "./pages/ActiveWorkout";
 import History from "./pages/History";
+import WorkoutHistory from "./pages/WorkoutHistory";
 import Profile from "./pages/Profile";
 import UserSetup from "./pages/UserSetup";
 import NotFound from "./pages/not-found";
@@ -163,7 +164,7 @@ function Router() {
       </Route>
       <Route path="/history">
         <ProtectedLayout>
-          <History />
+          <WorkoutHistory />
         </ProtectedLayout>
       </Route>
       <Route path="/profile">
