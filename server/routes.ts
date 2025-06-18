@@ -871,7 +871,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
           fitnessGoal: userData.fitnessGoal,
           experienceLevel: userData.experienceLevel,
           weeklyFrequency: userData.availableEquipment,
-          customEquipment: userData.customEquipment,
+          customEquipment: userData.availableEquipment,
           physicalRestrictions: userData.physicalRestrictions,
           preferredWorkoutTime: userData.preferredWorkoutTime,
           availableDaysPerWeek: userData.availableDaysPerWeek,
@@ -919,6 +919,11 @@ ${JSON.stringify(n8nResponse, null, 2)}
         } else {
         console.error('N8N webhook error:', webhookResponse.status, await webhookResponse.text());
         n8nResponse = { error: `HTTP ${webhookResponse.status}` };
+      }
+
+      } catch (webhookError) {
+        console.error("Error calling N8N webhook:", webhookError);
+        n8nResponse = { error: webhookError.message };
       }
 
       // Save sync response to file
