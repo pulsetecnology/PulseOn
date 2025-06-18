@@ -481,22 +481,7 @@ export default function Profile() {
               </span>
             </div>
           </div>
-          <div className="flex-shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSendToN8N}
-              disabled={sendToN8NMutation.isPending}
-              className="flex items-center gap-2"
-            >
-              {sendToN8NMutation.isPending ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              ) : (
-                <Activity className="h-4 w-4" />
-              )}
-              Atualizar treino
-            </Button>
-          </div>
+          
         </div>
       </div>
 
