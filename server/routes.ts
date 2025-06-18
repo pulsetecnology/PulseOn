@@ -905,7 +905,6 @@ ${JSON.stringify(n8nResponse, null, 2)}
     "/api/profile/avatar",
     authenticateToken,
     upload.single("avatar"),
-    handleMulterError,
     async (req: Request, res: Response) => {
       try {
         const userId = req.user!.id;
