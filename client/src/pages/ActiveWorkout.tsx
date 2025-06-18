@@ -64,6 +64,7 @@ export default function ActiveWorkout() {
   const [showSetFeedback, setShowSetFeedback] = useState(false);
   const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
   const [completedSets, setCompletedSets] = useState<Array<{exerciseIndex: number, set: number, weight: number, effort: number}>>([]);
+  const [workoutTimer, setWorkoutTimer] = useState(0);
   const { showSuccess, showWarning, showWorkoutSuccess, showWorkoutError, showWorkoutWarning } = useGlobalNotification();
   const [, setLocation] = useLocation();
 
@@ -87,6 +88,89 @@ export default function ActiveWorkout() {
       setRestTime(currentExercise.restBetweenSeries || 90);
     }
   }, [currentExercise, currentExerciseIndex, exercises.length]);
+
+  // Workout timer effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWorkoutTimer(prev => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleFinishWorkout = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      
+      // Calculate total duration (in minutes)
+      const totalDuration = Math.floor(workoutTimer / 60);
+      
+      // Calculate total calories
+      const totalCalories = exercises.reduce((sum, exercise) => sum + (exercise.calories || 0), 0);
+      
+      // Prepare completed exercises data
+      const completedExercises = exercises.map(exercise => {
+        const exerciseCompletedSets = completedSets.filter(set => 
+          exercises[set.exerciseIndex]?.exercise === exercise.exercise
+        );
+        
+        return {
+          exercise: exercise.exercise,
+          muscleGroup: exercise.muscleGroup,
+          type: exercise.type,
+          instructions: exercise.instructions,
+          time: exercise.time,
+          series: exercise.series,
+          repetitions: exercise.repetitions,
+          restBetweenSeries: exercise.restBetweenSeries,
+          restBetweenExercises: exercise.restBetweenExercises,
+          weight: exercise.weight,
+          calories: exercise.calories,
+          actualWeight: exerciseCompletedSets.length > 0 ? exerciseCompletedSets[exerciseCompletedSets.length - 1].weight : exercise.weight,
+          actualTime: exercise.time,
+          actualCalories: exercise.calories,
+          effortLevel: exerciseCompletedSets.length > 0 ? exerciseCompletedSets[exerciseCompletedSets.length - 1].effort : 5,
+          completed: exerciseCompletedSets.length > 0,
+          notes: ""
+        };
+      });
+
+      // Create workout session
+      const workoutSessionData = {
+        scheduledWorkoutId: todaysWorkout?.id,
+        name: todaysWorkout?.name || "Treino Personalizado",
+        startedAt: new Date(Date.now() - workoutTimer * 1000).toISOString(),
+        completedAt: new Date().toISOString(),
+        exercises: completedExercises,
+        totalDuration,
+        totalCalories,
+        notes: ""
+      };
+
+      const response = await fetch('/api/workout-sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(workoutSessionData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao salvar treino');
+      }
+
+      const savedSession = await response.json();
+      console.log('Workout session saved:', savedSession);
+
+      showWorkoutSuccess();
+      setLocation("/history");
+    } catch (error) {
+      console.error('Error saving workout session:', error);
+      // Still redirect even if save fails
+      setLocation("/workout");
+    }
+  };
 
   // Loading state
   if (isLoading) {
@@ -239,7 +323,7 @@ export default function ActiveWorkout() {
         </Card>
 
         <Button 
-          onClick={() => setLocation("/workout")}
+          onClick={handleFinishWorkout}
           className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
         >
           Finalizar Treino

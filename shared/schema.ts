@@ -28,8 +28,10 @@ export const users = pgTable("users", {
   availableDaysPerWeek: integer("available_days_per_week"), // 1-7
   averageWorkoutDuration: text("average_workout_duration"), // "15-20min", "30min", "45min", "1h_or_more"
   preferredLocation: text("preferred_location"), // "home", "outdoor", "gym", "other"
+  avatarUrl: text("avatar_url"),
   onboardingCompleted: boolean("onboarding_completed").default(false),
-  createdAt: timestamp("created_at").defaultNow()
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 
 export const sessions = pgTable("sessions", {

@@ -734,43 +734,48 @@ ${JSON.stringify(n8nResponse, null, 2)}
   );
 
   // Workout session routes
-  app.get("/api/workout-sessions", async (req, res) => {
+  app.get("/api/workout-sessions", authenticateToken, async (req, res) => {
     try {
-      const userId = parseInt(req.query.userId as string);
-      if (!userId) {
-        return res.status(400).json({ message: "userId is required" });
-      }
-
-      const sessions = await storage.getWorkoutSessions(userId);
+      const sessions = await storage.getWorkoutSessions(req.user!.id);
       res.json(sessions);
     } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
+      console.error("Error fetching workout sessions:", error);
+      res.status(500).json({ message: "Erro ao carregar sessões de treino" });
     }
   });
 
-  app.post("/api/workout-sessions", async (req, res) => {
+  app.post("/api/workout-sessions", authenticateToken, async (req, res) => {
     try {
-      const sessionData = insertWorkoutSessionSchema.parse(req.body);
+      const sessionData = {
+        ...req.body,
+        userId: req.user!.id, // Use authenticated user ID
+        startedAt: req.body.startedAt || new Date().toISOString(),
+      };
+      
       const session = await storage.createWorkoutSession(sessionData);
-      res.status(201).json(session);
+      res.status(201).json({
+        message: "Treino salvo com sucesso!",
+        session
+      });
     } catch (error) {
+      console.error("Error creating workout session:", error);
       if (error instanceof z.ZodError) {
         return res
           .status(400)
-          .json({ message: "Validation error", errors: error.errors });
+          .json({ message: "Dados inválidos", errors: error.errors });
       }
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
-  app.put("/api/workout-sessions/:id", async (req, res) => {
+  app.put("/api/workout-sessions/:id", authenticateToken, async (req, res) => {
     try {
       const sessionId = parseInt(req.params.id);
       const updates = insertWorkoutSessionSchema.partial().parse(req.body);
 
       const session = await storage.updateWorkoutSession(sessionId, updates);
       if (!session) {
-        return res.status(404).json({ message: "Workout session not found" });
+        return res.status(404).json({ message: "Sessão de treino não encontrada" });
       }
 
       res.json(session);
@@ -778,9 +783,48 @@ ${JSON.stringify(n8nResponse, null, 2)}
       if (error instanceof z.ZodError) {
         return res
           .status(400)
-          .json({ message: "Validation error", errors: error.errors });
+          .json({ message: "Dados inválidos", errors: error.errors });
       }
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Complete workout session
+  app.put("/api/workout-sessions/:id/complete", authenticateToken, async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.id);
+      const { exercises, totalDuration, totalCalories, notes } = req.body;
+
+      const session = await storage.completeWorkoutSession(
+        sessionId,
+        exercises,
+        totalDuration,
+        totalCalories,
+        notes
+      );
+      
+      if (!session) {
+        return res.status(404).json({ message: "Sessão de treino não encontrada" });
+      }
+
+      res.json({
+        message: "Treino concluído com sucesso!",
+        session
+      });
+    } catch (error) {
+      console.error("Error completing workout session:", error);
+      res.status(500).json({ message: "Erro ao concluir treino" });
+    }
+  });
+
+  // User stats endpoint
+  app.get("/api/user/stats", authenticateToken, async (req, res) => {
+    try {
+      const stats = await storage.getUserStats(req.user!.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Erro ao carregar estatísticas" });
     }
   });
 
