@@ -957,3 +957,88 @@ ${JSON.stringify(n8nResponse, null, 2)}
             age--;
           }
         }
+
+        // Prepare sync data for N8N
+        const syncData = {
+          userId: userData.id,
+          timestamp: new Date().toISOString(),
+          personalInfo: {
+            name: userData.name,
+            email: userData.email,
+            birthDate: userData.birthDate,
+            age: age,
+            weight: userData.weight,
+            height: userData.height,
+            gender: userData.gender
+          },
+          fitnessProfile: {
+            fitnessGoal: userData.fitnessGoal,
+            experienceLevel: userData.experienceLevel,
+            weeklyFrequency: userData.weeklyFrequency,
+            customEquipment: userData.availableEquipment,
+            physicalRestrictions: userData.physicalRestrictions,
+            preferredWorkoutTime: userData.preferredWorkoutTime,
+            availableDaysPerWeek: userData.availableDaysPerWeek,
+            averageWorkoutDuration: userData.averageWorkoutDuration,
+            preferredLocation: userData.preferredLocation
+          },
+          lifestyle: {
+            smokingStatus: userData.smokingStatus,
+            alcoholConsumption: userData.alcoholConsumption,
+            dietType: userData.dietType,
+            sleepHours: userData.sleepHours,
+            stressLevel: userData.stressLevel
+          },
+          metadata: {
+            onboardingCompleted: userData.onboardingCompleted,
+            lastUpdated: new Date().toISOString()
+          },
+          validationField: "test-connection-railway-n8n"
+        };
+
+        // Save sync data to file for debugging
+        const timestamp = new Date().toLocaleString("pt-BR");
+        const logContent = `AI Response Log - PulseOn (Sync Data)
+=========================
+
+Data da última atualização: ${timestamp}
+
+Sync Request Data:
+${JSON.stringify(syncData, null, 2)}
+
+N8N Sync Response:
+[Pending response]
+
+=========================
+`;
+
+        try {
+          fs.writeFileSync(
+            path.join(process.cwd(), "ai-response.txt"),
+            logContent,
+            "utf8",
+          );
+          console.log("Sync data saved to ai-response.txt");
+        } catch (fileError) {
+          console.error("Error saving sync data to file:", fileError);
+        }
+
+        res.json({
+          message: "Dados do usuário sincronizados com sucesso",
+          syncData: syncData
+        });
+      } catch (error) {
+        console.error("Sync user data error:", error);
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
+    },
+  );
+
+  const httpServer = createServer(app);
+  const port = parseInt(process.env.PORT || "5000", 10);
+
+  httpServer.listen(port, "0.0.0.0", () => {
+    log(`Server running on port ${port}`);
+  });
+
+  return httpServer;
