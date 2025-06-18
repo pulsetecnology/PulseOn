@@ -424,8 +424,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("N8N Response:", JSON.stringify(n8nResponse, null, 2));
 
         // Save AI response to file
-        const fs = require('fs');
-        const path = require('path');
         const timestamp = new Date().toLocaleString('pt-BR');
         const logContent = `AI Response Log - PulseOn
 =========================
@@ -927,8 +925,6 @@ ${JSON.stringify(n8nResponse, null, 2)}
       }
 
       // Save sync response to file
-      const fs = require('fs');
-      const path = require('path');
       const timestamp = new Date().toLocaleString('pt-BR');
       const syncLogContent = `AI Response Log - PulseOn (Sync Data)
 =========================
