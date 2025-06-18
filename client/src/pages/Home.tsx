@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useGlobalNotification } from "@/components/NotificationProvider";
 import { Clock, Dumbbell, User, Trophy, CheckCircle, AlertCircle, BarChart3, Calendar, Target, ChevronDown, ChevronUp, X, Scale, Heart, Flame, Play, Loader2, Sparkles } from "lucide-react";
 import FitnessIcon from "@/components/FitnessIcon";
 
@@ -458,6 +459,7 @@ function OnboardingCard({ user }: { user: any }) {
 export default function Home() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { showSuccess, showError, showWarning, showWorkoutSuccess, showWorkoutError } = useGlobalNotification();
   const queryClient = useQueryClient();
   const [expandedTodaysWorkout, setExpandedTodaysWorkout] = useState(false);
   const [expandedUpcomingWorkout, setExpandedUpcomingWorkout] = useState<number | null>(null);
@@ -513,20 +515,13 @@ export default function Home() {
       return await apiRequest("/api/n8n/sync-user-data", "POST");
     },
     onSuccess: (data) => {
-      toast({
-        title: "Treino atualizado com sucesso!",
-        description: "Seu novo treino personalizado está pronto.",
-      });
+      showWorkoutSuccess(5000);
       // Invalidate all scheduled workouts queries
       queryClient.invalidateQueries({ queryKey: ["scheduled-workouts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao atualizar treino",
-        description: "Tente novamente em alguns minutos.",
-        variant: "destructive",
-      });
+      showWorkoutError(5000);
     },
   });
 

@@ -27,8 +27,7 @@ import { requestWorkoutFromAI } from "./n8n-service";
 import { Request, Response } from "express";
 import { db } from "./database";
 import { eq } from "drizzle-orm";
-import { requireAuth } from "./middleware";
-import { generateWorkout } from "./n8n-service";
+
 import multer from "multer";
 import path from "path";
 import fs from "fs";
