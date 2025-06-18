@@ -72,19 +72,21 @@ export default function ActiveWorkout() {
     queryFn: fetchScheduledWorkouts,
   });
 
-  const todaysWorkout = scheduledWorkouts?.[0]; // Get the most recent workout
+  const todaysWorkout = scheduledWorkouts?.[0];
   const exercises = todaysWorkout?.exercises || [];
-  const currentExercise = exercises[currentExerciseIndex];
   const totalExercises = exercises.length;
   const progressPercentage = totalExercises > 0 ? ((currentExerciseIndex + 1) / totalExercises) * 100 : 0;
+  
+  // Safely get current exercise
+  const currentExercise = exercises.length > 0 ? exercises[currentExerciseIndex] : null;
 
   // Initialize weight when workout loads
   useEffect(() => {
-    if (currentExercise) {
+    if (currentExercise && exercises.length > 0) {
       setWeight(currentExercise.weight || 40);
       setRestTime(currentExercise.restBetweenSeries || 90);
     }
-  }, [currentExercise]);
+  }, [currentExercise, currentExerciseIndex, exercises.length]);
 
   // Loading state
   if (isLoading) {

@@ -1038,7 +1038,8 @@ N8N Sync Response:
   const port = parseInt(process.env.PORT || "5000", 10);
 
   httpServer.listen(port, "0.0.0.0", () => {
-    log(`Server running on port ${port}`);
+    console.log(`Server running on port ${port}`);
   });
 
   return httpServer;
+}
