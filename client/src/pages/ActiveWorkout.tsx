@@ -6,9 +6,52 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, Pause, Play, RotateCcw, ChevronRight, CheckCircle2, SkipForward, AlertCircle, Timer } from "lucide-react";
-import { sampleExercises } from "@/lib/workouts";
+import { useQuery } from "@tanstack/react-query";
 import { useGlobalNotification } from "@/components/NotificationProvider";
 import { useLocation } from "wouter";
+
+interface Exercise {
+  id?: string;
+  exercise: string;
+  muscleGroup: string;
+  type: string;
+  instructions: string;
+  time: number;
+  series: number;
+  repetitions: number;
+  restBetweenSeries: number;
+  restBetweenExercises: number;
+  weight: number;
+  calories: number;
+}
+
+interface ScheduledWorkout {
+  id: number;
+  userId: number;
+  name: string;
+  exercises: Exercise[];
+  totalCalories: number;
+  totalDuration: number;
+  status: string;
+  createdAt: string;
+  scheduledFor?: string;
+}
+
+// Fetch scheduled workouts
+const fetchScheduledWorkouts = async (): Promise<ScheduledWorkout[]> => {
+  const token = localStorage.getItem('authToken');
+  const response = await fetch('/api/scheduled-workouts', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Erro ao carregar treinos programados');
+  }
+
+  return response.json();
+};
 
 export default function ActiveWorkout() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -24,9 +67,66 @@ export default function ActiveWorkout() {
   const { showSuccess, showWarning, showWorkoutSuccess, showWorkoutError, showWorkoutWarning } = useGlobalNotification();
   const [, setLocation] = useLocation();
 
-  const currentExercise = sampleExercises[currentExerciseIndex];
-  const totalExercises = sampleExercises.length;
-  const progressPercentage = ((currentExerciseIndex + 1) / totalExercises) * 100;
+  const { data: scheduledWorkouts, isLoading, error } = useQuery({
+    queryKey: ["scheduled-workouts"],
+    queryFn: fetchScheduledWorkouts,
+  });
+
+  const todaysWorkout = scheduledWorkouts?.[0];
+  const exercises = todaysWorkout?.exercises || [];
+  const totalExercises = exercises.length;
+  const progressPercentage = totalExercises > 0 ? ((currentExerciseIndex + 1) / totalExercises) * 100 : 0;
+  
+  // Safely get current exercise
+  const currentExercise = exercises.length > 0 ? exercises[currentExerciseIndex] : null;
+
+  // Initialize weight when workout loads
+  useEffect(() => {
+    if (currentExercise && exercises.length > 0) {
+      setWeight(currentExercise.weight || 40);
+      setRestTime(currentExercise.restBetweenSeries || 90);
+    }
+  }, [currentExercise, currentExerciseIndex, exercises.length]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando treino...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">Erro ao carregar treino: {error.message}</p>
+          <Button onClick={() => window.location.reload()}>
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // No workout state
+  if (!todaysWorkout || exercises.length === 0) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-500 mb-4">Nenhum treino encontrado.</p>
+          <Button onClick={() => setLocation("/workout")}>
+            Voltar para Treinos
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (isTimerRunning && restTime > 0) {
@@ -57,19 +157,19 @@ export default function ActiveWorkout() {
     setTimeout(() => {
       setShowSetFeedback(false);
 
-      if (currentSet < currentExercise.sets) {
+      if (currentSet < currentExercise.series) {
         setCurrentSet(currentSet + 1);
         setIsResting(true);
-        setRestTime(currentExercise.restTime);
+        setRestTime(currentExercise.restBetweenSeries);
         setIsTimerRunning(true);
         // Show set completion notification
         showWorkoutSuccess();
       } else {
         // Move to next exercise or complete workout
-        if (currentExerciseIndex < sampleExercises.length - 1) {
+        if (currentExerciseIndex < exercises.length - 1) {
           setCurrentExerciseIndex(currentExerciseIndex + 1);
           setCurrentSet(1);
-          setWeight(sampleExercises[currentExerciseIndex + 1].suggestedWeight || 40);
+          setWeight(exercises[currentExerciseIndex + 1].weight || 40);
           setEffortLevel([7]);
           showWorkoutSuccess();
         } else {
@@ -84,7 +184,7 @@ export default function ActiveWorkout() {
     if (currentExerciseIndex < totalExercises - 1) {
       setCurrentExerciseIndex(currentExerciseIndex + 1);
       setCurrentSet(1);
-      setWeight(sampleExercises[currentExerciseIndex + 1].suggestedWeight || 40);
+      setWeight(exercises[currentExerciseIndex + 1].weight || 40);
       setEffortLevel([7]);
       setShowSetFeedback(false);
       showWorkoutWarning();
@@ -125,11 +225,11 @@ export default function ActiveWorkout() {
               {completedSets.map((set, index) => (
                 <div key={index} className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-700 last:border-0">
                   <div>
-                    <span className="font-medium">{sampleExercises[set.exerciseIndex].name}</span>
+                    <span className="font-medium">{exercises[set.exerciseIndex]?.exercise}</span>
                     <p className="text-sm text-muted-foreground">Série {set.set}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">{set.weight}kg</p>
+                    <p className="font-semibold">{set.weight > 0 ? `${set.weight}kg` : 'Peso corporal'}</p>
                     <p className="text-sm text-muted-foreground">Esforço: {set.effort}/10</p>
                   </div>
                 </div>
@@ -162,11 +262,13 @@ export default function ActiveWorkout() {
             <Badge variant="secondary" className="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
               Exercício {currentExerciseIndex + 1}/{totalExercises}
             </Badge>
-            <h1 className="text-2xl font-bold">{currentExercise.name}</h1>
+            <h1 className="text-2xl font-bold">{currentExercise.exercise}</h1>
             <div className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">
-              Série {currentSet} de {currentExercise.sets}
+              Série {currentSet} de {currentExercise.series}
             </div>
-            <p className="text-slate-600 dark:text-slate-300 text-lg">{currentExercise.reps} repetições</p>
+            <p className="text-slate-600 dark:text-slate-300 text-lg">
+              {currentExercise.repetitions > 0 ? `${currentExercise.repetitions} repetições` : `${currentExercise.time} minutos`}
+            </p>
           </div>
 
           {/* Progress Bar */}
@@ -197,7 +299,7 @@ export default function ActiveWorkout() {
                     Concluir Série
                     <CheckCircle2 className="ml-2 h-5 w-5" />
                   </Button>
-                  
+
                   <div className="grid grid-cols-2 gap-2">
                     <Button 
                       onClick={skipExercise}
@@ -242,7 +344,7 @@ export default function ActiveWorkout() {
                   </Button>
                   <Button 
                     variant="outline" 
-                    onClick={() => setRestTime(currentExercise.restTime)} 
+                    onClick={() => setRestTime(currentExercise.restBetweenSeries)} 
                     size="lg"
                     className="border-orange-300 dark:border-orange-700"
                   >
@@ -327,7 +429,7 @@ export default function ActiveWorkout() {
                   onClick={completeSet}
                   className="w-full py-2 font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
                 >
-                  {currentSet < currentExercise.sets ? "Começar próxima série" : 
+                  {currentSet < currentExercise.series ? "Começar próxima série" : 
                    currentExerciseIndex < totalExercises - 1 ? "Próximo exercício" : "Finalizar treino"}
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
