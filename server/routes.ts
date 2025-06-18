@@ -893,7 +893,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
       };
 
       // Send to Railway N8N webhook
-      const RAILWAY_WEBHOOK_URL = "https://primary-production-3b832.up.railway.app/webhook-test/onboarding-recebido";
+      const RAILWAY_WEBHOOK_URL = "https://primary-production-3b832.up.railway.app/webhook/onboarding-recebido";
       let n8nResponse = null;
 
       try {

@@ -1,12 +1,12 @@
 AI Response Log - PulseOn (Sync Data)
 =========================
 
-Data da última atualização: 18/06/2025, 03:20:27
+Data da última atualização: 18/06/2025, 03:24:37
 
 Sync Request Data:
 {
   "userId": 1,
-  "timestamp": "2025-06-18T03:20:26.939Z",
+  "timestamp": "2025-06-18T03:24:37.775Z",
   "personalInfo": {
     "name": "André Luis da Silva",
     "email": "andre.luiss75@gmail.com",
@@ -40,7 +40,7 @@ Sync Request Data:
   },
   "metadata": {
     "onboardingCompleted": true,
-    "lastUpdated": "2025-06-18T03:20:26.939Z"
+    "lastUpdated": "2025-06-18T03:24:37.775Z"
   },
   "validationField": "test-connection-railway-n8n"
 }
