@@ -68,7 +68,7 @@ export default function ActiveWorkout() {
   const [, setLocation] = useLocation();
 
   const { data: scheduledWorkouts, isLoading, error } = useQuery({
-    queryKey: ['scheduled-workouts'],
+    queryKey: ["scheduled-workouts"],
     queryFn: fetchScheduledWorkouts,
   });
 

@@ -469,13 +469,41 @@ export default function Home() {
 
   // Fetch scheduled workouts from database
   const { data: scheduledWorkouts = [], isLoading: workoutsLoading } = useQuery({
-    queryKey: ["/api/scheduled-workouts"],
+    queryKey: ["scheduled-workouts"],
+    queryFn: async () => {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('/api/scheduled-workouts', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao carregar treinos programados');
+      }
+      
+      return response.json();
+    },
     enabled: hasCompletedOnboarding,
   });
 
   // Fetch workout sessions for statistics
   const { data: workoutSessions = [], isLoading: sessionsLoading } = useQuery({
-    queryKey: ["/api/workout-sessions"],
+    queryKey: ["workout-sessions"],
+    queryFn: async () => {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('/api/workout-sessions', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao carregar sessões de treino');
+      }
+      
+      return response.json();
+    },
     enabled: hasCompletedOnboarding,
   });
 
@@ -489,9 +517,9 @@ export default function Home() {
         title: "Treino atualizado com sucesso!",
         description: "Seu novo treino personalizado está pronto.",
       });
-      // Invalidate both scheduled workouts queries
-      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
+      // Invalidate all scheduled workouts queries
       queryClient.invalidateQueries({ queryKey: ["scheduled-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
     },
     onError: (error) => {
       toast({
@@ -504,8 +532,8 @@ export default function Home() {
 
   const completedWorkouts = Array.isArray(workoutSessions) ? workoutSessions.filter((session: any) => session.completedAt).length : 0;
   const currentStreak = 7; // Calculate based on consecutive workout days
-  const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) ? scheduledWorkouts.length > 0 : false;
-  const todaysWorkout = Array.isArray(scheduledWorkouts) ? scheduledWorkouts.find((workout: any) => workout.status === "pending") : null;
+  const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0;
+  const todaysWorkout = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0 ? scheduledWorkouts[0] : null;
 
   const toggleUpcomingWorkout = (workoutId: number) => {
     setExpandedUpcomingWorkout(expandedUpcomingWorkout === workoutId ? null : workoutId);
