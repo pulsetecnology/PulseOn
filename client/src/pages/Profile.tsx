@@ -307,6 +307,8 @@ export default function Profile() {
 
   const avatarUploadMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log('Starting avatar upload for file:', file.name, 'size:', file.size);
+      
       const formData = new FormData();
       formData.append('avatar', file);
 
@@ -319,20 +321,35 @@ export default function Profile() {
         body: formData
       });
 
+      console.log('Avatar upload response status:', response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Avatar upload error:', errorText);
-        throw new Error(`Failed to upload avatar: ${response.status}`);
+        console.error('Avatar upload error response:', errorText);
+        
+        let errorMessage = "Erro ao fazer upload da imagem";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorMessage;
+        } catch {
+          // Fallback to default message if parsing fails
+        }
+        
+        throw new Error(errorMessage);
       }
-      return response.json();
+      
+      const result = await response.json();
+      console.log('Avatar upload success:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Avatar upload mutation success:', data);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       showSuccess("Avatar atualizado com sucesso!");
     },
     onError: (error: Error) => {
       console.error('Avatar upload mutation error:', error);
-      showError("Erro ao fazer upload da imagem. Tente novamente.");
+      showError(error.message || "Erro ao fazer upload da imagem. Tente novamente.");
     }
   });
 

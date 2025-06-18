@@ -52,14 +52,31 @@ const upload = multer({
   storage: storageConfig,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
+    console.log("File filter - File type:", file.mimetype, "Original name:", file.originalname);
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
+      console.error("File type not allowed:", file.mimetype);
       cb(new Error("Tipo de arquivo não permitido"));
     }
   },
 });
+
+// Add multer error handling middleware
+const handleMulterError = (error: any, req: Request, res: Response, next: any) => {
+  if (error instanceof multer.MulterError) {
+    console.error("Multer error:", error);
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: "Arquivo muito grande. Tamanho máximo: 5MB" });
+    }
+    return res.status(400).json({ message: "Erro no upload do arquivo" });
+  } else if (error) {
+    console.error("Upload error:", error);
+    return res.status(400).json({ message: error.message });
+  }
+  next();
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // New simplified auth setup route
@@ -888,31 +905,40 @@ ${JSON.stringify(n8nResponse, null, 2)}
     "/api/profile/avatar",
     authenticateToken,
     upload.single("avatar"),
+    handleMulterError,
     async (req: Request, res: Response) => {
       try {
         const userId = req.user!.id;
 
         if (!req.file) {
+          console.error("No file uploaded in avatar request");
           return res.status(400).json({ message: "Nenhum arquivo enviado" });
         }
 
+        console.log("Avatar upload - File received:", req.file.filename);
         const avatarUrl = `/api/uploads/${req.file.filename}`;
 
         // Update user's avatar in database using storage
         const updatedUser = await storage.updateUser(userId, { avatarUrl });
 
         if (!updatedUser) {
+          console.error("User not found when updating avatar for userId:", userId);
           return res.status(404).json({ message: "Usuário não encontrado" });
         }
 
+        console.log("Avatar updated successfully for user:", userId);
         res.json({
           message: "Avatar atualizado com sucesso",
           avatarUrl,
           user: sanitizeUser(updatedUser),
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error uploading avatar:", error);
-        res.status(500).json({ message: "Erro interno do servidor" });
+        console.error("Error stack:", error.stack);
+        res.status(500).json({ 
+          message: "Erro ao fazer upload do avatar",
+          error: error.message 
+        });
       }
     },
   );
