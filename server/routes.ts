@@ -947,10 +947,49 @@ ${JSON.stringify(n8nResponse, null, 2)}
         console.error("Error saving sync response to file:", fileError);
       }
 
+      // Process AI workout response and create scheduled workout
+      let createdWorkout = null;
+      if (n8nResponse && n8nResponse.output) {
+        try {
+          // Extract JSON from the output string
+          const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/);
+          if (jsonMatch) {
+            const aiWorkoutData = JSON.parse(jsonMatch[1]);
+            
+            if (aiWorkoutData.workoutPlan && aiWorkoutData.workoutPlan.length > 0) {
+              // Calculate total duration and calories
+              const totalDuration = aiWorkoutData.workoutPlan.reduce((sum, exercise) => {
+                return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60));
+              }, 0);
+
+              const totalCalories = aiWorkoutData.workoutPlan.reduce((sum, exercise) => sum + exercise.calories, 0);
+
+              // Generate workout name
+              const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+              // Create scheduled workout
+              createdWorkout = await storage.createScheduledWorkout({
+                userId: userData.id,
+                name: workoutName,
+                exercises: aiWorkoutData.workoutPlan,
+                totalCalories: Math.round(totalCalories),
+                totalDuration: Math.round(totalDuration),
+                status: "pending"
+              });
+
+              console.log("AI workout saved to database:", createdWorkout.id);
+            }
+          }
+        } catch (parseError) {
+          console.error("Error processing AI workout data:", parseError);
+        }
+      }
+
       res.json({ 
         message: "Dados sincronizados com sucesso",
         dataSent: n8nData,
-        n8nResponse: n8nResponse
+        n8nResponse: n8nResponse,
+        createdWorkout: createdWorkout
       });
 
     } catch (error) {

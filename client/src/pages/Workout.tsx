@@ -4,13 +4,61 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
-import { Play, Clock, Target, List, CheckCircle2, Timer, Plus, Minus, Pause, RotateCcw, ChevronRight } from "lucide-react";
-import { sampleWorkouts } from "@/lib/workouts";
+import { Play, Clock, Target, List, CheckCircle2, Timer, Plus, Minus, Pause, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
+import { useQuery } from "@tanstack/react-query";
+
+interface Exercise {
+  id?: string;
+  exercise: string;
+  muscleGroup: string;
+  type: string;
+  instructions: string;
+  time: number;
+  series: number;
+  repetitions: number;
+  restBetweenSeries: number;
+  restBetweenExercises: number;
+  weight: number;
+  calories: number;
+}
+
+interface ScheduledWorkout {
+  id: number;
+  userId: number;
+  name: string;
+  exercises: Exercise[];
+  totalCalories: number;
+  totalDuration: number;
+  status: string;
+  createdAt: string;
+  scheduledFor?: string;
+}
+
+// Fetch scheduled workouts
+const fetchScheduledWorkouts = async (): Promise<ScheduledWorkout[]> => {
+  const token = localStorage.getItem('authToken');
+  const response = await fetch('/api/scheduled-workouts', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error('Erro ao carregar treinos programados');
+  }
+  
+  return response.json();
+};
 
 export default function Workout() {
-  const todaysWorkout = sampleWorkouts[0]; // For demo purposes
+  const { data: scheduledWorkouts, isLoading, error } = useQuery({
+    queryKey: ['scheduled-workouts'],
+    queryFn: fetchScheduledWorkouts,
+  });
+
+  const todaysWorkout = scheduledWorkouts?.[0]; // Get the most recent workout
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [currentSet, setCurrentSet] = useState(1);
@@ -34,13 +82,13 @@ export default function Workout() {
   };
 
   const startIndividualExercise = (exerciseId: string) => {
-    const exercise = todaysWorkout.exercises?.find(ex => ex.id === exerciseId);
+    const exercise = todaysWorkout?.exercises?.find(ex => (ex.id || ex.exercise) === exerciseId);
     if (exercise) {
       setActiveExercise(exerciseId);
       setCurrentSet(1);
-      setWeight(exercise.suggestedWeight || 40);
+      setWeight(exercise.weight || 40);
       setEffortLevel([7]);
-      setRestTime(exercise.restTime);
+      setRestTime(exercise.restBetweenSeries || 90);
       setIsResting(false);
       setIsTimerRunning(false);
       setShowSetFeedback(false);
@@ -48,7 +96,7 @@ export default function Workout() {
   };
 
   const completeSet = () => {
-    const exercise = todaysWorkout.exercises?.find(ex => ex.id === activeExercise);
+    const exercise = todaysWorkout?.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise);
     if (!exercise) return;
 
     showWorkoutSuccess();
@@ -57,10 +105,10 @@ export default function Workout() {
     setTimeout(() => {
       setShowSetFeedback(false);
 
-      if (currentSet < exercise.sets) {
+      if (currentSet < exercise.series) {
         setCurrentSet(currentSet + 1);
         setIsResting(true);
-        setRestTime(exercise.restTime);
+        setRestTime(exercise.restBetweenSeries || 90);
         setIsTimerRunning(true);
       } else {
         // Exercise completed
@@ -91,7 +139,73 @@ export default function Workout() {
     }
   }, [isTimerRunning, restTime, showWorkoutSuccess]);
 
-  const progressPercentage = todaysWorkout.exercises ? (completedExercises.size / todaysWorkout.exercises.length) * 100 : 0;
+  const progressPercentage = todaysWorkout?.exercises ? (completedExercises.size / todaysWorkout.exercises.length) * 100 : 0;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="px-4 py-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">Treinos Programados</h1>
+          <p className="text-muted-foreground">
+            Carregando seus treinos personalizados...
+          </p>
+        </div>
+        <Card>
+          <CardContent className="p-6 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin mr-2" />
+            <span>Carregando treinos...</span>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="px-4 py-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">Treinos Programados</h1>
+          <p className="text-muted-foreground text-red-500">
+            Erro ao carregar treinos: {error.message}
+          </p>
+        </div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-red-500 mb-4">Não foi possível carregar seus treinos.</p>
+            <Button onClick={() => window.location.reload()}>
+              Tentar novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // No workouts state
+  if (!todaysWorkout) {
+    return (
+      <div className="px-4 py-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">Treinos Programados</h1>
+          <p className="text-muted-foreground">
+            Nenhum treino encontrado. Sincronize com a IA para gerar treinos personalizados.
+          </p>
+        </div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-gray-500 mb-4">Você ainda não possui treinos programados.</p>
+            <Link href="/profile">
+              <Button>
+                Ir para Perfil e Sincronizar
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 py-6 space-y-6">
@@ -108,9 +222,11 @@ export default function Workout() {
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold">{todaysWorkout.name}</h1>
-            <Badge variant="secondary">{todaysWorkout.duration} min</Badge>
+            <Badge variant="secondary">{todaysWorkout.totalDuration} min</Badge>
           </div>
-          <p className="text-muted-foreground mb-4">{todaysWorkout.description}</p>
+          <p className="text-muted-foreground mb-4">
+            Treino personalizado gerado pela IA com {todaysWorkout.exercises?.length} exercícios
+          </p>
 
           {/* Progress Counter */}
           {completedExercises.size > 0 && (
@@ -130,7 +246,7 @@ export default function Workout() {
             </span>
             <span className="flex items-center">
               <Target className="mr-1 h-4 w-4" />
-              {todaysWorkout.difficulty === "intermediate" ? "Intermediário" : todaysWorkout.difficulty}
+              {todaysWorkout.totalCalories} kcal
             </span>
           </div>
           <Link href="/active-workout">
@@ -148,10 +264,10 @@ export default function Workout() {
           <CardContent className="p-6 text-primary-foreground">
             <div className="text-center">
               <h2 className="text-lg font-semibold mb-2">
-                {todaysWorkout.exercises?.find(ex => ex.id === activeExercise)?.name}
+                {todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.exercise}
               </h2>
               <div className="text-2xl font-bold mb-2">
-                Série {currentSet} de {todaysWorkout.exercises?.find(ex => ex.id === activeExercise)?.sets}
+                Série {currentSet} de {todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.series}
               </div>
 
               {isResting && (
@@ -171,7 +287,7 @@ export default function Workout() {
                     </Button>
                     <Button 
                       variant="outline" 
-                      onClick={() => setRestTime(todaysWorkout.exercises?.find(ex => ex.id === activeExercise)?.restTime || 90)} 
+                      onClick={() => setRestTime(todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.restBetweenSeries || 90)} 
                       size="sm"
                       className="bg-white/20 border-white/30"
                     >
@@ -260,7 +376,7 @@ export default function Workout() {
                     onClick={completeSet}
                     className="w-full bg-white text-primary hover:bg-gray-100"
                   >
-                    {currentSet < (todaysWorkout.exercises?.find(ex => ex.id === activeExercise)?.sets || 1) 
+                    {currentSet < (todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.series || 1) 
                       ? "Próxima série" : "Finalizar exercício"}
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -274,60 +390,65 @@ export default function Workout() {
       {/* Exercise List */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Exercícios</h2>
-        {todaysWorkout.exercises?.map((exercise, index) => (
-          <Card key={exercise.id} className={`${completedExercises.has(exercise.id) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exercise.id ? 'ring-2 ring-primary' : ''}`}>
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  <h3 className="font-semibold text-sm">{exercise.name}</h3>
-                  {completedExercises.has(exercise.id) && (
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  )}
+        {todaysWorkout.exercises?.map((exercise, index) => {
+          const exerciseId = exercise.id || exercise.exercise;
+          return (
+            <Card key={exerciseId} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'ring-2 ring-primary' : ''}`}>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <h3 className="font-semibold text-sm">{exercise.exercise}</h3>
+                    {completedExercises.has(exerciseId) && (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {exercise.series}x{exercise.repetitions}
+                    {exercise.time > 0 && ` - ${exercise.time}min`}
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {exercise.sets}x{exercise.reps}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                <span>Peso: {exercise.suggestedWeight}kg</span>
-                <span className="flex items-center">
-                  <Clock className="mr-1 h-2 w-2" />
-                  {exercise.restTime}s
-                </span>
-              </div>
-              <div className="mb-2">
-                <p className="text-xs text-muted-foreground">{exercise.instructions}</p>
-              </div>
-              <div className="flex flex-wrap gap-1 mb-2">
-                {exercise.muscleGroups.map((muscle) => (
-                  <Badge key={muscle} variant="outline" className="text-xs px-1 py-0">
-                    {muscle}
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                  <span>Peso: {exercise.weight > 0 ? `${exercise.weight}kg` : 'Peso corporal'}</span>
+                  <span className="flex items-center">
+                    <Clock className="mr-1 h-2 w-2" />
+                    {exercise.restBetweenSeries}s
+                  </span>
+                </div>
+                <div className="mb-2">
+                  <p className="text-xs text-muted-foreground">{exercise.instructions}</p>
+                </div>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  <Badge variant="outline" className="text-xs px-1 py-0">
+                    {exercise.muscleGroup}
                   </Badge>
-                ))}
-              </div>
-              {!completedExercises.has(exercise.id) ? (
-                <Button 
-                  className="w-full" 
-                  variant={activeExercise === exercise.id ? "secondary" : "default"}
-                  onClick={() => startIndividualExercise(exercise.id)}
-                  disabled={activeExercise !== null && activeExercise !== exercise.id}
-                >
-                  <Play className="mr-2 h-4 w-4" />
-                  {activeExercise === exercise.id ? "Exercício ativo" : "Iniciar este exercício"}
-                </Button>
-              ) : (
-                <Button 
-                  className="w-full" 
-                  variant="outline"
-                  disabled
-                >
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  Exercício concluído
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+                  <Badge variant="outline" className="text-xs px-1 py-0">
+                    {exercise.type}
+                  </Badge>
+                </div>
+                {!completedExercises.has(exerciseId) ? (
+                  <Button 
+                    className="w-full" 
+                    variant={activeExercise === exerciseId ? "secondary" : "default"}
+                    onClick={() => startIndividualExercise(exerciseId)}
+                    disabled={activeExercise !== null && activeExercise !== exerciseId}
+                  >
+                    <Play className="mr-2 h-4 w-4" />
+                    {activeExercise === exerciseId ? "Exercício ativo" : "Iniciar este exercício"}
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    disabled
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Exercício concluído
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
