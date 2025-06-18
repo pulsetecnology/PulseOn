@@ -746,11 +746,19 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
   app.post("/api/workout-sessions", authenticateToken, async (req, res) => {
     try {
+      // Validate and sanitize the session data
       const sessionData = {
-        ...req.body,
-        userId: req.user!.id, // Use authenticated user ID
+        userId: req.user!.id,
+        workoutId: req.body.workoutId || null,
         startedAt: req.body.startedAt || new Date().toISOString(),
+        completedAt: req.body.completedAt || null,
+        exercises: req.body.exercises || [],
+        totalDuration: req.body.totalDuration || 0,
+        totalCalories: req.body.totalCalories || 0,
+        notes: req.body.notes || null
       };
+      
+      console.log("Creating workout session with sanitized data:", sessionData);
       
       const session = await storage.createWorkoutSession(sessionData);
       res.status(201).json({
