@@ -1,0 +1,258 @@
+=== N8N Response - 2025-06-18T02:06:55.392Z ===
+
+Request Data:
+{
+  "userId": 1,
+  "timestamp": "2025-06-18T02:06:51.871Z",
+  "personalInfo": {
+    "name": "André Luis da Silva",
+    "email": "andre.luiss75@gmail.com",
+    "birthDate": "1975-06-18",
+    "age": 50,
+    "weight": 85,
+    "height": 180,
+    "gender": "male"
+  },
+  "fitnessProfile": {
+    "fitnessGoal": "gain_muscle",
+    "experienceLevel": "intermediate",
+    "weeklyFrequency": 3,
+    "availableEquipment": [
+      "gym_access"
+    ],
+    "customEquipment": null,
+    "physicalRestrictions": "Tendinite no ombro direito.",
+    "preferredWorkoutTime": "afternoon",
+    "availableDaysPerWeek": 3,
+    "averageWorkoutDuration": "1h_or_more",
+    "preferredLocation": "gym"
+  },
+  "lifestyle": {
+    "smokingStatus": "yes",
+    "alcoholConsumption": "socially",
+    "dietType": "balanced",
+    "sleepHours": "6-7",
+    "stressLevel": "moderate"
+  },
+  "metadata": {
+    "onboardingCompleted": true,
+    "lastUpdated": "2025-06-18T02:06:51.871Z"
+  },
+  "validationField": "test-connection-railway-n8n"
+}
+
+Response Data:
+{
+  "output": "```json\n{\n  \"userId\": 1,\n  \"workoutPlan\": [\n    {\n      \"exercise\": \"Agachamento com barra\",\n      \"muscleGroup\": \"Pernas\",\n      \"type\": \"Força\",\n      \"instructions\": \"Abaixe o corpo até que as coxas fiquem paralelas ao chão.\",\n      \"time\": 0,\n      \"series\": 4,\n      \"repetitions\": 10,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 20,\n      \"calories\": 70\n    },\n    {\n      \"exercise\": \"Puxada alta com barra\",\n      \"muscleGroup\": \"Costas\",\n      \"type\": \"Força\",\n      \"instructions\": \"Puxe a barra até que os cotovelos fiquem abaixados.\",\n      \"time\": 0,\n      \"series\": 4,\n      \"repetitions\": 10,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 20,\n      \"calories\": 60\n    },\n    {\n      \"exercise\": \"Supino reto com halteres\",\n      \"muscleGroup\": \"Peitoral\",\n      \"type\": \"Força\",\n      \"instructions\": \"Empurre os halteres para cima até esticar os braços.\",\n      \"time\": 0,\n      \"series\": 4,\n      \"repetitions\": 10,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 15,\n      \"calories\": 50\n    },\n    {\n      \"exercise\": \"Esteira\",\n      \"muscleGroup\": \"Pernas\",\n      \"type\": \"Cardio\",\n      \"instructions\": \"Corra na esteira por 20 minutos.\",\n      \"time\": 20,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 120,\n      \"weight\": 0,\n      \"calories\": 150\n    },\n    {\n      \"exercise\": \"Bicicleta ergométrica\",\n      \"muscleGroup\": \"Pernas\",\n      \"type\": \"Cardio\",\n      \"instructions\": \"Pedale na bicicleta ergométrica por 20 minutos.\",\n      \"time\": 20,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 120,\n      \"weight\": 0,\n      \"calories\": 120\n    },\n    {\n      \"exercise\": \"Abdominal retificado\",\n      \"muscleGroup\": \"Core\",\n      \"type\": \"Força\",\n      \"instructions\": \"Levante o tronco até que os ombros fiquem descolados do chão.\",\n      \"time\": 0,\n      \"series\": 4,\n      \"repetitions\": 15,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 0,\n      \"calories\": 40\n    },\n    {\n      \"exercise\": \"Alongamento\",\n      \"muscleGroup\": \"Geral\",\n      \"type\": \"Mobilidade\",\n      \"instructions\": \"Alongue os principais músculos do corpo.\",\n      \"time\": 10,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 0,\n      \"weight\": 0,\n      \"calories\": 10\n    }\n  ]\n}\n```",
+  "savedWorkout": {
+    "id": 10,
+    "userId": 1,
+    "name": "Treino IA - 18/06/2025 02:06",
+    "exercises": [
+      {
+        "time": 0,
+        "type": "Força",
+        "series": 4,
+        "weight": 20,
+        "calories": 70,
+        "exercise": "Agachamento com barra",
+        "muscleGroup": "Pernas",
+        "repetitions": 10,
+        "instructions": "Abaixe o corpo até que as coxas fiquem paralelas ao chão.",
+        "restBetweenSeries": 60,
+        "restBetweenExercises": 90
+      },
+      {
+        "time": 0,
+        "type": "Força",
+        "series": 4,
+        "weight": 20,
+        "calories": 60,
+        "exercise": "Puxada alta com barra",
+        "muscleGroup": "Costas",
+        "repetitions": 10,
+        "instructions": "Puxe a barra até que os cotovelos fiquem abaixados.",
+        "restBetweenSeries": 60,
+        "restBetweenExercises": 90
+      },
+      {
+        "time": 0,
+        "type": "Força",
+        "series": 4,
+        "weight": 15,
+        "calories": 50,
+        "exercise": "Supino reto com halteres",
+        "muscleGroup": "Peitoral",
+        "repetitions": 10,
+        "instructions": "Empurre os halteres para cima até esticar os braços.",
+        "restBetweenSeries": 60,
+        "restBetweenExercises": 90
+      },
+      {
+        "time": 20,
+        "type": "Cardio",
+        "series": 1,
+        "weight": 0,
+        "calories": 150,
+        "exercise": "Esteira",
+        "muscleGroup": "Pernas",
+        "repetitions": 0,
+        "instructions": "Corra na esteira por 20 minutos.",
+        "restBetweenSeries": 0,
+        "restBetweenExercises": 120
+      },
+      {
+        "time": 20,
+        "type": "Cardio",
+        "series": 1,
+        "weight": 0,
+        "calories": 120,
+        "exercise": "Bicicleta ergométrica",
+        "muscleGroup": "Pernas",
+        "repetitions": 0,
+        "instructions": "Pedale na bicicleta ergométrica por 20 minutos.",
+        "restBetweenSeries": 0,
+        "restBetweenExercises": 120
+      },
+      {
+        "time": 0,
+        "type": "Força",
+        "series": 4,
+        "weight": 0,
+        "calories": 40,
+        "exercise": "Abdominal retificado",
+        "muscleGroup": "Core",
+        "repetitions": 15,
+        "instructions": "Levante o tronco até que os ombros fiquem descolados do chão.",
+        "restBetweenSeries": 60,
+        "restBetweenExercises": 90
+      },
+      {
+        "time": 10,
+        "type": "Mobilidade",
+        "series": 1,
+        "weight": 0,
+        "calories": 10,
+        "exercise": "Alongamento",
+        "muscleGroup": "Geral",
+        "repetitions": 0,
+        "instructions": "Alongue os principais músculos do corpo.",
+        "restBetweenSeries": 0,
+        "restBetweenExercises": 0
+      }
+    ],
+    "totalCalories": 500,
+    "totalDuration": 52,
+    "status": "pending",
+    "createdAt": "2025-06-18T02:06:55.332Z",
+    "scheduledFor": "2025-06-18T02:06:55.332Z"
+  }
+}
+
+Raw Response:
+{
+  "output": "```json\n{\n  \"userId\": 1,\n  \"workoutPlan\": [\n    {\n      \"exercise\": \"Agachamento com barra\",\n      \"muscleGroup\": \"Pernas\",\n      \"type\": \"Força\",\n      \"instructions\": \"Abaixe o corpo até que as coxas fiquem paralelas ao chão.\",\n      \"time\": 0,\n      \"series\": 4,\n      \"repetitions\": 10,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 20,\n      \"calories\": 70\n    },\n    {\n      \"exercise\": \"Puxada alta com barra\",\n      \"muscleGroup\": \"Costas\",\n      \"type\": \"Força\",\n      \"instructions\": \"Puxe a barra até que os cotovelos fiquem abaixados.\",\n      \"time\": 0,\n      \"series\": 4,\n      \"repetitions\": 10,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 20,\n      \"calories\": 60\n    },\n    {\n      \"exercise\": \"Supino reto com halteres\",\n      \"muscleGroup\": \"Peitoral\",\n      \"type\": \"Força\",\n      \"instructions\": \"Empurre os halteres para cima até esticar os braços.\",\n      \"time\": 0,\n      \"series\": 4,\n      \"repetitions\": 10,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 15,\n      \"calories\": 50\n    },\n    {\n      \"exercise\": \"Esteira\",\n      \"muscleGroup\": \"Pernas\",\n      \"type\": \"Cardio\",\n      \"instructions\": \"Corra na esteira por 20 minutos.\",\n      \"time\": 20,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 120,\n      \"weight\": 0,\n      \"calories\": 150\n    },\n    {\n      \"exercise\": \"Bicicleta ergométrica\",\n      \"muscleGroup\": \"Pernas\",\n      \"type\": \"Cardio\",\n      \"instructions\": \"Pedale na bicicleta ergométrica por 20 minutos.\",\n      \"time\": 20,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 120,\n      \"weight\": 0,\n      \"calories\": 120\n    },\n    {\n      \"exercise\": \"Abdominal retificado\",\n      \"muscleGroup\": \"Core\",\n      \"type\": \"Força\",\n      \"instructions\": \"Levante o tronco até que os ombros fiquem descolados do chão.\",\n      \"time\": 0,\n      \"series\": 4,\n      \"repetitions\": 15,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 0,\n      \"calories\": 40\n    },\n    {\n      \"exercise\": \"Alongamento\",\n      \"muscleGroup\": \"Geral\",\n      \"type\": \"Mobilidade\",\n      \"instructions\": \"Alongue os principais músculos do corpo.\",\n      \"time\": 10,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 0,\n      \"weight\": 0,\n      \"calories\": 10\n    }\n  ]\n}\n```",
+  "savedWorkout": {
+    "id": 10,
+    "userId": 1,
+    "name": "Treino IA - 18/06/2025 02:06",
+    "exercises": [
+      {
+        "time": 0,
+        "type": "Força",
+        "series": 4,
+        "weight": 20,
+        "calories": 70,
+        "exercise": "Agachamento com barra",
+        "muscleGroup": "Pernas",
+        "repetitions": 10,
+        "instructions": "Abaixe o corpo até que as coxas fiquem paralelas ao chão.",
+        "restBetweenSeries": 60,
+        "restBetweenExercises": 90
+      },
+      {
+        "time": 0,
+        "type": "Força",
+        "series": 4,
+        "weight": 20,
+        "calories": 60,
+        "exercise": "Puxada alta com barra",
+        "muscleGroup": "Costas",
+        "repetitions": 10,
+        "instructions": "Puxe a barra até que os cotovelos fiquem abaixados.",
+        "restBetweenSeries": 60,
+        "restBetweenExercises": 90
+      },
+      {
+        "time": 0,
+        "type": "Força",
+        "series": 4,
+        "weight": 15,
+        "calories": 50,
+        "exercise": "Supino reto com halteres",
+        "muscleGroup": "Peitoral",
+        "repetitions": 10,
+        "instructions": "Empurre os halteres para cima até esticar os braços.",
+        "restBetweenSeries": 60,
+        "restBetweenExercises": 90
+      },
+      {
+        "time": 20,
+        "type": "Cardio",
+        "series": 1,
+        "weight": 0,
+        "calories": 150,
+        "exercise": "Esteira",
+        "muscleGroup": "Pernas",
+        "repetitions": 0,
+        "instructions": "Corra na esteira por 20 minutos.",
+        "restBetweenSeries": 0,
+        "restBetweenExercises": 120
+      },
+      {
+        "time": 20,
+        "type": "Cardio",
+        "series": 1,
+        "weight": 0,
+        "calories": 120,
+        "exercise": "Bicicleta ergométrica",
+        "muscleGroup": "Pernas",
+        "repetitions": 0,
+        "instructions": "Pedale na bicicleta ergométrica por 20 minutos.",
+        "restBetweenSeries": 0,
+        "restBetweenExercises": 120
+      },
+      {
+        "time": 0,
+        "type": "Força",
+        "series": 4,
+        "weight": 0,
+        "calories": 40,
+        "exercise": "Abdominal retificado",
+        "muscleGroup": "Core",
+        "repetitions": 15,
+        "instructions": "Levante o tronco até que os ombros fiquem descolados do chão.",
+        "restBetweenSeries": 60,
+        "restBetweenExercises": 90
+      },
+      {
+        "time": 10,
+        "type": "Mobilidade",
+        "series": 1,
+        "weight": 0,
+        "calories": 10,
+        "exercise": "Alongamento",
+        "muscleGroup": "Geral",
+        "repetitions": 0,
+        "instructions": "Alongue os principais músculos do corpo.",
+        "restBetweenSeries": 0,
+        "restBetweenExercises": 0
+      }
+    ],
+    "totalCalories": 500,
+    "totalDuration": 52,
+    "status": "pending",
+    "createdAt": "2025-06-18T02:06:55.332Z",
+    "scheduledFor": "2025-06-18T02:06:55.332Z"
+  }
+}
