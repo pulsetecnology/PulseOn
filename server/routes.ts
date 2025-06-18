@@ -958,11 +958,11 @@ ${JSON.stringify(n8nResponse, null, 2)}
             
             if (aiWorkoutData.workoutPlan && aiWorkoutData.workoutPlan.length > 0) {
               // Calculate total duration and calories
-              const totalDuration = aiWorkoutData.workoutPlan.reduce((sum, exercise) => {
+              const totalDuration = aiWorkoutData.workoutPlan.reduce((sum: number, exercise: any) => {
                 return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60));
               }, 0);
 
-              const totalCalories = aiWorkoutData.workoutPlan.reduce((sum, exercise) => sum + exercise.calories, 0);
+              const totalCalories = aiWorkoutData.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
 
               // Generate workout name
               const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
