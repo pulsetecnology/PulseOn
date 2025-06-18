@@ -482,18 +482,18 @@ export default function Home() {
   // AI workout generation mutation
   const generateWorkoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/ai/generate-workout", "POST");
+      return await apiRequest("/api/n8n/sync-user-data", "POST");
     },
     onSuccess: (data) => {
       toast({
-        title: "Treino gerado com sucesso!",
+        title: "Treino atualizado com sucesso!",
         description: "Seu novo treino personalizado está pronto.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
     },
     onError: (error) => {
       toast({
-        title: "Erro ao gerar treino",
+        title: "Erro ao atualizar treino",
         description: "Tente novamente em alguns minutos.",
         variant: "destructive",
       });
@@ -528,41 +528,7 @@ export default function Home() {
         <OnboardingCard user={user} />
       )}
 
-      {hasCompletedOnboarding && !hasWorkoutsAvailable && (
-        <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-blue-800 dark:text-blue-200">
-                  IA preparando seus treinos
-                </h3>
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Aguarde enquanto nossa IA cria treinos personalizados baseados no seu perfil.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {completedWorkouts === 0 && hasCompletedOnboarding && (
-        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-green-800 dark:text-green-200">
-                  Bem-vindo ao PulseOn!
-                </h3>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  Seu primeiro treino personalizado está pronto. Vamos começar!
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      
 
       {/* Quick Stats */}
       <div className="space-y-3">
@@ -976,7 +942,7 @@ export default function Home() {
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Atualizar IA
+                  Atualizar treino
                 </>
               )}
             </Button>

@@ -356,14 +356,14 @@ export default function Profile() {
       console.log('N8N sync response:', data);
       if (data.n8nResponse) {
         console.log('N8N webhook response:', data.n8nResponse);
-        showSuccess(`Dados sincronizados com IA! Resposta: ${JSON.stringify(data.n8nResponse).substring(0, 100)}...`);
+        showSuccess("Treino atualizado com sucesso!");
       } else {
-        showSuccess("Dados sincronizados com IA com sucesso!");
+        showSuccess("Treino atualizado com sucesso!");
       }
     },
     onError: (error: Error) => {
       console.error('N8N sync error:', error);
-      showError("Erro ao sincronizar dados com IA. Tente novamente.");
+      showError("Erro ao atualizar treino. Tente novamente.");
     }
   });
 
@@ -494,7 +494,7 @@ export default function Profile() {
               ) : (
                 <Activity className="h-4 w-4" />
               )}
-              Atualizar IA
+              Atualizar treino
             </Button>
           </div>
         </div>
