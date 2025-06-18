@@ -59,14 +59,6 @@ export default function ActiveWorkout() {
   const [weight, setWeight] = useState(40);
   const [effortLevel, setEffortLevel] = useState([7]);
   const [restTime, setRestTime] = useState(90);
-
-  // Initialize weight when workout loads
-  useEffect(() => {
-    if (currentExercise) {
-      setWeight(currentExercise.weight || 40);
-      setRestTime(currentExercise.restBetweenSeries || 90);
-    }
-  }, [currentExercise]);
   const [isResting, setIsResting] = useState(false);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showSetFeedback, setShowSetFeedback] = useState(false);
@@ -85,6 +77,14 @@ export default function ActiveWorkout() {
   const currentExercise = exercises[currentExerciseIndex];
   const totalExercises = exercises.length;
   const progressPercentage = totalExercises > 0 ? ((currentExerciseIndex + 1) / totalExercises) * 100 : 0;
+
+  // Initialize weight when workout loads
+  useEffect(() => {
+    if (currentExercise) {
+      setWeight(currentExercise.weight || 40);
+      setRestTime(currentExercise.restBetweenSeries || 90);
+    }
+  }, [currentExercise]);
 
   // Loading state
   if (isLoading) {

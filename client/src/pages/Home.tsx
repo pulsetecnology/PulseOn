@@ -959,7 +959,7 @@ export default function Home() {
                 </div>
               </CardContent>
             </Card>
-          ) : todaysWorkout ? (
+          ) : hasWorkoutsAvailable && todaysWorkout ? (
             <Card 
               className="cursor-pointer transition-all duration-200 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950"
               onClick={() => setExpandedTodaysWorkout(!expandedTodaysWorkout)}
@@ -983,7 +983,7 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center justify-between mb-3">
-                  <Link href="/workout">
+                  <Link href="/active-workout">
                     <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                       <Play className="mr-2 h-4 w-4" />
                       Ir para treino
