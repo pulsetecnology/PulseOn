@@ -3,6 +3,53 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, Clock, Dumbbell, ChevronDown, ChevronUp, X, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
+import { useQuery } from "@tanstack/react-query";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+interface CompletedExercise {
+  exercise: string;
+  muscleGroup: string;
+  type: string;
+  actualWeight?: number;
+  actualTime?: number;
+  actualCalories?: number;
+  effortLevel: number;
+  completed: boolean;
+  notes?: string;
+  series?: number;
+  repetitions?: number;
+  weight?: number;
+}
+
+interface WorkoutSession {
+  id: number;
+  userId: number;
+  name: string;
+  startedAt: string;
+  completedAt: string | null;
+  exercises: CompletedExercise[];
+  totalDuration: number;
+  totalCalories: number;
+  notes?: string;
+  createdAt: string;
+}
+
+// Fetch workout sessions
+const fetchWorkoutSessions = async (): Promise<WorkoutSession[]> => {
+  const token = localStorage.getItem('authToken');
+  const response = await fetch('/api/workout-sessions', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error('Erro ao carregar histórico de treinos');
+  }
+  
+  return response.json();
+};
 
 const mockHistory = [
   {
@@ -122,8 +169,69 @@ export default function History() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
   const [expandedCalendarWorkout, setExpandedCalendarWorkout] = useState<boolean>(false);
-  // Initialize to January 2025 where we have test data
-  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 0, 1));
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  // Fetch real workout sessions
+  const { data: workoutSessions = [], isLoading: sessionsLoading } = useQuery({
+    queryKey: ['workout-sessions'],
+    queryFn: fetchWorkoutSessions,
+  });
+
+  // Convert workout sessions to history format matching the original design
+  const workoutHistory = workoutSessions
+    .filter(session => session.completedAt)
+    .map(session => {
+      const completedAt = parseISO(session.completedAt!);
+      const completedExercises = session.exercises.filter(ex => ex.completed);
+      const totalExercises = session.exercises.length;
+      
+      // Calculate relative date
+      const now = new Date();
+      const diffDays = Math.floor((now.getTime() - completedAt.getTime()) / (1000 * 60 * 60 * 24));
+      let dateText = "";
+      if (diffDays === 0) dateText = "Hoje";
+      else if (diffDays === 1) dateText = "Ontem";
+      else if (diffDays <= 7) dateText = `${diffDays} dias atrás`;
+      else dateText = format(completedAt, "dd/MM/yyyy", { locale: ptBR });
+
+      const completionRate = totalExercises > 0 ? Math.round((completedExercises.length / totalExercises) * 100) : 0;
+      
+      return {
+        id: session.id,
+        name: session.name,
+        date: dateText,
+        duration: session.totalDuration,
+        exercises: totalExercises,
+        status: completionRate === 100 ? "completed" : completionRate > 0 ? "partial" : "skipped",
+        completionRate,
+        exerciseDetails: session.exercises.map(ex => ({
+          name: ex.exercise,
+          sets: ex.series || 1,
+          reps: ex.repetitions || 0,
+          weight: ex.actualWeight ? `${ex.actualWeight}kg` : (ex.weight ? `${ex.weight}kg` : "Peso Corporal"),
+          completed: ex.completed,
+          completedSets: ex.completed ? (ex.series || 1) : 0,
+          totalSets: ex.series || 1
+        }))
+      };
+    })
+    .sort((a, b) => b.id - a.id); // Sort by most recent first
+
+  // Create calendar data from real workout sessions
+  const calendarData: { [key: string]: { workoutId: number; status: string } } = {};
+  workoutSessions
+    .filter(session => session.completedAt)
+    .forEach(session => {
+      const dateKey = formatDateKey(parseISO(session.completedAt!));
+      const completedExercises = session.exercises.filter(ex => ex.completed);
+      const totalExercises = session.exercises.length;
+      const completionRate = totalExercises > 0 ? Math.round((completedExercises.length / totalExercises) * 100) : 0;
+      
+      calendarData[dateKey] = {
+        workoutId: session.id,
+        status: completionRate === 100 ? "completed" : completionRate > 0 ? "partial" : "skipped"
+      };
+    });
 
   const toggleCard = (cardId: number) => {
     setExpandedCard(expandedCard === cardId ? null : cardId);

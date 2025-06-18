@@ -1,13 +1,10 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, Target, Flame, Trophy, TrendingUp, ChevronLeft, Filter } from "lucide-react";
-import { Link } from "wouter";
+import { Calendar as CalendarIcon, Clock, Dumbbell, ChevronDown, ChevronUp, X, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 import { useQuery } from "@tanstack/react-query";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface CompletedExercise {
@@ -68,71 +65,98 @@ const fetchUserStats = async () => {
 };
 
 export default function WorkoutHistory() {
-  const [selectedWeek, setSelectedWeek] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [expandedWorkouts, setExpandedWorkouts] = useState<Set<number>>(new Set());
   
   const { data: workoutSessions = [], isLoading: sessionsLoading } = useQuery({
     queryKey: ['workout-sessions'],
     queryFn: fetchWorkoutSessions,
   });
 
-  const { data: userStats, isLoading: statsLoading } = useQuery({
-    queryKey: ['user-stats'],
-    queryFn: fetchUserStats,
-  });
-
-  // Get recent workouts (last 10)
-  const recentWorkouts = workoutSessions
+  // Convert workout sessions to history format matching the original design
+  const workoutHistory = workoutSessions
     .filter(session => session.completedAt)
-    .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
-    .slice(0, 10);
+    .map(session => {
+      const completedAt = parseISO(session.completedAt!);
+      const completedExercises = session.exercises.filter(ex => ex.completed);
+      const totalExercises = session.exercises.length;
+      
+      // Calculate relative date
+      const now = new Date();
+      const diffDays = Math.floor((now.getTime() - completedAt.getTime()) / (1000 * 60 * 60 * 24));
+      let dateText = "";
+      if (diffDays === 0) dateText = "Hoje";
+      else if (diffDays === 1) dateText = "Ontem";
+      else if (diffDays <= 7) dateText = `${diffDays} dias atrás`;
+      else dateText = format(completedAt, "dd/MM/yyyy", { locale: ptBR });
 
-  // Get current week's workouts for calendar
-  const weekStart = startOfWeek(selectedWeek, { locale: ptBR });
-  const weekEnd = endOfWeek(selectedWeek, { locale: ptBR });
-  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
-  
-  const weekWorkouts = workoutSessions.filter(session => {
-    if (!session.completedAt) return false;
-    const sessionDate = parseISO(session.completedAt);
-    return sessionDate >= weekStart && sessionDate <= weekEnd;
-  });
+      const completionRate = totalExercises > 0 ? Math.round((completedExercises.length / totalExercises) * 100) : 0;
+      
+      return {
+        id: session.id,
+        name: session.name,
+        date: dateText,
+        duration: session.totalDuration,
+        exercises: totalExercises,
+        status: completionRate === 100 ? "completed" : completionRate > 0 ? "partial" : "skipped",
+        completionRate,
+        exerciseDetails: session.exercises.map(ex => ({
+          name: ex.exercise,
+          sets: ex.series || 1,
+          reps: ex.repetitions || 0,
+          weight: ex.actualWeight ? `${ex.actualWeight}kg` : (ex.weight ? `${ex.weight}kg` : "Peso Corporal"),
+          completed: ex.completed,
+          completedSets: ex.completed ? (ex.series || 1) : 0,
+          totalSets: ex.series || 1
+        }))
+      };
+    })
+    .sort((a, b) => b.id - a.id); // Sort by most recent first
 
-  const getWorkoutForDay = (day: Date) => {
-    return weekWorkouts.find(session => 
-      session.completedAt && isSameDay(parseISO(session.completedAt), day)
-    );
-  };
-
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours > 0) {
-      return `${hours}h ${mins}min`;
+  const toggleExpansion = (workoutId: number) => {
+    const newExpanded = new Set(expandedWorkouts);
+    if (newExpanded.has(workoutId)) {
+      newExpanded.delete(workoutId);
+    } else {
+      newExpanded.add(workoutId);
     }
-    return `${mins}min`;
+    setExpandedWorkouts(newExpanded);
   };
 
-  const getWorkoutTypeColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'cardio': return 'bg-red-100 text-red-800';
-      case 'força': return 'bg-blue-100 text-blue-800';
-      case 'resistência': return 'bg-green-100 text-green-800';
-      case 'mobilidade': return 'bg-purple-100 text-purple-800';
-      case 'funcional': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed": return "bg-green-100 text-green-800";
+      case "partial": return "bg-yellow-100 text-yellow-800";
+      case "skipped": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
-  if (sessionsLoading || statsLoading) {
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "completed": return "Completo";
+      case "partial": return "Parcial";
+      case "skipped": return "Pulado";
+      default: return "Desconhecido";
+    }
+  };
+
+  const getCompletionIcon = (completed: boolean | string) => {
+    if (completed === true) return <span className="text-green-500">✓</span>;
+    if (completed === "partial") return <span className="text-yellow-500">~</span>;
+    return <span className="text-red-500">✗</span>;
+  };
+
+  if (sessionsLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen bg-slate-900 p-4">
         <div className="max-w-md mx-auto space-y-4">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded mb-4"></div>
+            <div className="h-8 bg-slate-700 rounded mb-4"></div>
             <div className="space-y-3">
-              <div className="h-24 bg-gray-200 rounded"></div>
-              <div className="h-24 bg-gray-200 rounded"></div>
-              <div className="h-24 bg-gray-200 rounded"></div>
+              <div className="h-24 bg-slate-700 rounded"></div>
+              <div className="h-24 bg-slate-700 rounded"></div>
+              <div className="h-24 bg-slate-700 rounded"></div>
             </div>
           </div>
         </div>
@@ -141,223 +165,129 @@ export default function WorkoutHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-md mx-auto p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link href="/home">
-                <Button variant="ghost" size="sm">
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-              </Link>
-              <h1 className="text-xl font-bold">Histórico</h1>
-            </div>
-            <Button variant="ghost" size="sm">
-              <Filter className="h-5 w-5" />
-            </Button>
+    <div className="min-h-screen bg-slate-900 text-white">
+      <div className="max-w-md mx-auto p-4 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-white">Histórico de Treinos</h1>
+          <div className="flex gap-2">
+            <CalendarIcon className="h-6 w-6 text-gray-400" />
           </div>
         </div>
-      </div>
 
-      <div className="max-w-md mx-auto p-4 space-y-6">
-        {/* Stats Overview */}
-        {userStats && (
-          <div className="grid grid-cols-2 gap-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Trophy className="h-6 w-6 text-yellow-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">{userStats.totalWorkouts}</p>
-                <p className="text-sm text-gray-600">Treinos</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Flame className="h-6 w-6 text-orange-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">{userStats.totalCalories}</p>
-                <p className="text-sm text-gray-600">Calorias</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Clock className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">{Math.round(userStats.totalMinutes / 60)}h</p>
-                <p className="text-sm text-gray-600">Tempo Total</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <TrendingUp className="h-6 w-6 text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">{userStats.currentStreak}</p>
-                <p className="text-sm text-gray-600">Sequência</p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* Calendar Section */}
+        <Card className="bg-slate-800 border-slate-700">
+          <CardContent className="p-4">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              className="rounded-md border-0"
+              classNames={{
+                months: "text-white",
+                month: "space-y-4",
+                caption: "text-white font-medium",
+                caption_label: "text-sm font-medium text-white",
+                nav: "space-x-1 flex items-center",
+                nav_button: "h-7 w-7 bg-transparent p-0 text-slate-400 hover:text-white",
+                nav_button_previous: "absolute left-1",
+                nav_button_next: "absolute right-1",
+                table: "w-full border-collapse space-y-1",
+                head_row: "flex",
+                head_cell: "text-slate-400 rounded-md w-9 font-normal text-[0.8rem]",
+                row: "flex w-full mt-2",
+                cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-slate-100/50 [&:has([aria-selected])]:bg-slate-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                day: "h-9 w-9 p-0 font-normal text-white hover:bg-slate-700 rounded-md",
+                day_range_end: "day-range-end",
+                day_selected: "bg-cyan-500 text-white hover:bg-cyan-600 focus:bg-cyan-500 focus:text-white",
+                day_today: "bg-slate-700 text-white",
+                day_outside: "text-slate-600 opacity-50 aria-selected:bg-slate-100/50 aria-selected:text-slate-600 aria-selected:opacity-30",
+                day_disabled: "text-slate-600 opacity-50",
+                day_range_middle: "aria-selected:bg-slate-100 aria-selected:text-slate-900",
+                day_hidden: "invisible",
+              }}
+            />
+          </CardContent>
+        </Card>
 
-        {/* Tabs */}
-        <Tabs defaultValue="recent" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="recent">Treinos Recentes</TabsTrigger>
-            <TabsTrigger value="calendar">Calendário</TabsTrigger>
-          </TabsList>
-
-          {/* Recent Workouts */}
-          <TabsContent value="recent" className="space-y-4">
-            {recentWorkouts.length === 0 ? (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Nenhum treino realizado
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    Complete seu primeiro treino para ver o histórico aqui.
-                  </p>
-                  <Link href="/workout">
-                    <Button>Começar Treino</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              recentWorkouts.map((workout) => (
-                <Card key={workout.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{workout.name}</h3>
-                        <p className="text-sm text-gray-600">
-                          {format(parseISO(workout.completedAt!), "dd 'de' MMMM, HH:mm", { locale: ptBR })}
-                        </p>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        Concluído
+        {/* Workout History */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-white">Treinos Recentes</h2>
+          
+          {workoutHistory.length === 0 ? (
+            <Card className="bg-slate-800 border-slate-700">
+              <CardContent className="p-6 text-center">
+                <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Nenhum treino realizado
+                </h3>
+                <p className="text-slate-400 mb-4">
+                  Complete seu primeiro treino para ver o histórico aqui.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            workoutHistory.map((workout) => (
+              <Card key={workout.id} className="bg-slate-800 border-slate-700">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-white">{workout.name}</h3>
+                      <p className="text-sm text-slate-400">{workout.date}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(workout.status)}>
+                        {getStatusText(workout.status)}
                       </Badge>
+                      <button
+                        onClick={() => toggleExpansion(workout.id)}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        {expandedWorkouts.has(workout.id) ? (
+                          <ChevronUp className="h-5 w-5" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5" />
+                        )}
+                      </button>
                     </div>
+                  </div>
 
-                    <div className="grid grid-cols-3 gap-4 mb-3">
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-gray-900">{formatDuration(workout.totalDuration)}</p>
-                        <p className="text-xs text-gray-600">Duração</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-gray-900">{workout.totalCalories}</p>
-                        <p className="text-xs text-gray-600">Calorias</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-gray-900">{workout.exercises.filter(ex => ex.completed).length}</p>
-                        <p className="text-xs text-gray-600">Exercícios</p>
-                      </div>
+                  <div className="flex items-center gap-4 text-sm text-slate-400 mb-3">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      <span>{workout.duration} min</span>
                     </div>
+                    <div className="flex items-center gap-1">
+                      <Dumbbell className="h-4 w-4" />
+                      <span>{workout.exercises} exercícios</span>
+                    </div>
+                    <div className="text-cyan-400">
+                      {workout.completionRate}% completo
+                    </div>
+                  </div>
 
-                    {/* Exercise types */}
-                    <div className="flex flex-wrap gap-1">
-                      {Array.from(new Set(workout.exercises.map(ex => ex.type))).map((type) => (
-                        <Badge key={type} variant="secondary" className={`text-xs ${getWorkoutTypeColor(type)}`}>
-                          {type}
-                        </Badge>
+                  {expandedWorkouts.has(workout.id) && (
+                    <div className="space-y-2 pt-3 border-t border-slate-700">
+                      {workout.exerciseDetails.map((exercise, idx) => (
+                        <div key={idx} className="flex items-center justify-between py-2">
+                          <div className="flex items-center gap-3">
+                            {getCompletionIcon(exercise.completed)}
+                            <div>
+                              <p className="text-white font-medium">{exercise.name}</p>
+                              <p className="text-xs text-slate-400">
+                                {exercise.completedSets}/{exercise.totalSets} séries • {exercise.reps} reps • {exercise.weight}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       ))}
                     </div>
-
-                    {workout.notes && (
-                      <div className="mt-3 p-2 bg-gray-50 rounded-md">
-                        <p className="text-sm text-gray-700">{workout.notes}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-
-          {/* Calendar View */}
-          <TabsContent value="calendar" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">
-                  {format(selectedWeek, "MMMM yyyy", { locale: ptBR })}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-7 gap-1 mb-4">
-                  {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
-                    <div key={day} className="text-center text-xs font-medium text-gray-600 p-2">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-7 gap-1">
-                  {weekDays.map((day) => {
-                    const workout = getWorkoutForDay(day);
-                    const isToday = isSameDay(day, new Date());
-                    
-                    return (
-                      <div
-                        key={day.toISOString()}
-                        className={`
-                          aspect-square p-1 rounded-lg border-2 transition-colors
-                          ${isToday ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
-                          ${workout ? 'bg-green-100' : 'bg-white'}
-                        `}
-                      >
-                        <div className="h-full flex flex-col items-center justify-center">
-                          <span className={`text-sm font-medium ${isToday ? 'text-blue-700' : 'text-gray-900'}`}>
-                            {format(day, 'd')}
-                          </span>
-                          {workout && (
-                            <div className="w-2 h-2 bg-green-500 rounded-full mt-1"></div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Week navigation */}
-            <div className="flex justify-between">
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedWeek(new Date(selectedWeek.getTime() - 7 * 24 * 60 * 60 * 1000))}
-              >
-                Semana Anterior
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => setSelectedWeek(new Date(selectedWeek.getTime() + 7 * 24 * 60 * 60 * 1000))}
-              >
-                Próxima Semana
-              </Button>
-            </div>
-
-            {/* Workouts for selected week */}
-            {weekWorkouts.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="font-semibold text-gray-900">Treinos desta semana</h3>
-                {weekWorkouts.map((workout) => (
-                  <Card key={workout.id}>
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium text-gray-900">{workout.name}</h4>
-                          <p className="text-sm text-gray-600">
-                            {format(parseISO(workout.completedAt!), "EEEE, dd/MM", { locale: ptBR })}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">{formatDuration(workout.totalDuration)}</p>
-                          <p className="text-xs text-gray-600">{workout.totalCalories} cal</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

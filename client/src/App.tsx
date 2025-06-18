@@ -164,7 +164,7 @@ function Router() {
       </Route>
       <Route path="/history">
         <ProtectedLayout>
-          <WorkoutHistory />
+          <History />
         </ProtectedLayout>
       </Route>
       <Route path="/profile">
