@@ -160,9 +160,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateScheduledWorkout(id: number, updates: Partial<InsertScheduledWorkout>): Promise<ScheduledWorkout | undefined> {
+    const updateData = {
+      ...updates,
+      exercises: updates.exercises as any
+    };
+    
     const [workout] = await db
       .update(scheduledWorkouts)
-      .set({ ...updates })
+      .set(updateData)
       .where(eq(scheduledWorkouts.id, id))
       .returning();
     return workout || undefined;

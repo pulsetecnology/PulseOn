@@ -404,34 +404,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Requesting AI workout for user:", user.id, aiRequestData);
 
       // Call N8N service for AI workout generation
-      const n8nResponse = await requestWorkoutFromAI(aiRequestData);
-      
-      // Calculate total duration and calories from the workout plan
-      const totalDuration = n8nResponse.workoutPlan.reduce((sum: number, exercise: any) => {
-        return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60)); // estimate minutes for strength exercises
-      }, 0);
+      try {
+        console.log("Calling N8N for AI workout generation...");
+        
+        const response = await fetch(process.env.N8N_WEBHOOK_URL || "https://n8n-pulseon.example.com/webhook/pulseon-workout", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(aiRequestData),
+          signal: AbortSignal.timeout(30000)
+        });
 
-      const totalCalories = n8nResponse.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
+        if (!response.ok) {
+          throw new Error(`N8N API error: ${response.status}`);
+        }
 
-      // Generate workout name
-      const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+        const n8nResponse = await response.json();
+        console.log("N8N Response:", JSON.stringify(n8nResponse, null, 2));
 
-      // Save scheduled workout to database
-      const scheduledWorkout = await storage.createScheduledWorkout({
-        userId: user.id,
-        name: workoutName,
-        exercises: n8nResponse.workoutPlan,
-        totalCalories: Math.round(totalCalories),
-        totalDuration: Math.round(totalDuration),
-        status: "pending"
-      });
+        // Check if N8N already saved the workout (savedWorkout field)
+        if (n8nResponse.savedWorkout) {
+          console.log("N8N already saved workout with ID:", n8nResponse.savedWorkout.id);
+          
+          // Return the workout that was already saved by N8N
+          return res.status(201).json({
+            message: "Treino gerado pela IA com sucesso!",
+            workout: {
+              id: n8nResponse.savedWorkout.id,
+              userId: n8nResponse.savedWorkout.userId,
+              name: n8nResponse.savedWorkout.name,
+              exercises: n8nResponse.savedWorkout.exercises,
+              totalCalories: n8nResponse.savedWorkout.totalCalories,
+              totalDuration: n8nResponse.savedWorkout.totalDuration,
+              status: n8nResponse.savedWorkout.status,
+              createdAt: n8nResponse.savedWorkout.createdAt,
+              scheduledFor: n8nResponse.savedWorkout.scheduledFor
+            }
+          });
+        }
 
-      console.log("AI workout generated and saved to database:", scheduledWorkout.id);
+        // Fallback: Create workout locally if N8N didn't save it
+        const aiWorkoutResponse = {
+          userId: user.id,
+          workoutPlan: n8nResponse.workoutPlan || []
+        };
 
-      res.status(201).json({
-        message: "Treino gerado pela IA com sucesso!",
-        workout: scheduledWorkout
-      });
+        if (!aiWorkoutResponse.workoutPlan.length) {
+          throw new Error("No workout plan received from N8N");
+        }
+
+        // Calculate total duration and calories from the workout plan
+        const totalDuration = aiWorkoutResponse.workoutPlan.reduce((sum: number, exercise: any) => {
+          return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60));
+        }, 0);
+
+        const totalCalories = aiWorkoutResponse.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
+
+        // Generate workout name
+        const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+        // Save scheduled workout to database as fallback
+        const scheduledWorkout = await storage.createScheduledWorkout({
+          userId: user.id,
+          name: workoutName,
+          exercises: aiWorkoutResponse.workoutPlan,
+          totalCalories: Math.round(totalCalories),
+          totalDuration: Math.round(totalDuration),
+          status: "pending"
+        });
+
+        console.log("Fallback: AI workout saved to local database:", scheduledWorkout.id);
+        
+        return res.status(201).json({
+          message: "Treino gerado pela IA com sucesso!",
+          workout: scheduledWorkout
+        });
+
+      } catch (n8nError) {
+        console.error('N8N service error:', n8nError);
+        
+        // Generate fallback workout using local logic
+        const fallbackExercises = [
+          {
+            exercise: "Corrida na esteira",
+            muscleGroup: "Cardio",
+            type: "Cardio",
+            instructions: "Mantenha um ritmo constante e respire adequadamente",
+            time: 20,
+            series: 1,
+            repetitions: 0,
+            restBetweenSeries: 0,
+            restBetweenExercises: 60,
+            weight: 0,
+            calories: 150
+          },
+          {
+            exercise: "Agachamento com peso corporal",
+            muscleGroup: "Pernas",
+            type: "Força",
+            instructions: "Mantenha as costas retas e desça até 90 graus",
+            time: 0,
+            series: 3,
+            repetitions: 15,
+            restBetweenSeries: 60,
+            restBetweenExercises: 120,
+            weight: 0,
+            calories: 80
+          }
+        ];
+
+        const fallbackWorkout = await storage.createScheduledWorkout({
+          userId: user.id,
+          name: `Treino Básico - ${new Date().toLocaleDateString('pt-BR')}`,
+          exercises: fallbackExercises,
+          totalCalories: 230,
+          totalDuration: 25,
+          status: "pending"
+        });
+
+        console.log("Fallback workout created:", fallbackWorkout.id);
+        
+        return res.status(201).json({
+          message: "Treino gerado com sucesso (modo offline)!",
+          workout: fallbackWorkout
+        });
+      }
 
     } catch (error: any) {
       console.error("AI workout generation error:", error);
