@@ -1,12 +1,12 @@
 AI Response Log - PulseOn (Sync Data)
 =========================
 
-Data da última atualização: 18/06/2025, 03:50:01
+Data da última atualização: 18/06/2025, 04:04:53
 
 Sync Request Data:
 {
   "userId": 1,
-  "timestamp": "2025-06-18T03:49:57.856Z",
+  "timestamp": "2025-06-18T04:04:53.157Z",
   "personalInfo": {
     "name": "André Luis da Silva",
     "email": "andre.luiss75@gmail.com",
@@ -40,14 +40,14 @@ Sync Request Data:
   },
   "metadata": {
     "onboardingCompleted": true,
-    "lastUpdated": "2025-06-18T03:49:57.856Z"
+    "lastUpdated": "2025-06-18T04:04:53.157Z"
   },
   "validationField": "test-connection-railway-n8n"
 }
 
 N8N Sync Response:
 {
-  "output": "```json\n{\n  \"userId\": 1,\n  \"workoutPlan\": [\n    {\n      \"exercise\": \"Agachamento com barra\",\n      \"muscleGroup\": \"Pernas\",\n      \"type\": \"Força\",\n      \"instructions\": \"Posicione-se com os pés afastados e abaixe o corpo até os joelhos formarem um ângulo de 90 graus.\",\n      \"time\": 0,\n      \"series\": 4,\n      \"repetitions\": 12,\n      \"restBetweenSeries\": 90,\n      \"restBetweenExercises\": 120,\n      \"weight\": 15,\n      \"calories\": 70\n    },\n    {\n      \"exercise\": \"Puxada alta com corda\",\n      \"muscleGroup\": \"Costas\",\n      \"type\": \"Força\",\n      \"instructions\": \"Puxe a corda para cima, mantendo os cotovelos junto ao corpo.\",\n      \"time\": 0,\n      \"series\": 3,\n      \"repetitions\": 15,\n      \"restBetweenSeries\": 90,\n      \"restBetweenExercises\": 120,\n      \"weight\": 10,\n      \"calories\": 60\n    },\n    {\n      \"exercise\": \"Supino inclinado com halteres\",\n      \"muscleGroup\": \"Peitoral\",\n      \"type\": \"Força\",\n      \"instructions\": \"Deite-se no banco inclinado e empurre os halteres para cima.\",\n      \"time\": 0,\n      \"series\": 4,\n      \"repetitions\": 10,\n      \"restBetweenSeries\": 90,\n      \"restBetweenExercises\": 120,\n      \"weight\": 12,\n      \"calories\": 65\n    },\n    {\n      \"exercise\": \"Exercício de bíceps com halteres\",\n      \"muscleGroup\": \"Bíceps\",\n      \"type\": \"Força\",\n      \"instructions\": \"Segure os halteres com as palmas para cima e flexione os cotovelos.\",\n      \"time\": 0,\n      \"series\": 3,\n      \"repetitions\": 12,\n      \"restBetweenSeries\": 90,\n      \"restBetweenExercises\": 120,\n      \"weight\": 8,\n      \"calories\": 50\n    },\n    {\n      \"exercise\": \"Exercício de tríceps com corda\",\n      \"muscleGroup\": \"Tríceps\",\n      \"type\": \"Força\",\n      \"instructions\": \"Segure a corda com as palmas para baixo e estenda os cotovelos.\",\n      \"time\": 0,\n      \"series\": 3,\n      \"repetitions\": 12,\n      \"restBetweenSeries\": 90,\n      \"restBetweenExercises\": 120,\n      \"weight\": 10,\n      \"calories\": 55\n    },\n    {\n      \"exercise\": \"Abdominal oblíquo\",\n      \"muscleGroup\": \"Core\",\n      \"type\": \"Força\",\n      \"instructions\": \"Deite-se no chão e levante o tronco, torcendo para a esquerda e para a direita.\",\n      \"time\": 0,\n      \"series\": 3,\n      \"repetitions\": 15,\n      \"restBetweenSeries\": 90,\n      \"restBetweenExercises\": 120,\n      \"weight\": 0,\n      \"calories\": 45\n    },\n    {\n      \"exercise\": \"Corrida na esteira\",\n      \"muscleGroup\": \"Cardio\",\n      \"type\": \"Cardio\",\n      \"instructions\": \"Corra na esteira a uma velocidade moderada.\",\n      \"time\": 20,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 0,\n      \"weight\": 0,\n      \"calories\": 100\n    }\n  ]\n}\n```"
+  "error": "HTTP 404"
 }
 
 =========================

@@ -1,9 +1,27 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertScheduledWorkoutSchema, insertWorkoutSessionSchema, onboardingSchema, registerSchema, loginSchema, profileUpdateSchema, n8nWorkoutRequestSchema, aiWorkoutResponseSchema, users, type AIWorkoutResponse, type AIExercise } from "@shared/schema";
+import {
+  insertUserSchema,
+  insertScheduledWorkoutSchema,
+  insertWorkoutSessionSchema,
+  onboardingSchema,
+  registerSchema,
+  loginSchema,
+  profileUpdateSchema,
+  n8nWorkoutRequestSchema,
+  aiWorkoutResponseSchema,
+  users,
+  type AIWorkoutResponse,
+  type AIExercise,
+} from "@shared/schema";
 import { z } from "zod";
-import { hashPassword, verifyPassword, generateJWT, sanitizeUser } from "./auth";
+import {
+  hashPassword,
+  verifyPassword,
+  generateJWT,
+  sanitizeUser,
+} from "./auth";
 import { authenticateToken } from "./middleware";
 import { requestWorkoutFromAI } from "./n8n-service";
 import { Request, Response } from "express";
@@ -18,30 +36,30 @@ import fs from "fs";
 // Configure multer for file uploads
 const storageConfig = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'uploads');
+    const uploadDir = path.join(process.cwd(), "uploads");
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const userId = (req as any).user?.id || 'unknown';
+    const userId = (req as any).user?.id || "unknown";
     const extension = path.extname(file.originalname);
     cb(null, `profile-${userId}-${Date.now()}${extension}`);
-  }
+  },
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storageConfig,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Tipo de arquivo não permitido'));
+      cb(new Error("Tipo de arquivo não permitido"));
     }
-  }
+  },
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -77,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weeklyFrequency: userData.weeklyFrequency,
         availableEquipment: userData.availableEquipment,
         physicalRestrictions: userData.physicalRestrictions || null,
-        onboardingCompleted: true
+        onboardingCompleted: true,
       });
 
       console.log("User created successfully:", user.email, "ID:", user.id);
@@ -90,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({
         message: "Usuário criado com sucesso",
         user: sanitizedUser,
-        token
+        token,
       });
     } catch (error: any) {
       console.error("Setup error:", error);
@@ -113,7 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await hashPassword(userData.password);
       const user = await storage.createUser({
         ...userData,
-        password: hashedPassword
+        password: hashedPassword,
       });
 
       // Generate JWT token
@@ -123,11 +141,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({
         message: "Usuário criado com sucesso",
         user: sanitizedUser,
-        token
+        token,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Dados inválidos", errors: error.errors });
       }
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -146,7 +166,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify password
-      const isValidPassword = await verifyPassword(loginData.password, user.password);
+      const isValidPassword = await verifyPassword(
+        loginData.password,
+        user.password,
+      );
       if (!isValidPassword) {
         return res.status(401).json({ message: "Email ou senha incorretos" });
       }
@@ -158,11 +181,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         message: "Login realizado com sucesso",
         user: sanitizedUser,
-        token
+        token,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Dados inválidos", errors: error.errors });
       }
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -223,13 +248,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const sanitizedUser = sanitizeUser(updatedUser);
-      res.json({ 
+      res.json({
         message: "Perfil atualizado com sucesso",
-        user: sanitizedUser 
+        user: sanitizedUser,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Dados inválidos", errors: error.errors });
       }
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -245,7 +272,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(userWithoutPassword);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Validation error", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Validation error", errors: error.errors });
       }
       res.status(500).json({ message: "Internal server error" });
     }
@@ -266,7 +295,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(userWithoutPassword);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Validation error", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Validation error", errors: error.errors });
       }
       res.status(500).json({ message: "Internal server error" });
     }
@@ -278,7 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const onboardingData = onboardingSchema.parse(req.body);
       const userId = req.user!.id;
 
-      // Update user with onboarding data  
+      // Update user with onboarding data
       const updatedUser = await storage.updateUser(userId, onboardingData);
 
       if (!updatedUser) {
@@ -295,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         experienceLevel: updatedUser.experienceLevel!,
         weeklyFrequency: updatedUser.weeklyFrequency!,
         availableEquipment: updatedUser.availableEquipment!,
-        physicalRestrictions: updatedUser.physicalRestrictions || undefined
+        physicalRestrictions: updatedUser.physicalRestrictions || undefined,
       };
 
       // Request workout from AI
@@ -309,123 +340,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: aiWorkout.description,
           duration: aiWorkout.duration,
           difficulty: aiWorkout.difficulty,
-          exercises: aiWorkout.exercises
+          exercises: aiWorkout.exercises,
         });
 
-        res.json({ 
+        res.json({
           message: "Onboarding concluído com sucesso",
           user: sanitizeUser(updatedUser),
-          firstWorkout: workout
+          firstWorkout: workout,
         });
       } catch (aiError) {
-        console.error('AI workout generation failed:', aiError);
-        res.json({ 
+        console.error("AI workout generation failed:", aiError);
+        res.json({
           message: "Onboarding concluído com sucesso",
           user: sanitizeUser(updatedUser),
-          note: "Treino personalizado será gerado em breve"
+          note: "Treino personalizado será gerado em breve",
         });
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Dados inválidos", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Dados inválidos", errors: error.errors });
       }
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
   // Profile update route
-  app.patch("/api/profile/update", authenticateToken, async (req: Request, res: Response) => {
-    try {
-      console.log('Profile update request body:', req.body);
-
-      const updateData = profileUpdateSchema.parse(req.body);
-      const userId = req.user!.id;
-
-      console.log('Parsed update data:', updateData);
-
-      const updatedUser = await storage.updateUser(userId, updateData);
-
-      if (!updatedUser) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
-      }
-
-      res.json({ 
-        message: "Perfil atualizado com sucesso",
-        user: sanitizeUser(updatedUser)
-      });
-    } catch (error) {
-      console.error('Profile update error:', error);
-      if (error instanceof z.ZodError) {
-        console.log('Validation errors:', error.errors);
-        return res.status(400).json({ 
-          message: "Dados inválidos", 
-          errors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-            received: err.received
-          }))
-        });
-      }
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-
-
-  // AI Workout Generation - "Atualizar IA" button functionality
-  app.post("/api/ai/generate-workout", authenticateToken, async (req: Request, res: Response) => {
-    try {
-      const user = req.user!;
-
-      // Get user profile data for AI request
-      const userProfile = await storage.getUser(user.id);
-      if (!userProfile) {
-        return res.status(404).json({ message: "Perfil do usuário não encontrado" });
-      }
-
-      // Check if user has completed onboarding
-      if (!userProfile.onboardingCompleted) {
-        return res.status(400).json({ message: "Complete o onboarding primeiro para gerar treinos personalizados" });
-      }
-
-      // Prepare data for N8N AI request
-      const aiRequestData = {
-        userId: user.id,
-        age: userProfile.age || 25,
-        weight: userProfile.weight || 70,
-        height: userProfile.height || 170,
-        fitnessGoal: userProfile.fitnessGoal || "improve_conditioning",
-        experienceLevel: userProfile.experienceLevel || "intermediate",
-        weeklyFrequency: userProfile.weeklyFrequency || 3,
-        availableEquipment: userProfile.availableEquipment || ["basic"],
-        physicalRestrictions: userProfile.physicalRestrictions || ""
-      };
-
-      console.log("Requesting AI workout for user:", user.id, aiRequestData);
-
-      // Call N8N service for AI workout generation
+  app.patch(
+    "/api/profile/update",
+    authenticateToken,
+    async (req: Request, res: Response) => {
       try {
-        console.log("Calling N8N for AI workout generation...");
+        console.log("Profile update request body:", req.body);
 
-        const response = await fetch(process.env.N8N_WEBHOOK_URL || "https://n8n-pulseon.example.com/webhook/pulseon-workout", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(aiRequestData),
-          signal: AbortSignal.timeout(30000)
-        });
+        const updateData = profileUpdateSchema.parse(req.body);
+        const userId = req.user!.id;
 
-        if (!response.ok) {
-          throw new Error(`N8N API error: ${response.status}`);
+        console.log("Parsed update data:", updateData);
+
+        const updatedUser = await storage.updateUser(userId, updateData);
+
+        if (!updatedUser) {
+          return res.status(404).json({ message: "Usuário não encontrado" });
         }
 
-        const n8nResponse = await response.json();
-        console.log("N8N Response:", JSON.stringify(n8nResponse, null, 2));
+        res.json({
+          message: "Perfil atualizado com sucesso",
+          user: sanitizeUser(updatedUser),
+        });
+      } catch (error) {
+        console.error("Profile update error:", error);
+        if (error instanceof z.ZodError) {
+          console.log("Validation errors:", error.errors);
+          return res.status(400).json({
+            message: "Dados inválidos",
+            errors: error.errors.map((err) => ({
+              field: err.path.join("."),
+              message: err.message,
+              received: err.received,
+            })),
+          });
+        }
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
+    },
+  );
 
-        // Save AI response to file
-        const timestamp = new Date().toLocaleString('pt-BR');
-        const logContent = `AI Response Log - PulseOn
+  // AI Workout Generation - "Atualizar IA" button functionality
+  app.post(
+    "/api/ai/generate-workout",
+    authenticateToken,
+    async (req: Request, res: Response) => {
+      try {
+        const user = req.user!;
+
+        // Get user profile data for AI request
+        const userProfile = await storage.getUser(user.id);
+        if (!userProfile) {
+          return res
+            .status(404)
+            .json({ message: "Perfil do usuário não encontrado" });
+        }
+
+        // Check if user has completed onboarding
+        if (!userProfile.onboardingCompleted) {
+          return res
+            .status(400)
+            .json({
+              message:
+                "Complete o onboarding primeiro para gerar treinos personalizados",
+            });
+        }
+
+        // Prepare data for N8N AI request
+        const aiRequestData = {
+          userId: user.id,
+          age: userProfile.age || 25,
+          weight: userProfile.weight || 70,
+          height: userProfile.height || 170,
+          fitnessGoal: userProfile.fitnessGoal || "improve_conditioning",
+          experienceLevel: userProfile.experienceLevel || "intermediate",
+          weeklyFrequency: userProfile.weeklyFrequency || 3,
+          availableEquipment: userProfile.availableEquipment || ["basic"],
+          physicalRestrictions: userProfile.physicalRestrictions || "",
+        };
+
+        console.log("Requesting AI workout for user:", user.id, aiRequestData);
+
+        // Call N8N service for AI workout generation
+        try {
+          console.log("Calling N8N for AI workout generation...");
+
+          const response = await fetch(
+            process.env.N8N_WEBHOOK_URL ||
+              "https://n8n-pulseon.example.com/webhook/pulseon-workout",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(aiRequestData),
+              signal: AbortSignal.timeout(30000),
+            },
+          );
+
+          if (!response.ok) {
+            throw new Error(`N8N API error: ${response.status}`);
+          }
+
+          const n8nResponse = await response.json();
+          console.log("N8N Response:", JSON.stringify(n8nResponse, null, 2));
+
+          // Save AI response to file
+          const timestamp = new Date().toLocaleString("pt-BR");
+          const logContent = `AI Response Log - PulseOn
 =========================
 
 Data da última atualização: ${timestamp}
@@ -439,200 +488,236 @@ ${JSON.stringify(n8nResponse, null, 2)}
 =========================
 `;
 
-        try {
-          fs.writeFileSync(path.join(process.cwd(), 'ai-response.txt'), logContent, 'utf8');
-          console.log("AI response saved to ai-response.txt");
-        } catch (fileError) {
-          console.error("Error saving AI response to file:", fileError);
-        }
+          try {
+            fs.writeFileSync(
+              path.join(process.cwd(), "ai-response.txt"),
+              logContent,
+              "utf8",
+            );
+            console.log("AI response saved to ai-response.txt");
+          } catch (fileError) {
+            console.error("Error saving AI response to file:", fileError);
+          }
 
-        // Check if N8N already saved the workout (savedWorkout field)
-        if (n8nResponse.savedWorkout) {
-          console.log("N8N already saved workout with ID:", n8nResponse.savedWorkout.id);
+          // Check if N8N already saved the workout (savedWorkout field)
+          if (n8nResponse.savedWorkout) {
+            console.log(
+              "N8N already saved workout with ID:",
+              n8nResponse.savedWorkout.id,
+            );
 
-          // Return the workout that was already saved by N8N
+            // Return the workout that was already saved by N8N
+            return res.status(201).json({
+              message: "Treino gerado pela IA com sucesso!",
+              workout: {
+                id: n8nResponse.savedWorkout.id,
+                userId: n8nResponse.savedWorkout.userId,
+                name: n8nResponse.savedWorkout.name,
+                exercises: n8nResponse.savedWorkout.exercises,
+                totalCalories: n8nResponse.savedWorkout.totalCalories,
+                totalDuration: n8nResponse.savedWorkout.totalDuration,
+                status: n8nResponse.savedWorkout.status,
+                createdAt: n8nResponse.savedWorkout.createdAt,
+                scheduledFor: n8nResponse.savedWorkout.scheduledFor,
+              },
+            });
+          }
+
+          // Fallback: Create workout locally if N8N didn't save it
+          const aiWorkoutResponse = {
+            userId: user.id,
+            workoutPlan: n8nResponse.workoutPlan || [],
+          };
+
+          if (!aiWorkoutResponse.workoutPlan.length) {
+            throw new Error("No workout plan received from N8N");
+          }
+
+          // Calculate total duration and calories from the workout plan
+          const totalDuration = aiWorkoutResponse.workoutPlan.reduce(
+            (sum: number, exercise: any) => {
+              return (
+                sum +
+                (exercise.time > 0
+                  ? exercise.time
+                  : (exercise.series * exercise.repetitions * 0.5) / 60)
+              );
+            },
+            0,
+          );
+
+          const totalCalories = aiWorkoutResponse.workoutPlan.reduce(
+            (sum: number, exercise: any) => sum + exercise.calories,
+            0,
+          );
+
+          // Generate workout name
+          const workoutName = `Treino IA - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+
+          // Save scheduled workout to database as fallback
+          const scheduledWorkout = await storage.createScheduledWorkout({
+            userId: user.id,
+            name: workoutName,
+            exercises: aiWorkoutResponse.workoutPlan,
+            totalCalories: Math.round(totalCalories),
+            totalDuration: Math.round(totalDuration),
+            status: "pending",
+          });
+
+          console.log(
+            "Fallback: AI workout saved to local database:",
+            scheduledWorkout.id,
+          );
+
           return res.status(201).json({
             message: "Treino gerado pela IA com sucesso!",
-            workout: {
-              id: n8nResponse.savedWorkout.id,
-              userId: n8nResponse.savedWorkout.userId,
-              name: n8nResponse.savedWorkout.name,
-              exercises: n8nResponse.savedWorkout.exercises,
-              totalCalories: n8nResponse.savedWorkout.totalCalories,
-              totalDuration: n8nResponse.savedWorkout.totalDuration,
-              status: n8nResponse.savedWorkout.status,
-              createdAt: n8nResponse.savedWorkout.createdAt,
-              scheduledFor: n8nResponse.savedWorkout.scheduledFor
-            }
+            workout: scheduledWorkout,
+          });
+        } catch (n8nError) {
+          console.error("N8N service error:", n8nError);
+
+          // Generate fallback workout using local logic
+          const fallbackExercises = [
+            {
+              exercise: "Corrida na esteira",
+              muscleGroup: "Cardio",
+              type: "Cardio",
+              instructions:
+                "Mantenha um ritmo constante e respire adequadamente",
+              time: 20,
+              series: 1,
+              repetitions: 0,
+              restBetweenSeries: 0,
+              restBetweenExercises: 60,
+              weight: 0,
+              calories: 150,
+            },
+            {
+              exercise: "Agachamento com peso corporal",
+              muscleGroup: "Pernas",
+              type: "Força",
+              instructions: "Mantenha as costas retas e desça até 90 graus",
+              time: 0,
+              series: 3,
+              repetitions: 15,
+              restBetweenSeries: 60,
+              restBetweenExercises: 120,
+              weight: 0,
+              calories: 80,
+            },
+          ];
+
+          const fallbackWorkout = await storage.createScheduledWorkout({
+            userId: user.id,
+            name: `Treino Básico - ${new Date().toLocaleDateString("pt-BR")}`,
+            exercises: fallbackExercises,
+            totalCalories: 230,
+            totalDuration: 25,
+            status: "pending",
+          });
+
+          console.log("Fallback workout created:", fallbackWorkout.id);
+
+          return res.status(201).json({
+            message: "Treino gerado com sucesso (modo offline)!",
+            workout: fallbackWorkout,
           });
         }
-
-        // Fallback: Create workout locally if N8N didn't save it
-        const aiWorkoutResponse = {
-          userId: user.id,
-          workoutPlan: n8nResponse.workoutPlan || []
-        };
-
-        if (!aiWorkoutResponse.workoutPlan.length) {
-          throw new Error("No workout plan received from N8N");
-        }
-
-        // Calculate total duration and calories from the workout plan
-        const totalDuration = aiWorkoutResponse.workoutPlan.reduce((sum: number, exercise: any) => {
-          return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60));
-        }, 0);
-
-        const totalCalories = aiWorkoutResponse.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
-
-        // Generate workout name
-        const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-
-        // Save scheduled workout to database as fallback
-        const scheduledWorkout = await storage.createScheduledWorkout({
-          userId: user.id,
-          name: workoutName,
-          exercises: aiWorkoutResponse.workoutPlan,
-          totalCalories: Math.round(totalCalories),
-          totalDuration: Math.round(totalDuration),
-          status: "pending"
-        });
-
-        console.log("Fallback: AI workout saved to local database:", scheduledWorkout.id);
-
-        return res.status(201).json({
-          message: "Treino gerado pela IA com sucesso!",
-          workout: scheduledWorkout
-        });
-
-      } catch (n8nError) {
-        console.error('N8N service error:', n8nError);
-
-        // Generate fallback workout using local logic
-        const fallbackExercises = [
-          {
-            exercise: "Corrida na esteira",
-            muscleGroup: "Cardio",
-            type: "Cardio",
-            instructions: "Mantenha um ritmo constante e respire adequadamente",
-            time: 20,
-            series: 1,
-            repetitions: 0,
-            restBetweenSeries: 0,
-            restBetweenExercises: 60,
-            weight: 0,
-            calories: 150
-          },
-          {
-            exercise: "Agachamento com peso corporal",
-            muscleGroup: "Pernas",
-            type: "Força",
-            instructions: "Mantenha as costas retas e desça até 90 graus",
-            time: 0,
-            series: 3,
-            repetitions: 15,
-            restBetweenSeries: 60,
-            restBetweenExercises: 120,
-            weight: 0,
-            calories: 80
-          }
-        ];
-
-        const fallbackWorkout = await storage.createScheduledWorkout({
-          userId: user.id,
-          name: `Treino Básico - ${new Date().toLocaleDateString('pt-BR')}`,
-          exercises: fallbackExercises,
-          totalCalories: 230,
-          totalDuration: 25,
-          status: "pending"
-        });
-
-        console.log("Fallback workout created:", fallbackWorkout.id);
-
-        return res.status(201).json({
-          message: "Treino gerado com sucesso (modo offline)!",
-          workout: fallbackWorkout
+      } catch (error: any) {
+        console.error("AI workout generation error:", error);
+        res.status(500).json({
+          message: "Erro ao gerar treino com IA",
+          error: error.message,
         });
       }
-
-    } catch (error: any) {
-      console.error("AI workout generation error:", error);
-      res.status(500).json({ 
-        message: "Erro ao gerar treino com IA",
-        error: error.message 
-      });
-    }
-  });
+    },
+  );
 
   // Scheduled workouts routes
-  app.get("/api/scheduled-workouts", authenticateToken, async (req: Request, res: Response) => {
-    try {
-      const user = req.user!;
-      const workouts = await storage.getScheduledWorkouts(user.id);
-      res.json(workouts);
-    } catch (error) {
-      console.error("Error fetching scheduled workouts:", error);
-      res.status(500).json({ message: "Erro ao buscar treinos programados" });
-    }
-  });
-
-  app.get("/api/scheduled-workouts/:id", authenticateToken, async (req: Request, res: Response) => {
-    try {
-      const workoutId = parseInt(req.params.id);
-      const workout = await storage.getScheduledWorkout(workoutId);
-
-      if (!workout) {
-        return res.status(404).json({ message: "Treino não encontrado" });
+  app.get(
+    "/api/scheduled-workouts",
+    authenticateToken,
+    async (req: Request, res: Response) => {
+      try {
+        const user = req.user!;
+        const workouts = await storage.getScheduledWorkouts(user.id);
+        res.json(workouts);
+      } catch (error) {
+        console.error("Error fetching scheduled workouts:", error);
+        res.status(500).json({ message: "Erro ao buscar treinos programados" });
       }
+    },
+  );
 
-      // Check if user owns this workout
-      if (workout.userId !== req.user!.id) {
-        return res.status(403).json({ message: "Acesso negado" });
+  app.get(
+    "/api/scheduled-workouts/:id",
+    authenticateToken,
+    async (req: Request, res: Response) => {
+      try {
+        const workoutId = parseInt(req.params.id);
+        const workout = await storage.getScheduledWorkout(workoutId);
+
+        if (!workout) {
+          return res.status(404).json({ message: "Treino não encontrado" });
+        }
+
+        // Check if user owns this workout
+        if (workout.userId !== req.user!.id) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+
+        res.json(workout);
+      } catch (error) {
+        console.error("Error fetching scheduled workout:", error);
+        res.status(500).json({ message: "Erro ao buscar treino" });
       }
-
-      res.json(workout);
-    } catch (error) {
-      console.error("Error fetching scheduled workout:", error);
-      res.status(500).json({ message: "Erro ao buscar treino" });
-    }
-  });
+    },
+  );
 
   // Start workout session
-  app.post("/api/workout-sessions/start", authenticateToken, async (req: Request, res: Response) => {
-    try {
-      const user = req.user!;
-      const { scheduledWorkoutId } = req.body;
+  app.post(
+    "/api/workout-sessions/start",
+    authenticateToken,
+    async (req: Request, res: Response) => {
+      try {
+        const user = req.user!;
+        const { scheduledWorkoutId } = req.body;
 
-      const scheduledWorkout = await storage.getScheduledWorkout(scheduledWorkoutId);
-      if (!scheduledWorkout) {
-        return res.status(404).json({ message: "Treino programado não encontrado" });
+        const scheduledWorkout =
+          await storage.getScheduledWorkout(scheduledWorkoutId);
+        if (!scheduledWorkout) {
+          return res
+            .status(404)
+            .json({ message: "Treino programado não encontrado" });
+        }
+
+        if (scheduledWorkout.userId !== user.id) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+
+        // Create workout session
+        const session = await storage.createWorkoutSession({
+          userId: user.id,
+          scheduledWorkoutId: scheduledWorkoutId,
+          name: scheduledWorkout.name,
+          exercises:
+            scheduledWorkout.exercises?.map((ex) => ({
+              ...ex,
+              completed: false,
+              effortLevel: 5,
+            })) || [],
+        });
+
+        res.status(201).json({
+          message: "Treino iniciado com sucesso!",
+          session,
+        });
+      } catch (error) {
+        console.error("Error starting workout session:", error);
+        res.status(500).json({ message: "Erro ao iniciar treino" });
       }
-
-      if (scheduledWorkout.userId !== user.id) {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      // Create workout session
-      const session = await storage.createWorkoutSession({
-        userId: user.id,
-        scheduledWorkoutId: scheduledWorkoutId,
-        name: scheduledWorkout.name,
-        exercises: scheduledWorkout.exercises?.map(ex => ({
-          ...ex,
-          completed: false,
-          effortLevel: 5
-        })) || []
-      });
-
-      res.status(201).json({
-        message: "Treino iniciado com sucesso!",
-        session
-      });
-
-    } catch (error) {
-      console.error("Error starting workout session:", error);
-      res.status(500).json({ message: "Erro ao iniciar treino" });
-    }
-  });
+    },
+  );
 
   // Workout session routes
   app.get("/api/workout-sessions", async (req, res) => {
@@ -656,7 +741,9 @@ ${JSON.stringify(n8nResponse, null, 2)}
       res.status(201).json(session);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Validation error", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Validation error", errors: error.errors });
       }
       res.status(500).json({ message: "Internal server error" });
     }
@@ -675,7 +762,9 @@ ${JSON.stringify(n8nResponse, null, 2)}
       res.json(session);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Validation error", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Validation error", errors: error.errors });
       }
       res.status(500).json({ message: "Internal server error" });
     }
@@ -690,7 +779,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
   app.get("/api/n8n/users", async (req: Request, res: Response) => {
     try {
       // Basic API key authentication for N8N
-      const apiKey = req.headers['x-api-key'];
+      const apiKey = req.headers["x-api-key"];
       if (apiKey !== process.env.N8N_API_KEY) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -704,7 +793,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
   app.get("/api/n8n/users/:id", async (req: Request, res: Response) => {
     try {
-      const apiKey = req.headers['x-api-key'];
+      const apiKey = req.headers["x-api-key"];
       if (apiKey !== process.env.N8N_API_KEY) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -726,7 +815,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
   app.post("/api/n8n/workout-sessions", async (req: Request, res: Response) => {
     try {
-      const apiKey = req.headers['x-api-key'];
+      const apiKey = req.headers["x-api-key"];
       if (apiKey !== process.env.N8N_API_KEY) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -736,7 +825,9 @@ ${JSON.stringify(n8nResponse, null, 2)}
       res.status(201).json(session);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Validation error", errors: error.errors });
+        return res
+          .status(400)
+          .json({ message: "Validation error", errors: error.errors });
       }
       res.status(500).json({ message: "Internal server error" });
     }
@@ -744,12 +835,14 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
   app.get("/api/n8n/workouts", async (req: Request, res: Response) => {
     try {
-      const apiKey = req.headers['x-api-key'];
+      const apiKey = req.headers["x-api-key"];
       if (apiKey !== process.env.N8N_API_KEY) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const userId = req.query.userId
+        ? parseInt(req.query.userId as string)
+        : undefined;
       const workouts = await storage.getWorkouts(userId);
       res.json(workouts);
     } catch (error) {
@@ -758,67 +851,79 @@ ${JSON.stringify(n8nResponse, null, 2)}
   });
 
   // Upload profile photo
-  app.post("/api/profile/photo", authenticateToken, upload.single('photo'), async (req: Request, res: Response) => {
-    try {
-      const userId = req.user!.id;
+  app.post(
+    "/api/profile/photo",
+    authenticateToken,
+    upload.single("photo"),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = req.user!.id;
 
-      if (!req.file) {
-        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+        if (!req.file) {
+          return res.status(400).json({ message: "Nenhum arquivo enviado" });
+        }
+
+        const photoUrl = `/api/uploads/${req.file.filename}`;
+
+        // Update user's profile photo in database using storage
+        const updatedUser = await storage.updateUser(userId, {
+          avatarUrl: photoUrl,
+        });
+
+        if (!updatedUser) {
+          return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+
+        res.json({
+          message: "Foto de perfil atualizada com sucesso",
+          photoUrl,
+          user: sanitizeUser(updatedUser),
+        });
+      } catch (error) {
+        console.error("Error uploading photo:", error);
+        res.status(500).json({ message: "Erro interno do servidor" });
       }
-
-      const photoUrl = `/api/uploads/${req.file.filename}`;
-
-      // Update user's profile photo in database using storage
-      const updatedUser = await storage.updateUser(userId, { avatarUrl: photoUrl });
-
-      if (!updatedUser) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
-      }
-
-      res.json({ 
-        message: "Foto de perfil atualizada com sucesso",
-        photoUrl,
-        user: sanitizeUser(updatedUser)
-      });
-    } catch (error) {
-      console.error("Error uploading photo:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
+    },
+  );
 
   // Upload avatar
-  app.post("/api/profile/avatar", authenticateToken, upload.single('avatar'), async (req: Request, res: Response) => {
-    try {
-      const userId = req.user!.id;
+  app.post(
+    "/api/profile/avatar",
+    authenticateToken,
+    upload.single("avatar"),
+    async (req: Request, res: Response) => {
+      try {
+        const userId = req.user!.id;
 
-      if (!req.file) {
-        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+        if (!req.file) {
+          return res.status(400).json({ message: "Nenhum arquivo enviado" });
+        }
+
+        const avatarUrl = `/api/uploads/${req.file.filename}`;
+
+        // Update user's avatar in database using storage
+        const updatedUser = await storage.updateUser(userId, { avatarUrl });
+
+        if (!updatedUser) {
+          return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+
+        res.json({
+          message: "Avatar atualizado com sucesso",
+          avatarUrl,
+          user: sanitizeUser(updatedUser),
+        });
+      } catch (error) {
+        console.error("Error uploading avatar:", error);
+        res.status(500).json({ message: "Erro interno do servidor" });
       }
-
-      const avatarUrl = `/api/uploads/${req.file.filename}`;
-
-      // Update user's avatar in database using storage
-      const updatedUser = await storage.updateUser(userId, { avatarUrl });
-
-      if (!updatedUser) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
-      }
-
-      res.json({ 
-        message: "Avatar atualizado com sucesso",
-        avatarUrl,
-        user: sanitizeUser(updatedUser)
-      });
-    } catch (error) {
-      console.error("Error uploading avatar:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
+    },
+  );
 
   // Serve uploaded files
   app.get("/api/uploads/:filename", (req: Request, res: Response) => {
     const filename = req.params.filename;
-    const filepath = path.join(process.cwd(), 'uploads', filename);
+    const filepath = path.join(process.cwd(), "uploads", filename);
 
     if (fs.existsSync(filepath)) {
       res.sendFile(filepath);
@@ -828,105 +933,124 @@ ${JSON.stringify(n8nResponse, null, 2)}
   });
 
   // Sync user data with N8N
-  app.post("/api/n8n/sync-user-data", authenticateToken, async (req: Request, res: Response) => {
-    try {
-      const userId = req.user!.id;
-      const user = await storage.getUser(userId);
-
-      if (!user) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
-      }
-
-      // Remove sensitive data
-      const { password, ...userData } = user;
-
-      // Calculate age if birthDate exists
-      let age = null;
-      if (userData.birthDate) {
-        const today = new Date();
-        const birth = new Date(userData.birthDate);
-        age = today.getFullYear() - birth.getFullYear();
-        const monthDiff = today.getMonth() - birth.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-          age--;
-        }
-      }
-
-      // Prepare the data structure for N8N
-      const n8nData = {
-        userId: userData.id,
-        timestamp: new Date().toISOString(),
-        personalInfo: {
-          name: userData.name,
-          email: userData.email,
-          birthDate: userData.birthDate,
-          age: age || userData.age,
-          weight: userData.weight,
-          height: userData.height,
-          gender: userData.gender
-        },
-        fitnessProfile: {
-          fitnessGoal: userData.fitnessGoal,
-          experienceLevel: userData.experienceLevel,
-          weeklyFrequency: userData.availableEquipment,
-          customEquipment: userData.availableEquipment,
-          physicalRestrictions: userData.physicalRestrictions,
-          preferredWorkoutTime: userData.preferredWorkoutTime,
-          availableDaysPerWeek: userData.availableDaysPerWeek,
-          averageWorkoutDuration: userData.averageWorkoutDuration,
-          preferredLocation: userData.preferredLocation
-        },
-        lifestyle: {
-          smokingStatus: userData.smokingStatus,
-          alcoholConsumption: userData.alcoholConsumption,
-          dietType: userData.dietType,
-          sleepHours: userData.sleepHours,
-          stressLevel: userData.stressLevel
-        },
-        metadata: {
-          onboardingCompleted: userData.onboardingCompleted,
-          avatarUrl: userData.avatarUrl,
-          lastUpdated: new Date().toISOString()
-        },
-        // Campo temporário para validação
-        validationField: "test-connection-railway-n8n"
-      };
-
-      // Send to Railway N8N webhook
-      const RAILWAY_WEBHOOK_URL = "https://primary-production-3b832.up.railway.app/webhook/onboarding-recebido";
-      let n8nResponse = null;
-
+  app.post(
+    "/api/n8n/sync-user-data",
+    authenticateToken,
+    async (req: Request, res: Response) => {
       try {
-        console.log('Sending data to Railway N8N webhook:', RAILWAY_WEBHOOK_URL);
-        const webhookResponse = await fetch(RAILWAY_WEBHOOK_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(n8nData)
-        });
+        const userId = req.user!.id;
+        const user = await storage.getUser(userId);
 
-        if (webhookResponse.ok) {
-          try {
-            n8nResponse = await webhookResponse.json();
-            console.log('N8N webhook response:', n8nResponse);
-          } catch (parseError) {
-            n8nResponse = await webhookResponse.text();
-            console.log('N8N webhook response (text):', n8nResponse);
-          }
-        } else {
-          console.error('N8N webhook error:', webhookResponse.status, await webhookResponse.text());
-          n8nResponse = { error: `HTTP ${webhookResponse.status}` };
+        if (!user) {
+          return res.status(404).json({ message: "Usuário não encontrado" });
         }
 
-      } catch (webhookError: any) {
-        console.error("Error calling N8N webhook:", webhookError);
-        n8nResponse = { error: webhookError?.message || "Unknown error" };
-      }
+        // Remove sensitive data
+        const { password, ...userData } = user;
 
-      // Save sync response to file
-      const timestamp = new Date().toLocaleString('pt-BR');
-      const syncLogContent = `AI Response Log - PulseOn (Sync Data)
+        // Calculate age if birthDate exists
+        let age = null;
+        if (userData.birthDate) {
+          const today = new Date();
+          const birth = new Date(userData.birthDate);
+          age = today.getFullYear() - birth.getFullYear();
+          const monthDiff = today.getMonth() - birth.getMonth();
+          if (
+            monthDiff < 0 ||
+            (monthDiff === 0 && today.getDate() < birth.getDate())
+          ) {
+            age--;
+          }
+        }
+
+        // Prepare the data structure for N8N
+        const n8nData = {
+          userId: userData.id,
+          timestamp: new Date().toISOString(),
+          personalInfo: {
+            name: userData.name,
+            email: userData.email,
+            birthDate: userData.birthDate,
+            age: age || userData.age,
+            weight: userData.weight,
+            height: userData.height,
+            gender: userData.gender,
+          },
+          fitnessProfile: {
+            fitnessGoal: userData.fitnessGoal,
+            experienceLevel: userData.experienceLevel,
+            weeklyFrequency: userData.availableEquipment,
+            customEquipment: userData.availableEquipment,
+            physicalRestrictions: userData.physicalRestrictions,
+            preferredWorkoutTime: userData.preferredWorkoutTime,
+            availableDaysPerWeek: userData.availableDaysPerWeek,
+            averageWorkoutDuration: userData.averageWorkoutDuration,
+            preferredLocation: userData.preferredLocation,
+          },
+          lifestyle: {
+            smokingStatus: userData.smokingStatus,
+            alcoholConsumption: userData.alcoholConsumption,
+            dietType: userData.dietType,
+            sleepHours: userData.sleepHours,
+            stressLevel: userData.stressLevel,
+          },
+          metadata: {
+            onboardingCompleted: userData.onboardingCompleted,
+            avatarUrl: userData.avatarUrl,
+            lastUpdated: new Date().toISOString(),
+          },
+          // Campo temporário para validação
+          validationField: "test-connection-railway-n8n",
+        };
+
+        // Send to Railway N8N webhook
+
+        // TESTE
+        const RAILWAY_WEBHOOK_URL =
+          "https://primary-production-3b832.up.railway.app/webhook-test/onboarding-recebido";
+
+        // PRODUCAO
+        //const RAILWAY_WEBHOOK_URL = "https://primary-production-3b832.up.railway.app/webhook/onboarding-recebido";
+
+        let n8nResponse = null;
+
+        try {
+          console.log(
+            "Sending data to Railway N8N webhook:",
+            RAILWAY_WEBHOOK_URL,
+          );
+          const webhookResponse = await fetch(RAILWAY_WEBHOOK_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(n8nData),
+          });
+
+          if (webhookResponse.ok) {
+            try {
+              n8nResponse = await webhookResponse.json();
+              console.log("N8N webhook response:", n8nResponse);
+            } catch (parseError) {
+              n8nResponse = await webhookResponse.text();
+              console.log("N8N webhook response (text):", n8nResponse);
+            }
+          } else {
+            console.error(
+              "N8N webhook error:",
+              webhookResponse.status,
+              await webhookResponse.text(),
+            );
+            n8nResponse = { error: `HTTP ${webhookResponse.status}` };
+          }
+        } catch (webhookError: any) {
+          console.error("Error calling N8N webhook:", webhookError);
+          n8nResponse = { error: webhookError?.message || "Unknown error" };
+        }
+
+        // Save sync response to file
+        const timestamp = new Date().toLocaleString("pt-BR");
+        const syncLogContent = `AI Response Log - PulseOn (Sync Data)
 =========================
 
 Data da última atualização: ${timestamp}
@@ -940,63 +1064,83 @@ ${JSON.stringify(n8nResponse, null, 2)}
 =========================
 `;
 
-      try {
-        fs.writeFileSync(path.join(process.cwd(), 'ai-response.txt'), syncLogContent, 'utf8');
-        console.log("Sync response saved to ai-response.txt");
-      } catch (fileError) {
-        console.error("Error saving sync response to file:", fileError);
-      }
-
-      // Process AI workout response and create scheduled workout
-      let createdWorkout = null;
-      if (n8nResponse && n8nResponse.output) {
         try {
-          // Extract JSON from the output string
-          const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/);
-          if (jsonMatch) {
-            const aiWorkoutData = JSON.parse(jsonMatch[1]);
-            
-            if (aiWorkoutData.workoutPlan && aiWorkoutData.workoutPlan.length > 0) {
-              // Calculate total duration and calories
-              const totalDuration = aiWorkoutData.workoutPlan.reduce((sum: number, exercise: any) => {
-                return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60));
-              }, 0);
-
-              const totalCalories = aiWorkoutData.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
-
-              // Generate workout name
-              const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-
-              // Create scheduled workout
-              createdWorkout = await storage.createScheduledWorkout({
-                userId: userData.id,
-                name: workoutName,
-                exercises: aiWorkoutData.workoutPlan,
-                totalCalories: Math.round(totalCalories),
-                totalDuration: Math.round(totalDuration),
-                status: "pending"
-              });
-
-              console.log("AI workout saved to database:", createdWorkout.id);
-            }
-          }
-        } catch (parseError) {
-          console.error("Error processing AI workout data:", parseError);
+          fs.writeFileSync(
+            path.join(process.cwd(), "ai-response.txt"),
+            syncLogContent,
+            "utf8",
+          );
+          console.log("Sync response saved to ai-response.txt");
+        } catch (fileError) {
+          console.error("Error saving sync response to file:", fileError);
         }
+
+        // Process AI workout response and create scheduled workout
+        let createdWorkout = null;
+        if (n8nResponse && n8nResponse.output) {
+          try {
+            // Extract JSON from the output string
+            const jsonMatch = n8nResponse.output.match(
+              /```json\n([\s\S]*?)\n```/,
+            );
+            if (jsonMatch) {
+              const aiWorkoutData = JSON.parse(jsonMatch[1]);
+
+              if (
+                aiWorkoutData.workoutPlan &&
+                aiWorkoutData.workoutPlan.length > 0
+              ) {
+                // Calculate total duration and calories
+                const totalDuration = aiWorkoutData.workoutPlan.reduce(
+                  (sum: number, exercise: any) => {
+                    return (
+                      sum +
+                      (exercise.time > 0
+                        ? exercise.time
+                        : (exercise.series * exercise.repetitions * 0.5) / 60)
+                    );
+                  },
+                  0,
+                );
+
+                const totalCalories = aiWorkoutData.workoutPlan.reduce(
+                  (sum: number, exercise: any) => sum + exercise.calories,
+                  0,
+                );
+
+                // Generate workout name
+                const workoutName = `Treino IA - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+
+                // Create scheduled workout
+                createdWorkout = await storage.createScheduledWorkout({
+                  userId: userData.id,
+                  name: workoutName,
+                  exercises: aiWorkoutData.workoutPlan,
+                  totalCalories: Math.round(totalCalories),
+                  totalDuration: Math.round(totalDuration),
+                  status: "pending",
+                });
+
+                console.log("AI workout saved to database:", createdWorkout.id);
+              }
+            }
+          } catch (parseError) {
+            console.error("Error processing AI workout data:", parseError);
+          }
+        }
+
+        res.json({
+          message: "Dados sincronizados com sucesso",
+          dataSent: n8nData,
+          n8nResponse: n8nResponse,
+          createdWorkout: createdWorkout,
+        });
+      } catch (error) {
+        console.error("Error syncing user data:", error);
+        res.status(500).json({ message: "Erro interno do servidor" });
       }
-
-      res.json({ 
-        message: "Dados sincronizados com sucesso",
-        dataSent: n8nData,
-        n8nResponse: n8nResponse,
-        createdWorkout: createdWorkout
-      });
-
-    } catch (error) {
-      console.error("Error syncing user data:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
+    },
+  );
 
   const httpServer = createServer(app);
   return httpServer;
