@@ -404,29 +404,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Requesting AI workout for user:", user.id, aiRequestData);
 
       // Call N8N service for AI workout generation
-      const aiWorkoutResponse = await requestWorkoutFromAI(aiRequestData);
+      const n8nResponse = await requestWorkoutFromAI(aiRequestData);
       
-      // Calculate total duration and calories
-      const totalDuration = aiWorkoutResponse.workoutPlan.reduce((sum: number, exercise: any) => {
+      // Calculate total duration and calories from the workout plan
+      const totalDuration = n8nResponse.workoutPlan.reduce((sum: number, exercise: any) => {
         return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5 / 60)); // estimate minutes for strength exercises
       }, 0);
 
-      const totalCalories = aiWorkoutResponse.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
+      const totalCalories = n8nResponse.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
 
       // Generate workout name
-      const workoutName = `Treino Personalizado - ${new Date().toLocaleDateString('pt-BR')}`;
+      const workoutName = `Treino IA - ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 
       // Save scheduled workout to database
       const scheduledWorkout = await storage.createScheduledWorkout({
         userId: user.id,
         name: workoutName,
-        exercises: aiWorkoutResponse.workoutPlan,
+        exercises: n8nResponse.workoutPlan,
         totalCalories: Math.round(totalCalories),
         totalDuration: Math.round(totalDuration),
         status: "pending"
       });
 
-      console.log("AI workout generated and saved:", scheduledWorkout.id);
+      console.log("AI workout generated and saved to database:", scheduledWorkout.id);
 
       res.status(201).json({
         message: "Treino gerado pela IA com sucesso!",

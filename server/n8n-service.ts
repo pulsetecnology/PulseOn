@@ -7,6 +7,21 @@ export interface AIWorkoutResponse {
   workoutPlan: AIExercise[];
 }
 
+export interface N8NWorkoutResponse {
+  savedWorkout?: {
+    id: number;
+    userId: number;
+    name: string;
+    exercises: AIExercise[];
+    totalCalories: number;
+    totalDuration: number;
+    status: string;
+    createdAt: string;
+    scheduledFor: string;
+  };
+  output?: string;
+}
+
 export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIWorkoutResponse> {
   try {
     console.log("Sending request to N8N:", N8N_WEBHOOK_URL);
@@ -25,11 +40,38 @@ export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIW
       throw new Error(`N8N API error: ${response.status}`);
     }
 
-    const aiResponse = await response.json();
-    console.log("N8N Response received:", JSON.stringify(aiResponse, null, 2));
+    const n8nResponse: N8NWorkoutResponse = await response.json();
+    console.log("N8N Response received:", JSON.stringify(n8nResponse, null, 2));
     
-    // Return the response as-is since it should match our expected format
-    return aiResponse as AIWorkoutResponse;
+    // Check if we have a savedWorkout in the response
+    if (n8nResponse.savedWorkout) {
+      console.log("Found savedWorkout in N8N response, using it directly");
+      return {
+        userId: n8nResponse.savedWorkout.userId,
+        workoutPlan: n8nResponse.savedWorkout.exercises
+      };
+    }
+    
+    // Fallback to parsing output if available
+    if (n8nResponse.output) {
+      try {
+        // Extract JSON from the output string (it may be wrapped in ```json)
+        const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/) || n8nResponse.output.match(/({[\s\S]*})/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[1]);
+          if (parsed.workoutPlan) {
+            return {
+              userId: parsed.userId || data.userId,
+              workoutPlan: parsed.workoutPlan
+            };
+          }
+        }
+      } catch (parseError) {
+        console.error("Error parsing N8N output:", parseError);
+      }
+    }
+    
+    throw new Error("No valid workout data found in N8N response");
 
   } catch (error) {
     console.error('Error calling N8N AI service:', error);

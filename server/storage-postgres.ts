@@ -133,11 +133,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createScheduledWorkout(insertWorkout: InsertScheduledWorkout): Promise<ScheduledWorkout> {
-    const [workout] = await db
-      .insert(scheduledWorkouts)
-      .values(insertWorkout)
-      .returning();
-    return workout;
+    try {
+      const workoutData = {
+        userId: insertWorkout.userId,
+        name: insertWorkout.name,
+        exercises: insertWorkout.exercises as any,
+        totalCalories: insertWorkout.totalCalories || 0,
+        totalDuration: insertWorkout.totalDuration || 0,
+        status: insertWorkout.status || "pending",
+        scheduledFor: insertWorkout.scheduledFor || new Date()
+      };
+      
+      console.log("Creating scheduled workout with data:", JSON.stringify(workoutData, null, 2));
+      
+      const [workout] = await db
+        .insert(scheduledWorkouts)
+        .values([workoutData])
+        .returning();
+      
+      console.log("Scheduled workout created successfully:", workout.id);
+      return workout;
+    } catch (error) {
+      console.error("Error creating scheduled workout:", error);
+      throw error;
+    }
   }
 
   async updateScheduledWorkout(id: number, updates: Partial<InsertScheduledWorkout>): Promise<ScheduledWorkout | undefined> {
