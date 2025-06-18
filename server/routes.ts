@@ -423,6 +423,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const n8nResponse = await response.json();
         console.log("N8N Response:", JSON.stringify(n8nResponse, null, 2));
 
+        // Save AI response to file
+        const fs = require('fs');
+        const path = require('path');
+        const timestamp = new Date().toLocaleString('pt-BR');
+        const logContent = `AI Response Log - PulseOn
+=========================
+
+Data da última atualização: ${timestamp}
+
+Request Data:
+${JSON.stringify(aiRequestData, null, 2)}
+
+N8N Response:
+${JSON.stringify(n8nResponse, null, 2)}
+
+=========================
+`;
+        
+        try {
+          fs.writeFileSync(path.join(process.cwd(), 'ai-response.txt'), logContent, 'utf8');
+          console.log("AI response saved to ai-response.txt");
+        } catch (fileError) {
+          console.error("Error saving AI response to file:", fileError);
+        }
+
         // Check if N8N already saved the workout (savedWorkout field)
         if (n8nResponse.savedWorkout) {
           console.log("N8N already saved workout with ID:", n8nResponse.savedWorkout.id);
