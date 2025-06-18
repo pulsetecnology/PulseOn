@@ -706,6 +706,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // List N8N response files
+  app.get("/api/n8n/response-files", authenticateToken, (req: Request, res: Response) => {
+    try {
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      const files = fs.readdirSync(uploadsDir)
+        .filter(file => file.startsWith('n8n-'))
+        .map(file => {
+          const filepath = path.join(uploadsDir, file);
+          const stats = fs.statSync(filepath);
+          return {
+            filename: file,
+            created: stats.birthtime,
+            size: stats.size,
+            downloadUrl: `/api/uploads/${file}`
+          };
+        })
+        .sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
+
+      res.json({
+        message: "Arquivos de resposta do N8N",
+        files: files,
+        totalFiles: files.length
+      });
+    } catch (error) {
+      console.error("Error listing N8N files:", error);
+      res.status(500).json({ message: "Erro ao listar arquivos" });
+    }
+  });
+
   // Sync user data with N8N
   app.post("/api/n8n/sync-user-data", authenticateToken, async (req: Request, res: Response) => {
     try {
@@ -787,20 +816,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         if (webhookResponse.ok) {
+          // Clone response to avoid "Body has already been read" error
+          const responseClone = webhookResponse.clone();
           try {
             n8nResponse = await webhookResponse.json();
             console.log('N8N webhook response:', n8nResponse);
+            
+            // Save response to file for validation
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `n8n-response-${timestamp}.txt`;
+            const filepath = path.join(process.cwd(), 'uploads', filename);
+            
+            const responseContent = `=== N8N Response - ${new Date().toISOString()} ===\n\n` +
+              `Request Data:\n${JSON.stringify(n8nData, null, 2)}\n\n` +
+              `Response Data:\n${JSON.stringify(n8nResponse, null, 2)}\n\n` +
+              `Raw Response:\n${JSON.stringify(n8nResponse, null, 2)}`;
+            
+            fs.writeFileSync(filepath, responseContent, 'utf8');
+            console.log(`N8N response saved to: ${filename}`);
+            
           } catch (parseError) {
-            n8nResponse = await webhookResponse.text();
-            console.log('N8N webhook response (text):', n8nResponse);
+            try {
+              n8nResponse = await responseClone.text();
+              console.log('N8N webhook response (text):', n8nResponse);
+              
+              // Save text response to file
+              const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+              const filename = `n8n-response-text-${timestamp}.txt`;
+              const filepath = path.join(process.cwd(), 'uploads', filename);
+              
+              const responseContent = `=== N8N Text Response - ${new Date().toISOString()} ===\n\n` +
+                `Request Data:\n${JSON.stringify(n8nData, null, 2)}\n\n` +
+                `Text Response:\n${n8nResponse}`;
+              
+              fs.writeFileSync(filepath, responseContent, 'utf8');
+              console.log(`N8N text response saved to: ${filename}`);
+              
+            } catch (textError) {
+              console.error('Error reading response as text:', textError);
+              n8nResponse = { error: 'Failed to parse response' };
+            }
           }
         } else {
-          console.error('N8N webhook error:', webhookResponse.status, await webhookResponse.text());
-          n8nResponse = { error: `HTTP ${webhookResponse.status}` };
+          const errorText = await webhookResponse.text();
+          console.error('N8N webhook error:', webhookResponse.status, errorText);
+          n8nResponse = { error: `HTTP ${webhookResponse.status}`, details: errorText };
+          
+          // Save error response to file
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const filename = `n8n-error-${timestamp}.txt`;
+          const filepath = path.join(process.cwd(), 'uploads', filename);
+          
+          const errorContent = `=== N8N Error Response - ${new Date().toISOString()} ===\n\n` +
+            `Request Data:\n${JSON.stringify(n8nData, null, 2)}\n\n` +
+            `Error Status: ${webhookResponse.status}\n` +
+            `Error Details:\n${errorText}`;
+          
+          fs.writeFileSync(filepath, errorContent, 'utf8');
+          console.log(`N8N error response saved to: ${filename}`);
         }
       } catch (webhookError) {
         console.error('Error sending to N8N webhook:', webhookError);
         n8nResponse = { error: webhookError.message };
+        
+        // Save connection error to file
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `n8n-connection-error-${timestamp}.txt`;
+        const filepath = path.join(process.cwd(), 'uploads', filename);
+        
+        const errorContent = `=== N8N Connection Error - ${new Date().toISOString()} ===\n\n` +
+          `Request Data:\n${JSON.stringify(n8nData, null, 2)}\n\n` +
+          `Connection Error:\n${webhookError.message}\n\n` +
+          `Stack Trace:\n${webhookError.stack || 'No stack trace available'}`;
+        
+        fs.writeFileSync(filepath, errorContent, 'utf8');
+        console.log(`N8N connection error saved to: ${filename}`);
       }
 
       res.json({ 
