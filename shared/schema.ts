@@ -29,7 +29,6 @@ export const users = pgTable("users", {
   averageWorkoutDuration: text("average_workout_duration"), // "15-20min", "30min", "45min", "1h_or_more"
   preferredLocation: text("preferred_location"), // "home", "outdoor", "gym", "other"
   onboardingCompleted: boolean("onboarding_completed").default(false),
-  avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -180,7 +179,7 @@ export const profileUpdateSchema = z.object({
   smokingStatus: z.enum(["never", "yes", "ex_smoker"]).optional(),
   alcoholConsumption: z.enum(["never", "rarely", "socially", "frequently"]).optional(),
   dietType: z.enum(["balanced", "high_protein", "high_carb", "fast_food", "vegetarian_vegan", "other"]).optional(),
-  sleepHours: z.enum(["4-5", "6-7", "8-9"]).optional(),
+  sleepHours: z.enum(["4-5", "6-7", "8-9", "9+"]).optional(),
   stressLevel: z.enum(["low", "moderate", "high", "very_high"]).optional(),
   preferredWorkoutTime: z.enum(["morning", "afternoon", "evening", "variable"]).optional(),
   availableDaysPerWeek: z.number().min(1).max(7).optional(),

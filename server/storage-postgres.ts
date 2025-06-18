@@ -82,17 +82,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
-    try {
-      const [user] = await db
-        .update(users)
-        .set(updates)
-        .where(eq(users.id, id))
-        .returning();
-      return user || undefined;
-    } catch (error) {
-      console.error("Error updating user:", error);
-      throw error;
-    }
+    const [user] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
   }
 
   // Session methods
