@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { Calendar, Activity, Target, Dumbbell, Camera, Scale, User, Settings, Check, X, AlertCircle, FileText, Download } from "lucide-react";
+import { Calendar, Activity, Target, Dumbbell, Camera, Scale, User, Settings, Check, X, AlertCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -139,7 +140,6 @@ export default function Profile() {
   const [formData, setFormData] = useState<Partial<UserData>>({});
   const { showSuccess, showError } = useGlobalNotification();
   const queryClient = useQueryClient();
-  const [n8nFiles, setN8nFiles] = useState<any>(null);
 
   const { data: user, isLoading } = useQuery<UserData>({
     queryKey: ["/api/auth/me"],
@@ -366,29 +366,6 @@ export default function Profile() {
       showError("Erro ao sincronizar dados com IA. Tente novamente.");
     }
   });
-
-    const fetchN8nFiles = async () => {
-        const token = localStorage.getItem("authToken");
-        const response = await fetch("/api/n8n/response-files", {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch N8N files: ${response.status}`);
-        }
-        return response.json();
-    };
-
-    useEffect(() => {
-        fetchN8nFiles()
-            .then(data => setN8nFiles(data))
-            .catch(error => {
-                console.error('Error fetching N8N files:', error);
-                showError("Erro ao carregar arquivos da IA.");
-            });
-    }, []);
 
   const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1189,6 +1166,8 @@ export default function Profile() {
           </CardContent>
         </Card>
 
+        
+
         {/* Restrições Físicas */}
         <Card>
           <CardHeader>
@@ -1253,56 +1232,6 @@ export default function Profile() {
           </CardContent>
         </Card>
       </div>
-      {/* N8N Response Files */}
-      {n8nFiles && (
-        <Card className="col-span-full">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Logs de Sincronização com IA
-            </CardTitle>
-            <CardDescription>
-              Arquivos de log das comunicações com o sistema de IA
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {n8nFiles.files && n8nFiles.files.length > 0 ? (
-              <div className="space-y-3">
-                {n8nFiles.files.map((file: any, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3 flex-1">
-                      <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{file.filename}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(file.created).toLocaleString('pt-BR')} • {Math.round(file.size / 1024)} KB
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(file.downloadUrl, '_blank')}
-                      className="flex items-center gap-2 flex-shrink-0"
-                    >
-                      <Download className="h-4 w-4" />
-                      Baixar
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">Nenhum arquivo de log encontrado.</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Os logs aparecerão aqui após sincronizar dados com a IA.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
