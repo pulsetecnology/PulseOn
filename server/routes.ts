@@ -486,9 +486,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const n8nResponse = await response.json();
           console.log("N8N Response:", JSON.stringify(n8nResponse, null, 2));
 
-          // Save complete AI response to file
+          // Save AI response to file
           const timestamp = new Date().toLocaleString("pt-BR");
-          const logContent = `AI Response Log - PulseOn (AI Workout Generation)
+          const logContent = `AI Response Log - PulseOn
 =========================
 
 Data da última atualização: ${timestamp}
@@ -499,9 +499,6 @@ ${JSON.stringify(aiRequestData, null, 2)}
 N8N Response:
 ${JSON.stringify(n8nResponse, null, 2)}
 
-Response Status: ${response.status}
-Response Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}
-
 =========================
 `;
 
@@ -511,9 +508,9 @@ Response Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()
               logContent,
               "utf8",
             );
-            console.log("Complete AI response saved to ai-response.txt");
+            console.log("AI response saved to ai-response.txt");
           } catch (fileError) {
-            console.error("Error saving complete AI response to file:", fileError);
+            console.error("Error saving AI response to file:", fileError);
           }
 
           // Check if N8N already saved the workout (savedWorkout field)
@@ -749,19 +746,11 @@ Response Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()
 
   app.post("/api/workout-sessions", authenticateToken, async (req, res) => {
     try {
-      // Validate and sanitize the session data
       const sessionData = {
-        userId: req.user!.id,
-        workoutId: req.body.workoutId || null,
+        ...req.body,
+        userId: req.user!.id, // Use authenticated user ID
         startedAt: req.body.startedAt || new Date().toISOString(),
-        completedAt: req.body.completedAt || null,
-        exercises: req.body.exercises || [],
-        totalDuration: req.body.totalDuration || 0,
-        totalCalories: req.body.totalCalories || 0,
-        notes: req.body.notes || null
       };
-      
-      console.log("Creating workout session with sanitized data:", sessionData);
       
       const session = await storage.createWorkoutSession(sessionData);
       res.status(201).json({
@@ -1075,6 +1064,33 @@ Response Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()
           validationField: "test-connection-railway-n8n"
         };
 
+        // Save sync data to file for debugging
+        const timestamp = new Date().toLocaleString("pt-BR");
+        const logContent = `AI Response Log - PulseOn (Sync Data)
+=========================
+
+Data da última atualização: ${timestamp}
+
+Sync Request Data:
+${JSON.stringify(syncData, null, 2)}
+
+N8N Sync Response:
+[Pending response]
+
+=========================
+`;
+
+        try {
+          fs.writeFileSync(
+            path.join(process.cwd(), "ai-response.txt"),
+            logContent,
+            "utf8",
+          );
+          console.log("Sync data saved to ai-response.txt");
+        } catch (fileError) {
+          console.error("Error saving sync data to file:", fileError);
+        }
+
         // Call N8N webhook for AI workout generation
         try {
           console.log("Calling N8N for AI workout generation...");
@@ -1096,33 +1112,6 @@ Response Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()
 
           const n8nResponse = await response.json();
           console.log("N8N Response:", JSON.stringify(n8nResponse, null, 2));
-
-          // Save complete N8N response to file for debugging
-          const timestamp = new Date().toLocaleString("pt-BR");
-          const logContent = `AI Response Log - PulseOn (Sync Data)
-=========================
-
-Data da última atualização: ${timestamp}
-
-Sync Request Data:
-${JSON.stringify(syncData, null, 2)}
-
-N8N Response:
-${JSON.stringify(n8nResponse, null, 2)}
-
-=========================
-`;
-
-          try {
-            fs.writeFileSync(
-              path.join(process.cwd(), "ai-response.txt"),
-              logContent,
-              "utf8",
-            );
-            console.log("Complete N8N response saved to ai-response.txt");
-          } catch (fileError) {
-            console.error("Error saving complete N8N response to file:", fileError);
-          }
 
           // Check if we have a savedWorkout in the response
           if (n8nResponse.savedWorkout) {
@@ -1177,38 +1166,6 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
         } catch (n8nError) {
           console.error("N8N API error:", n8nError);
-          
-          // Save error to file for debugging
-          const timestamp = new Date().toLocaleString("pt-BR");
-          const errorLogContent = `AI Response Log - PulseOn (Error)
-=========================
-
-Data da última atualização: ${timestamp}
-
-Sync Request Data:
-${JSON.stringify(syncData, null, 2)}
-
-N8N Error:
-${n8nError.message}
-
-Stack Trace:
-${n8nError.stack}
-
-Fallback Mode Activated: true
-
-=========================
-`;
-
-          try {
-            fs.writeFileSync(
-              path.join(process.cwd(), "ai-response.txt"),
-              errorLogContent,
-              "utf8",
-            );
-            console.log("N8N error saved to ai-response.txt");
-          } catch (fileError) {
-            console.error("Error saving N8N error to file:", fileError);
-          }
           
           // Generate fallback workout
           const fallbackWorkout = {

@@ -16,7 +16,6 @@ import { Scale, Dumbbell, Heart, Check, User, Moon, Sun, ChevronRight, ChevronLe
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
-import { PulseOnLogo } from "@/components/ui/logo";
 
 const TOTAL_STEPS = 7;
 
@@ -136,9 +135,6 @@ export default function Onboarding() {
     <div className="px-4 py-6">
       <div className="flex justify-between items-center mb-8">
         <div className="text-center flex-1">
-          <div className="flex justify-center mb-4">
-            <PulseOnLogo size="lg" variant="full" />
-          </div>
           <h1 className="text-2xl font-bold mb-2">Vamos personalizar seu treino!</h1>
           <p className="text-muted-foreground">Responda algumas perguntas para criarmos o plano perfeito</p>
         </div>

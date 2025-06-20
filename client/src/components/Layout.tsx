@@ -1,6 +1,5 @@
 import Header from "./Header";
 import BottomNavigation from "./BottomNavigation";
-import NotificationDisplay from "./NotificationDisplay";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,7 +13,6 @@ export default function Layout({ children }: LayoutProps) {
         {children}
       </main>
       <BottomNavigation />
-      <NotificationDisplay />
     </div>
   );
 }
