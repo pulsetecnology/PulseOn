@@ -1,11 +1,11 @@
-import { Moon, Sun, LogOut, Bell } from "lucide-react";
+import { Moon, Sun, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { PulseOnLogo } from "@/components/ui/logo";
+import NotificationArea from "./NotificationArea";
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
@@ -39,22 +39,7 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border header-shadow h-16">
       <div className="flex items-center justify-between px-4 h-full">
         <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              // TODO: Implementar funcionalidade de notificações
-              console.log("Notifications clicked");
-            }}
-            className="h-10 w-10 relative"
-          >
-            <PulseOnLogo size="sm" variant="icon" />
-            {/* Badge de notificações */}
-            <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white opacity-0">
-              {/* Contador será implementado futuramente */}
-            </span>
-          </Button>
-          
+          <NotificationArea />
           <span className="font-bold bg-gradient-to-r from-sky-500 via-blue-600 to-purple-600 dark:from-sky-400 dark:via-blue-500 dark:to-purple-500 bg-clip-text text-transparent text-xl">
             PulseOn
           </span>
