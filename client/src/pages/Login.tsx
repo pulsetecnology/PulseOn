@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/ThemeProvider";
-import Logo from "@/components/Logo";
+import { PulseOnLogo } from "@/components/ui/logo";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -64,7 +64,7 @@ export default function Login() {
       <Card className="w-full max-w-md bg-slate-800/50 dark:bg-slate-800/50 light:bg-white/90 backdrop-blur-sm">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <Logo className="text-2xl" />
+            <PulseOnLogo size="lg" variant="full" />
           </div>
           <CardTitle className="text-xl text-slate-100 dark:text-slate-100 light:text-slate-900">Entrar na sua conta</CardTitle>
           <CardDescription className="text-slate-400 dark:text-slate-400 light:text-slate-600">
