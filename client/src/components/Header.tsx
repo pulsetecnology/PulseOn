@@ -1,4 +1,4 @@
-import { Moon, Sun, LogOut } from "lucide-react";
+import { Moon, Sun, LogOut, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
@@ -38,8 +38,7 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border header-shadow h-16">
       <div className="flex items-center justify-between px-4 h-full">
-        <div className="flex items-center space-x-2">
-          {/* Notification heart icon */}
+        <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
             size="icon"
@@ -56,7 +55,9 @@ export default function Header() {
             </span>
           </Button>
           
-          <PulseOnLogo size="md" variant="full" />
+          <span className="font-bold bg-gradient-to-r from-sky-500 via-blue-600 to-purple-600 dark:from-sky-400 dark:via-blue-500 dark:to-purple-500 bg-clip-text text-transparent text-xl">
+            PulseOn
+          </span>
         </div>
 
         <div className="flex items-center space-x-1">
