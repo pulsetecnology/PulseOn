@@ -11,7 +11,7 @@ import { Link, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import Logo from "@/components/Logo";
+import { PulseOnLogo } from "@/components/ui/logo";
 
 const registerWithConfirmSchema = registerSchema.extend({
   confirmPassword: z.string().min(6, "Confirmação de senha é obrigatória")
@@ -81,7 +81,7 @@ export default function Register() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <Logo className="text-2xl" />
+            <PulseOnLogo size="lg" variant="full" />
           </div>
           <h1 className="text-2xl font-bold">Criar sua conta</h1>
           <p className="text-muted-foreground">Junte-se ao PulseOn e comece a treinar</p>
