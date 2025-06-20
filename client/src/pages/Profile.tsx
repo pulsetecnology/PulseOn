@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -308,7 +307,7 @@ export default function Profile() {
   const avatarUploadMutation = useMutation({
     mutationFn: async (file: File) => {
       console.log('Starting avatar upload for file:', file.name, 'size:', file.size);
-      
+
       const formData = new FormData();
       formData.append('avatar', file);
 
@@ -326,7 +325,7 @@ export default function Profile() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Avatar upload error response:', errorText);
-        
+
         let errorMessage = "Erro ao fazer upload da imagem";
         try {
           const errorJson = JSON.parse(errorText);
@@ -334,10 +333,10 @@ export default function Profile() {
         } catch {
           // Fallback to default message if parsing fails
         }
-        
+
         throw new Error(errorMessage);
       }
-      
+
       const result = await response.json();
       console.log('Avatar upload success:', result);
       return result;
@@ -416,8 +415,34 @@ export default function Profile() {
     setFormData(user || {});
   };
 
-  const handleSaveEdit = () => {
-    updateMutation.mutate(formData);
+  const handleSaveEdit = async () => {
+    try {
+      // Filter out empty or unchanged values
+      const updatesToSend = Object.fromEntries(
+        Object.entries(formData).filter(([key, value]) => {
+          // Skip if value is empty, null, undefined, or unchanged from original
+          if (value === null || value === undefined || value === '') {
+            return false;
+          }
+          // Check if value is different from current user data
+          const currentValue = user[key as keyof typeof user];
+          return value !== currentValue;
+        })
+      );
+
+      console.log("Sending update payload:", updatesToSend);
+
+      // Only send request if there are actual changes
+      if (Object.keys(updatesToSend).length > 0) {
+        await updateMutation.mutateAsync(updatesToSend);
+      } else {
+        console.log("No changes detected, skipping update");
+      }
+
+      setEditingCard(null);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
   };
 
   if (isLoading) {
@@ -503,7 +528,7 @@ export default function Profile() {
               </span>
             </div>
           </div>
-          
+
         </div>
       </div>
 
@@ -871,7 +896,7 @@ export default function Profile() {
               </CardTitle>
               <div className="flex gap-2">
                 {editingCard === 'equipment' ? (
-                  <>
+                                    <>
                     <Button
                       size="sm"
                       variant="outline"
@@ -1173,7 +1198,7 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        
+
 
         {/* Restrições Físicas */}
         <Card>
