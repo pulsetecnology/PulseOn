@@ -218,20 +218,28 @@ export class DatabaseStorage implements IStorage {
 
   async createWorkoutSession(insertSession: InsertWorkoutSession): Promise<WorkoutSession> {
     try {
+      console.log("Creating workout session with data:", JSON.stringify(insertSession, null, 2));
+      
+      const sessionData = {
+        userId: insertSession.userId,
+        name: insertSession.name || "Treino Personalizado",
+        startedAt: insertSession.startedAt ? new Date(insertSession.startedAt) : new Date(),
+        completedAt: insertSession.completedAt ? new Date(insertSession.completedAt) : new Date(),
+        scheduledWorkoutId: insertSession.scheduledWorkoutId || null,
+        exercises: insertSession.exercises as any,
+        totalDuration: insertSession.totalDuration || 0,
+        totalCalories: insertSession.totalCalories || 0,
+        notes: insertSession.notes || ""
+      };
+      
+      console.log("Processed session data for DB:", JSON.stringify(sessionData, null, 2));
+      
       const [session] = await db
         .insert(workoutSessions)
-        .values({
-          userId: insertSession.userId,
-          name: insertSession.name,
-          startedAt: new Date(),
-          scheduledWorkoutId: insertSession.scheduledWorkoutId,
-          exercises: insertSession.exercises as any,
-          totalDuration: insertSession.totalDuration,
-          totalCalories: insertSession.totalCalories,
-          notes: insertSession.notes,
-          completedAt: insertSession.completedAt
-        })
+        .values(sessionData)
         .returning();
+        
+      console.log("Workout session created successfully:", session);
       return session;
     } catch (error) {
       console.error("Error creating workout session:", error);

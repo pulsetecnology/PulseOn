@@ -138,6 +138,13 @@ export default function ActiveWorkout() {
     try {
       const token = localStorage.getItem('authToken');
       
+      if (!token) {
+        console.error('No auth token found');
+        showWorkoutError();
+        setLocation("/login");
+        return;
+      }
+      
       // Calculate total duration (in minutes)
       const totalDuration = Math.floor(workoutTimer / 60);
       
@@ -173,15 +180,17 @@ export default function ActiveWorkout() {
 
       // Create workout session
       const workoutSessionData = {
-        scheduledWorkoutId: todaysWorkout?.id,
+        scheduledWorkoutId: todaysWorkout?.id || null,
         name: todaysWorkout?.name || "Treino Personalizado",
         startedAt: new Date(Date.now() - workoutTimer * 1000).toISOString(),
         completedAt: new Date().toISOString(),
         exercises: completedExercises,
-        totalDuration,
-        totalCalories,
+        totalDuration: totalDuration,
+        totalCalories: totalCalories,
         notes: ""
       };
+
+      console.log('Sending workout session data:', workoutSessionData);
 
       const response = await fetch('/api/workout-sessions', {
         method: 'POST',
@@ -192,19 +201,23 @@ export default function ActiveWorkout() {
         body: JSON.stringify(workoutSessionData),
       });
 
+      const responseData = await response.json();
+      console.log('Server response:', responseData);
+
       if (!response.ok) {
-        throw new Error('Erro ao salvar treino');
+        console.error('Server error:', responseData);
+        throw new Error(responseData.message || 'Erro ao salvar treino');
       }
 
-      const savedSession = await response.json();
-      console.log('Workout session saved:', savedSession);
-
+      console.log('Workout session saved successfully:', responseData);
       showWorkoutSuccess();
       setLocation("/history");
+      
     } catch (error) {
       console.error('Error saving workout session:', error);
-      // Still redirect even if save fails
-      setLocation("/workout");
+      showWorkoutError();
+      // Still redirect to history to see if data was saved
+      setLocation("/history");
     }
   };
 
@@ -401,22 +414,66 @@ export default function ActiveWorkout() {
   return (
     <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
       {/* Fixed Header - Always visible */}
-      <div className="flex-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-lg dark:shadow-2xl dark:shadow-black/50 border-b border-slate-200 dark:border-slate-700">
-        <div className="px-4 py-6">
+      <div className="flex-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-lg dark:shadow-2xl dark:shadow-black/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+        <div className="px-4 py-4">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Treino Ativo</h1>
-            <p className="text-sm text-muted-foreground">
-              Exercício {currentExerciseIndex + 1} de {totalExercises}
-            </p>
+            <h1 className="text-xl font-bold">
+              {currentExercise ? currentExercise.exercise : "Treino Ativo"}
+            </h1>
+            <div className="flex justify-between items-center text-sm text-muted-foreground">
+              <span>Exercício {currentExerciseIndex + 1} de {totalExercises}</span>
+              <div className="flex items-center space-x-2">
+                <Timer className="h-4 w-4" />
+                <span className="font-mono">{formatTime(workoutTimer)}</span>
+              </div>
+            </div>
           </div>
           
-          <div className="mt-4 space-y-2">
+          <div className="mt-3 space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Progresso</span>
               <span>{Math.round(progressPercentage)}%</span>
             </div>
             <Progress value={progressPercentage} className="h-2" />
           </div>
+          
+          {/* Rest Timer in Header */}
+          {isResting && (
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Timer className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Descanso</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                    {formatTime(restTimeRemaining)}
+                  </span>
+                  <div className="flex space-x-1">
+                    <Button
+                      onClick={() => setIsTimerRunning(!isTimerRunning)}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+                    >
+                      {isTimerRunning ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setRestTimeRemaining(restTime);
+                        setIsTimerRunning(false);
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -487,44 +544,6 @@ export default function ActiveWorkout() {
             </CardHeader>
             
             <CardContent className="space-y-6">
-              {/* Rest Timer - Show when resting */}
-              {isResting && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <div className="text-center space-y-3">
-                    <div className="flex items-center justify-center space-x-2">
-                      <Timer className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">Tempo de Descanso</h3>
-                    </div>
-                    
-                    <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-                      {formatTime(restTimeRemaining)}
-                    </div>
-                    
-                    <div className="flex justify-center space-x-3">
-                      <Button
-                        onClick={() => setIsTimerRunning(!isTimerRunning)}
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
-                      >
-                        {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                      </Button>
-                      
-                      <Button
-                        onClick={() => {
-                          setRestTimeRemaining(restTime);
-                          setIsTimerRunning(false);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
-                      >
-                        <RotateCcw className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
               {/* Weight Control */}
               {currentExercise.weight > 0 && (
                 <div className="space-y-3">
@@ -601,6 +620,7 @@ export default function ActiveWorkout() {
                     setCurrentSet(currentSet + 1);
                     // Start rest timer if there are more sets
                     if (currentExercise.restBetweenSeries > 0) {
+                      setRestTimeRemaining(currentExercise.restBetweenSeries);
                       setIsResting(true);
                       setIsTimerRunning(true);
                     }
