@@ -202,91 +202,116 @@ export default function ActiveWorkout() {
   if (!todaysWorkout || exercises.length === 0) {
     return (
       <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-500 mb-4">Nenhum treino encontrado.</p>
+        <div className="text-center space-y-4">
+          <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto" />
+          <h2 className="text-xl font-semibold">Nenhum treino programado</h2>
+          <p className="text-muted-foreground">Vá para a aba Treino para gerar um novo treino personalizado</p>
           <Button onClick={() => setLocation("/workout")}>
-            Voltar para Treinos
+            Ir para Treino
           </Button>
         </div>
       </div>
     );
   }
 
-  useEffect(() => {
-    if (isTimerRunning && restTime > 0) {
-      const timer = setTimeout(() => setRestTime(restTime - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-    if (restTime === 0 && isTimerRunning) {
-      setIsTimerRunning(false);
-      setIsResting(false);
-      showWorkoutSuccess();
-    }
-  }, [isTimerRunning, restTime, showSuccess]);
+  // Safety check for current exercise
+  if (!currentExercise) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando exercício...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const completeSet = () => {
-    const newCompletedSet = {
-      exerciseIndex: currentExerciseIndex,
-      set: currentSet,
-      weight: weight,
-      effort: effortLevel[0]
-    };
+  // Rest Timer Component
+  const RestTimerCard = () => {
+    const [timeRemaining, setTimeRemaining] = useState(restTime);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    setCompletedSets([...completedSets, newCompletedSet]);
-    setShowSetFeedback(true);
-
-    // Show workout progress notification
-    showWorkoutSuccess();
-
-    setTimeout(() => {
-      setShowSetFeedback(false);
-
-      if (currentSet < currentExercise.series) {
-        setCurrentSet(currentSet + 1);
-        setIsResting(true);
-        setRestTime(currentExercise.restBetweenSeries);
-        setIsTimerRunning(true);
-        // Show set completion notification
-        showWorkoutSuccess();
+    useEffect(() => {
+      if (isResting && isTimerRunning) {
+        intervalRef.current = setInterval(() => {
+          setTimeRemaining((prev) => {
+            if (prev <= 1) {
+              setIsResting(false);
+              setIsTimerRunning(false);
+              showSuccess("Tempo de descanso finalizado!");
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
       } else {
-        // Move to next exercise or complete workout
-        if (currentExerciseIndex < exercises.length - 1) {
-          setCurrentExerciseIndex(currentExerciseIndex + 1);
-          setCurrentSet(1);
-          setWeight(exercises[currentExerciseIndex + 1].weight || 40);
-          setEffortLevel([7]);
-          showWorkoutSuccess();
-        } else {
-          setIsWorkoutComplete(true);
-          showWorkoutSuccess();
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
         }
       }
-    }, 2000);
-  };
 
-  const skipExercise = () => {
-    if (currentExerciseIndex < totalExercises - 1) {
-      setCurrentExerciseIndex(currentExerciseIndex + 1);
-      setCurrentSet(1);
-      setWeight(exercises[currentExerciseIndex + 1].weight || 40);
-      setEffortLevel([7]);
-      setShowSetFeedback(false);
-      showWorkoutWarning();
-    } else {
-      setIsWorkoutComplete(true);
-    }
-  };
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
+    }, [isResting, isTimerRunning, showSuccess]);
 
-  const startNextSet = () => {
-    setIsResting(false);
-    setIsTimerRunning(false);
-    setShowSetFeedback(true);
-  };
+    useEffect(() => {
+      setTimeRemaining(restTime);
+    }, [restTime]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    const formatTime = (seconds: number) => {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const toggleTimer = () => {
+      setIsTimerRunning(!isTimerRunning);
+    };
+
+    const resetTimer = () => {
+      setTimeRemaining(restTime);
+      setIsTimerRunning(false);
+    };
+
+    return (
+      <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+        <CardContent className="p-6 text-center">
+          <div className="space-y-4">
+            <div className="flex items-center justify-center space-x-2">
+              <Timer className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">Tempo de Descanso</h3>
+            </div>
+            
+            <div className="text-4xl font-bold text-blue-900 dark:text-blue-100">
+              {formatTime(timeRemaining)}
+            </div>
+            
+            <div className="flex justify-center space-x-3">
+              <Button
+                onClick={toggleTimer}
+                variant="outline"
+                size="sm"
+                className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+              >
+                {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </Button>
+              
+              <Button
+                onClick={resetTimer}
+                variant="outline"
+                size="sm"
+                className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   if (isWorkoutComplete) {
@@ -343,200 +368,234 @@ export default function ActiveWorkout() {
       <div className="flex-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-lg dark:shadow-2xl dark:shadow-black/50 border-b border-slate-200 dark:border-slate-700">
         <div className="px-4 py-6">
           <div className="text-center space-y-2">
-            <Badge variant="secondary" className="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
-              Exercício {currentExerciseIndex + 1}/{totalExercises}
-            </Badge>
-            <h1 className="text-2xl font-bold">{currentExercise.exercise}</h1>
-            <div className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">
-              Série {currentSet} de {currentExercise.series}
-            </div>
-            <p className="text-slate-600 dark:text-slate-300 text-lg">
-              {currentExercise.repetitions > 0 ? `${currentExercise.repetitions} repetições` : `${currentExercise.time} minutos`}
+            <h1 className="text-2xl font-bold">Treino Ativo</h1>
+            <p className="text-sm text-muted-foreground">
+              Exercício {currentExerciseIndex + 1} de {totalExercises}
             </p>
           </div>
-
-          {/* Progress Bar */}
-          <div className="mt-4">
-            <Progress value={progressPercentage} className="h-2 bg-slate-300 dark:bg-slate-700" />
+          
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Progresso</span>
+              <span>{Math.round(progressPercentage)}%</span>
+            </div>
+            <Progress value={progressPercentage} className="h-2" />
           </div>
         </div>
       </div>
 
-      {/* Content Area - Fixed height, no scroll jump */}
-      <div className="flex-1 px-4 py-0 flex items-start justify-center">
-        <div className="w-full max-w-md mt-2">
-          {/* During Exercise Phase */}
-          {!isResting && !showSetFeedback && (
-            <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-              <CardContent className="p-8 text-center">
-                <Timer className="h-12 w-12 mx-auto mb-4 text-cyan-600" />
-                <h2 className="text-xl font-semibold mb-2">Execute o exercício</h2>
-                <p className="text-muted-foreground mb-6">
-                  Concentre-se na execução correta dos movimentos
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-6">
+          {/* Rest Timer - Only show when resting */}
+          {isResting && <RestTimerCard />}
+
+          {/* Current Exercise Card */}
+          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                  {currentExercise.muscleGroup}
+                </Badge>
+                <Badge variant="outline" className="border-green-300 dark:border-green-700 text-green-700 dark:text-green-300">
+                  {currentExercise.type}
+                </Badge>
+              </div>
+              <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">
+                {currentExercise.exercise}
+              </CardTitle>
+            </CardHeader>
+            
+            <CardContent className="space-y-6">
+              {/* Instructions */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <h4 className="font-semibold mb-2 text-slate-900 dark:text-white">Instruções:</h4>
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {currentExercise.instructions}
                 </p>
+              </div>
 
-                <div className="space-y-2">
-                  <Button 
-                    onClick={() => setShowSetFeedback(true)}
-                    className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
-                  >
-                    Concluir Série
-                    <CheckCircle2 className="ml-2 h-5 w-5" />
-                  </Button>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      onClick={skipExercise}
-                      className="py-2 text-sm font-semibold bg-orange-500 dark:bg-orange-600 text-white hover:bg-orange-600 dark:hover:bg-orange-700"
-                    >
-                      <SkipForward className="mr-1 h-4 w-4" />
-                      Pular Exercício
-                    </Button>
-                    <Button 
-                      onClick={() => setIsWorkoutComplete(true)}
-                      className="py-2 text-sm font-semibold bg-red-500 dark:bg-red-600 text-white hover:bg-red-600 dark:hover:bg-red-700"
-                    >
-                      <AlertCircle className="mr-1 h-4 w-4" />
-                      Finalizar Treino
-                    </Button>
-                  </div>
+              {/* Exercise Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {currentExercise.series}
+                  </p>
+                  <p className="text-sm text-purple-700 dark:text-purple-300">Séries</p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Rest Timer Phase */}
-          {isResting && (
-            <Card className="bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-              <CardContent className="p-8 text-center">
-                <div className="text-6xl font-bold text-orange-600 dark:text-orange-400 mb-4">
-                  {formatTime(restTime)}
+                <div className="text-center p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
+                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                    {currentExercise.repetitions}
+                  </p>
+                  <p className="text-sm text-orange-700 dark:text-orange-300">Repetições</p>
                 </div>
-                <h2 className="text-xl font-semibold mb-2">Tempo de Descanso</h2>
-                <p className="text-muted-foreground mb-6">
-                  Relaxe e prepare-se para a próxima série
-                </p>
-
-                <div className="flex justify-center space-x-4 mb-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsTimerRunning(!isTimerRunning)} 
-                    size="lg"
-                    className="border-orange-300 dark:border-orange-700"
-                  >
-                    {isTimerRunning ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setRestTime(currentExercise.restBetweenSeries)} 
-                    size="lg"
-                    className="border-orange-300 dark:border-orange-700"
-                  >
-                    <RotateCcw className="h-5 w-5" />
-                  </Button>
+                <div className="text-center p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {currentExercise.time > 0 ? `${currentExercise.time}min` : '--'}
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300">Tempo</p>
                 </div>
-
-                <Button 
-                  onClick={startNextSet}
-                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700"
-                >
-                  Começar Próxima Série
-                  <ChevronRight className="ml-2 h-5 w-5" />
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Set Feedback Phase */}
-          {showSetFeedback && (
-            <div className="space-y-1">
-
-              {/* Weight Selection */}
-              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-                <CardContent className="p-2">
-                  <h3 className="font-semibold mb-2 text-center text-sm">Peso utilizado</h3>
-                  <div className="flex items-center justify-center space-x-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setWeight(Math.max(0, weight - 2.5))}
-                      disabled={weight <= 2.5}
-                      className="h-8 w-8"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{weight}</div>
-                      <div className="text-xs text-muted-foreground">kg</div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setWeight(weight + 2.5)}
-                      className="h-8 w-8"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Effort Level */}
-              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-                <CardContent className="p-2">
-                  <h3 className="font-semibold mb-2 text-center text-sm">Nível de esforço</h3>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Suave</span>
-                      <span>Intenso</span>
-                    </div>
-                    <Slider
-                      value={effortLevel}
-                      onValueChange={setEffortLevel}
-                      max={10}
-                      min={1}
-                      step={1}
-                      className="w-full"
-                    />
-                    <div className="text-center">
-                      <span className="text-base font-semibold text-cyan-600">
-                        Esforço: {effortLevel[0]}/10
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Action Buttons */}
-              <div className="space-y-1">
-                <Button 
-                  onClick={completeSet}
-                  className="w-full py-2 font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
-                >
-                  {currentSet < currentExercise.series ? "Começar próxima série" : 
-                   currentExerciseIndex < totalExercises - 1 ? "Próximo exercício" : "Finalizar treino"}
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-
-                <div className="grid grid-cols-2 gap-1">
-                  <Button 
-                    onClick={skipExercise}
-                    className="py-1 text-sm font-semibold bg-orange-500 dark:bg-orange-600 text-white hover:bg-orange-600 dark:hover:bg-orange-700"
-                  >
-                    <SkipForward className="mr-1 h-3 w-3" />
-                    Pular
-                  </Button>
-                  <Button 
-                    onClick={() => setIsWorkoutComplete(true)}
-                    className="py-1 text-sm font-semibold bg-red-500 dark:bg-red-600 text-white hover:bg-red-600 dark:hover:bg-red-700"
-                  >
-                    <AlertCircle className="mr-1 h-3 w-3" />
-                    Finalizar
-                  </Button>
+                <div className="text-center p-3 bg-red-50 dark:bg-red-950 rounded-lg">
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    {currentExercise.calories}
+                  </p>
+                  <p className="text-sm text-red-700 dark:text-red-300">Calorias</p>
                 </div>
               </div>
-            </div>
-          )}
+            </CardContent>
+          </Card>
+
+          {/* Set Control Card */}
+          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-center text-slate-900 dark:text-white">
+                Série {currentSet} de {currentExercise.series}
+              </CardTitle>
+            </CardHeader>
+            
+            <CardContent className="space-y-6">
+              {/* Weight Control */}
+              {currentExercise.weight > 0 && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">
+                    Peso: {weight}kg
+                  </label>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateWeight(Math.max(0, weight - 2.5))}
+                      className="h-10 w-10 p-0"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    
+                    <Input
+                      type="number"
+                      value={weight}
+                      onChange={(e) => updateWeight(parseFloat(e.target.value) || 0)}
+                      className="text-center font-semibold"
+                      step="0.5"
+                      min="0"
+                    />
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateWeight(weight + 2.5)}
+                      className="h-10 w-10 p-0"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Effort Level */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-slate-900 dark:text-white">
+                  Nível de esforço: {effortLevel[0]}/10
+                </label>
+                <Slider
+                  value={effortLevel}
+                  onValueChange={setEffortLevel}
+                  min={1}
+                  max={10}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Muito fácil</span>
+                  <span>Muito difícil</span>
+                </div>
+              </div>
+
+              {/* Set Completion Button */}
+              <Button
+                onClick={() => {
+                  const newCompletedSet = {
+                    exerciseIndex: currentExerciseIndex,
+                    set: currentSet,
+                    weight: weight,
+                    effort: effortLevel[0]
+                  };
+                  
+                  setCompletedSets(prev => [...prev, newCompletedSet]);
+                  setShowSetFeedback(true);
+                  
+                  // Reset feedback after 2 seconds
+                  setTimeout(() => setShowSetFeedback(false), 2000);
+                  
+                  if (currentSet < currentExercise.series) {
+                    setCurrentSet(currentSet + 1);
+                    // Start rest timer if there are more sets
+                    if (currentExercise.restBetweenSeries > 0) {
+                      setIsResting(true);
+                      setIsTimerRunning(true);
+                    }
+                    showSuccess(`Série ${currentSet} concluída!`);
+                  } else {
+                    // Exercise completed
+                    showSuccess(`${currentExercise.exercise} concluído!`);
+                    
+                    if (currentExerciseIndex < exercises.length - 1) {
+                      // Move to next exercise
+                      setTimeout(() => {
+                        setCurrentExerciseIndex(currentExerciseIndex + 1);
+                        setCurrentSet(1);
+                        const nextExercise = exercises[currentExerciseIndex + 1];
+                        if (nextExercise) {
+                          setWeight(nextExercise.weight || 40);
+                          setRestTime(nextExercise.restBetweenSeries || 90);
+                        }
+                      }, 1500);
+                    } else {
+                      // Workout completed
+                      setTimeout(() => {
+                        setIsWorkoutComplete(true);
+                      }, 1500);
+                    }
+                  }
+                }}
+                className="w-full py-3 text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              >
+                {showSetFeedback ? (
+                  <>
+                    <CheckCircle2 className="mr-2 h-5 w-5" />
+                    Série Concluída!
+                  </>
+                ) : (
+                  <>
+                    Concluir Série {currentSet}
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                  </>
+                )}
+              </Button>
+
+              {/* Skip Exercise Button */}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (currentExerciseIndex < exercises.length - 1) {
+                    setCurrentExerciseIndex(currentExerciseIndex + 1);
+                    setCurrentSet(1);
+                    const nextExercise = exercises[currentExerciseIndex + 1];
+                    if (nextExercise) {
+                      setWeight(nextExercise.weight || 40);
+                      setRestTime(nextExercise.restBetweenSeries || 90);
+                    }
+                    showWarning("Exercício ignorado");
+                  } else {
+                    setIsWorkoutComplete(true);
+                  }
+                }}
+                className="w-full"
+              >
+                <SkipForward className="mr-2 h-4 w-4" />
+                Pular Exercício
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
