@@ -746,13 +746,25 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
   app.post("/api/workout-sessions", authenticateToken, async (req, res) => {
     try {
+      console.log("Received workout session data:", req.body);
+      
       const sessionData = {
-        ...req.body,
-        userId: req.user!.id, // Use authenticated user ID
+        userId: req.user!.id,
+        scheduledWorkoutId: req.body.scheduledWorkoutId || null,
+        name: req.body.name || "Treino Personalizado",
         startedAt: req.body.startedAt || new Date().toISOString(),
+        completedAt: req.body.completedAt || new Date().toISOString(),
+        exercises: req.body.exercises || [],
+        totalDuration: req.body.totalDuration || 0,
+        totalCalories: req.body.totalCalories || 0,
+        notes: req.body.notes || ""
       };
       
+      console.log("Processed session data:", sessionData);
+      
       const session = await storage.createWorkoutSession(sessionData);
+      console.log("Created session:", session);
+      
       res.status(201).json({
         message: "Treino salvo com sucesso!",
         session
@@ -760,6 +772,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
     } catch (error) {
       console.error("Error creating workout session:", error);
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         return res
           .status(400)
           .json({ message: "Dados inválidos", errors: error.errors });

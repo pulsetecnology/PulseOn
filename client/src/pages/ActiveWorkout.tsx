@@ -65,8 +65,10 @@ export default function ActiveWorkout() {
   const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
   const [completedSets, setCompletedSets] = useState<Array<{exerciseIndex: number, set: number, weight: number, effort: number}>>([]);
   const [workoutTimer, setWorkoutTimer] = useState(0);
+  const [restTimeRemaining, setRestTimeRemaining] = useState(90);
   const { showSuccess, showWarning, showWorkoutSuccess, showWorkoutError, showWorkoutWarning } = useGlobalNotification();
   const [, setLocation] = useLocation();
+  const restIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: scheduledWorkouts, isLoading, error } = useQuery({
     queryKey: ["scheduled-workouts"],
@@ -86,6 +88,7 @@ export default function ActiveWorkout() {
     if (currentExercise && exercises.length > 0) {
       setWeight(currentExercise.weight || 40);
       setRestTime(currentExercise.restBetweenSeries || 90);
+      setRestTimeRemaining(currentExercise.restBetweenSeries || 90);
     }
   }, [currentExercise, currentExerciseIndex, exercises.length]);
 
@@ -97,6 +100,39 @@ export default function ActiveWorkout() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Rest timer effect
+  useEffect(() => {
+    if (isResting && isTimerRunning) {
+      restIntervalRef.current = setInterval(() => {
+        setRestTimeRemaining((prev) => {
+          if (prev <= 1) {
+            setIsResting(false);
+            setIsTimerRunning(false);
+            showSuccess("Tempo de descanso finalizado!");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (restIntervalRef.current) {
+        clearInterval(restIntervalRef.current);
+      }
+    }
+
+    return () => {
+      if (restIntervalRef.current) {
+        clearInterval(restIntervalRef.current);
+      }
+    };
+  }, [isResting, isTimerRunning, showSuccess]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleFinishWorkout = async () => {
     try {
@@ -387,9 +423,6 @@ export default function ActiveWorkout() {
       {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-6">
-          {/* Rest Timer - Only show when resting */}
-          {isResting && <RestTimerCard />}
-
           {/* Current Exercise Card */}
           <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
             <CardHeader className="pb-4">
@@ -454,6 +487,44 @@ export default function ActiveWorkout() {
             </CardHeader>
             
             <CardContent className="space-y-6">
+              {/* Rest Timer - Show when resting */}
+              {isResting && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="text-center space-y-3">
+                    <div className="flex items-center justify-center space-x-2">
+                      <Timer className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">Tempo de Descanso</h3>
+                    </div>
+                    
+                    <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                      {formatTime(restTimeRemaining)}
+                    </div>
+                    
+                    <div className="flex justify-center space-x-3">
+                      <Button
+                        onClick={() => setIsTimerRunning(!isTimerRunning)}
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+                      >
+                        {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </Button>
+                      
+                      <Button
+                        onClick={() => {
+                          setRestTimeRemaining(restTime);
+                          setIsTimerRunning(false);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* Weight Control */}
               {currentExercise.weight > 0 && (
                 <div className="space-y-3">
