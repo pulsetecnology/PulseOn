@@ -284,7 +284,7 @@ export default function ActiveWorkout() {
     useEffect(() => {
       if (isResting && isTimerRunning) {
         intervalRef.current = setInterval(() => {
-          setTimeRemaining((prev) => {
+          setRestTimeRemaining((prev) => {
             if (prev <= 1) {
               setIsResting(false);
               setIsTimerRunning(false);
@@ -586,7 +586,7 @@ export default function ActiveWorkout() {
                     setCurrentSet(currentSet + 1);
                     // Start rest timer if there are more sets
                     if (currentExercise.restBetweenSeries > 0) {
-                      setRestTimeRemaining(currentExercise.restBetweenSeries);
+                      setRestTimeRemaining(Number(currentExercise.restBetweenSeries));
                       setIsResting(true);
                       setIsTimerRunning(true);
                     }
@@ -673,7 +673,7 @@ export default function ActiveWorkout() {
                     </Button>
                     <Button
                       onClick={() => {
-                        setRestTimeRemaining(restTime);
+                        setRestTimeRemaining(Number(restTime));
                         setIsTimerRunning(false);
                       }}
                       variant="ghost"
