@@ -211,7 +211,8 @@ export default function ActiveWorkout() {
 
       console.log('Workout session saved successfully:', responseData);
       showWorkoutSuccess();
-      setLocation("/history");
+      // Redirect to workout details page
+      setLocation(`/workout-history/${responseData.id}`);
       
     } catch (error) {
       console.error('Error saving workout session:', error);
@@ -414,7 +415,7 @@ export default function ActiveWorkout() {
   return (
     <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
       {/* Fixed Header - Always visible */}
-      <div className="flex-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-lg dark:shadow-2xl dark:shadow-black/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+      <div className="flex-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-lg dark:shadow-2xl dark:shadow-black/50 border-b border-slate-200 dark:border-slate-700 sticky top-12 z-40">
         <div className="px-4 py-4">
           <div className="text-center space-y-2">
             <h1 className="text-xl font-bold">
@@ -437,43 +438,7 @@ export default function ActiveWorkout() {
             <Progress value={progressPercentage} className="h-2" />
           </div>
           
-          {/* Rest Timer in Header */}
-          {isResting && (
-            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Timer className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Descanso</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                    {formatTime(restTimeRemaining)}
-                  </span>
-                  <div className="flex space-x-1">
-                    <Button
-                      onClick={() => setIsTimerRunning(!isTimerRunning)}
-                      variant="outline"
-                      size="sm"
-                      className="h-8 w-8 p-0 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
-                    >
-                      {isTimerRunning ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setRestTimeRemaining(restTime);
-                        setIsTimerRunning(false);
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="h-8 w-8 p-0 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
-                    >
-                      <RotateCcw className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+
         </div>
       </div>
 
@@ -536,14 +501,15 @@ export default function ActiveWorkout() {
           </Card>
 
           {/* Set Control Card */}
-          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-center text-slate-900 dark:text-white">
-                Série {currentSet} de {currentExercise.series}
-              </CardTitle>
-            </CardHeader>
-            
-            <CardContent className="space-y-6">
+          <div className="relative">
+            <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-center text-slate-900 dark:text-white">
+                  Série {currentSet} de {currentExercise.series}
+                </CardTitle>
+              </CardHeader>
+              
+              <CardContent className="space-y-6">
               {/* Weight Control */}
               {currentExercise.weight > 0 && (
                 <div className="space-y-3">
@@ -686,7 +652,41 @@ export default function ActiveWorkout() {
                 Pular Exercício
               </Button>
             </CardContent>
-          </Card>
+            </Card>
+            
+            {/* Floating Rest Timer */}
+            {isResting && (
+              <div className="absolute -top-4 right-4 bg-blue-600 dark:bg-blue-500 text-white rounded-full p-3 shadow-lg animate-pulse z-50">
+                <div className="flex items-center space-x-2">
+                  <Timer className="h-4 w-4" />
+                  <span className="text-sm font-bold">
+                    {formatTime(restTimeRemaining)}
+                  </span>
+                  <div className="flex space-x-1">
+                    <Button
+                      onClick={() => setIsTimerRunning(!isTimerRunning)}
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-white hover:bg-blue-700"
+                    >
+                      {isTimerRunning ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setRestTimeRemaining(restTime);
+                        setIsTimerRunning(false);
+                      }}
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-white hover:bg-blue-700"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
