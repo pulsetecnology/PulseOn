@@ -1,12 +1,12 @@
 AI Response Log - PulseOn (Sync Data)
 =========================
 
-Data da última atualização: 26/06/2025, 02:03:44
+Data da última atualização: 26/06/2025, 02:13:59
 
 Sync Request Data:
 {
   "userId": 1,
-  "timestamp": "2025-06-26T02:03:44.846Z",
+  "timestamp": "2025-06-26T02:13:59.857Z",
   "personalInfo": {
     "name": "André Luis da Silva",
     "email": "andre.luiss75@gmail.com",
@@ -21,13 +21,13 @@ Sync Request Data:
     "experienceLevel": "intermediate",
     "weeklyFrequency": 3,
     "customEquipment": [
-      "gym_access"
+      "outdoor_gym"
     ],
     "physicalRestrictions": "Tendinite no ombro direito. DOR.",
     "preferredWorkoutTime": "afternoon",
     "availableDaysPerWeek": 3,
     "averageWorkoutDuration": "1h_or_more",
-    "preferredLocation": "gym"
+    "preferredLocation": "outdoor"
   },
   "lifestyle": {
     "smokingStatus": "yes",
@@ -38,7 +38,7 @@ Sync Request Data:
   },
   "metadata": {
     "onboardingCompleted": true,
-    "lastUpdated": "2025-06-26T02:03:44.846Z"
+    "lastUpdated": "2025-06-26T02:13:59.857Z"
   },
   "validationField": "test-connection-railway-n8n"
 }
