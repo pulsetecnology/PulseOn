@@ -467,8 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("Calling N8N for AI workout generation...");
 
           const response = await fetch(
-            process.env.N8N_WEBHOOK_URL ||
-              "https://n8n-pulseon-railway.up.railway.app/webhook/pulseon-workout",
+            process.env.N8N_WEBHOOK_URL || "https://example.com/webhook/default",
             {
               method: "POST",
               headers: {
@@ -1108,7 +1107,7 @@ N8N Sync Response:
         try {
           console.log("Calling N8N for AI workout generation...");
           
-          const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || "https://pulseon-n8n-automacao.up.railway.app/webhook/pulseon-workout";
+          const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || "https://example.com/webhook/default";
           
           const response = await fetch(n8nWebhookUrl, {
             method: "POST",

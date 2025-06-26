@@ -1,6 +1,6 @@
 import type { N8NWorkoutRequest, AIExercise } from "@shared/schema";
 
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://n8n.example.com/webhook/pulseon-workout";
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://example.com/webhook/default";
 
 export interface AIWorkoutResponse {
   userId: number;
