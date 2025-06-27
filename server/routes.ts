@@ -540,6 +540,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
           const aiWorkoutResponse = {
             userId: user.id,
             workoutPlan: n8nResponse.workoutPlan || [],
+            workoutName: n8nResponse.workoutName || null,
           };
 
           if (!aiWorkoutResponse.workoutPlan.length) {
@@ -564,8 +565,9 @@ ${JSON.stringify(n8nResponse, null, 2)}
             0,
           );
 
-          // Generate workout name
-          const workoutName = `Treino IA - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+          // Use workout name from N8N or generate fallback name
+          const workoutName = aiWorkoutResponse.workoutName || 
+            `Treino IA - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
 
           // Save scheduled workout to database as fallback
           const scheduledWorkout = await storage.createScheduledWorkout({
@@ -1141,8 +1143,9 @@ N8N Sync Response:
               if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[1]);
                 if (parsed.workoutPlan) {
-                  // Generate workout name
-                  const workoutName = `Treino IA - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+                  // Use workout name from N8N or generate fallback
+                  const workoutName = parsed.workoutName || 
+                    `Treino IA - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
                   
                   // Calculate total duration and calories
                   const totalDuration = parsed.workoutPlan.reduce((sum: number, exercise: any) => {
