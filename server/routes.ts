@@ -538,57 +538,76 @@ ${JSON.stringify(n8nResponse, null, 2)}
           }
 
           // Fallback: Create workout locally if N8N didn't save it
-          const aiWorkoutResponse = {
+          let aiWorkoutResponse: any = {
             userId: user.id,
             workoutPlan: n8nResponse.workoutPlan || [],
             workoutName: n8nResponse.workoutName || null,
           };
 
-          if (!aiWorkoutResponse.workoutPlan.length) {
-            throw new Error("No workout plan received from N8N");
+          // If not found directly, try to parse from output field
+          if (!aiWorkoutResponse && n8nResponse.output) {
+            try {
+              console.log("Parsing N8N output:", n8nResponse.output);
+
+              // Extract JSON from the output string (it may be wrapped in ```json)
+              const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/) || n8nResponse.output.match(/({[\s\S]*})/);
+              if (jsonMatch) {
+                console.log("JSON match found:", jsonMatch[1]);
+                const parsed = JSON.parse(jsonMatch[1]);
+                console.log("Parsed JSON:", parsed);
+
+                if (parsed.workoutPlan && Array.isArray(parsed.workoutPlan)) {
+                  console.log("Valid workoutPlan found with", parsed.workoutPlan.length, "exercises");
+                  aiWorkoutResponse = {
+                    userId: parsed.userId || user.id,
+                    workoutPlan: parsed.workoutPlan,
+                    workoutName: parsed.workoutName || "Treino Personalizado"
+                  };
+                }
+              }
+            } catch (parseError) {
+              console.error("Error parsing N8N output:", parseError);
+              console.error("Raw output:", n8nResponse.output);
+            }
           }
 
-          // Calculate total duration and calories from the workout plan
-          const totalDuration = aiWorkoutResponse.workoutPlan.reduce(
-            (sum: number, exercise: any) => {
-              return (
-                sum +
-                (exercise.time > 0
-                  ? exercise.time
-                  : (exercise.series * exercise.repetitions * 0.5) / 60)
-              );
-            },
-            0,
-          );
+          // If we successfully extracted workout data, create the scheduled workout
+          if (aiWorkoutResponse && aiWorkoutResponse.workoutPlan.length > 0) {
+            console.log("Processing valid AI workout response");
 
-          const totalCalories = aiWorkoutResponse.workoutPlan.reduce(
-            (sum: number, exercise: any) => sum + exercise.calories,
-            0,
-          );
+            // Calculate total duration and calories from the workout plan
+            const totalDuration = aiWorkoutResponse.workoutPlan.reduce(
+              (sum: number, exercise: any) => {
+                return sum + (exercise.time || exercise.timeExec || 0);
+              },
+              0,
+            );
 
-          // Use workout name from N8N or generate fallback name
-          const workoutName = aiWorkoutResponse.workoutName || 
-            `Treino IA - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+            const totalCalories = aiWorkoutResponse.workoutPlan.reduce(
+              (sum: number, exercise: any) => sum + (exercise.calories || 0),
+              0,
+            );
 
-          // Save scheduled workout to database as fallback
-          const scheduledWorkout = await storage.createScheduledWorkout({
-            userId: user.id,
-            name: workoutName,
-            exercises: aiWorkoutResponse.workoutPlan,
-            totalCalories: Math.round(totalCalories),
-            totalDuration: Math.round(totalDuration),
-            status: "pending",
-          });
+            // Create scheduled workout from AI response
+            const scheduledWorkout = await storage.createScheduledWorkout({
+              userId: user.id,
+              name: aiWorkoutResponse.workoutName,
+              exercises: aiWorkoutResponse.workoutPlan,
+              totalCalories: Math.round(totalCalories),
+              totalDuration: Math.round(totalDuration / 60), // Convert seconds to minutes
+              status: "pending",
+            });
 
-          console.log(
-            "Fallback: AI workout saved to local database:",
-            scheduledWorkout.id,
-          );
+            console.log("AI workout saved to database:", scheduledWorkout.id);
 
-          return res.status(201).json({
-            message: "Treino gerado pela IA com sucesso!",
-            workout: scheduledWorkout,
-          });
+            return res.status(201).json({
+              message: "Treino gerado pela IA com sucesso!",
+              workout: scheduledWorkout,
+            });
+          }
+
+          console.error("No valid workout data found in N8N response");
+          throw new Error("No valid workout data found in N8N response");
         } catch (n8nError) {
           console.error("N8N service error:", n8nError);
 
