@@ -73,154 +73,7 @@ const mockTodaysWorkout = {
   ]
 };
 
-const mockUpcomingWorkouts = [
-  {
-    id: 2,
-    name: "Treino de Peito",
-    date: "Amanhã",
-    difficulty: "Intermediário",
-    exercises: [
-      {
-        id: "chest-1",
-        name: "Supino Reto",
-        sets: 4,
-        reps: 10,
-        weight: "70kg",
-        restTime: 90,
-        instructions: "Controle a barra, toque levemente no peito",
-        muscleGroups: ["peitoral", "tríceps"]
-      },
-      {
-        id: "chest-2",
-        name: "Supino Inclinado",
-        sets: 3,
-        reps: 12,
-        weight: "60kg",
-        restTime: 75,
-        instructions: "Inclinação de 45°, foco na porção superior do peitoral",
-        muscleGroups: ["peitoral superior"]
-      },
-      {
-        id: "chest-3",
-        name: "Flexão de Braços",
-        sets: 3,
-        reps: 15,
-        weight: "Peso Corporal",
-        restTime: 60,
-        instructions: "Mantenha o corpo alinhado, descida controlada",
-        muscleGroups: ["peitoral", "tríceps"]
-      },
-      {
-        id: "chest-4",
-        name: "Voador",
-        sets: 3,
-        reps: 12,
-        weight: "25kg",
-        restTime: 45,
-        instructions: "Movimento em arco, contração no final",
-        muscleGroups: ["peitoral"]
-      },
-      {
-        id: "chest-5",
-        name: "Crucifixo",
-        sets: 3,
-        reps: 12,
-        weight: "20kg",
-        restTime: 45,
-        instructions: "Leve flexão dos cotovelos, movimento controlado",
-        muscleGroups: ["peitoral"]
-      },
-      {
-        id: "chest-6",
-        name: "Paralelas",
-        sets: 3,
-        reps: 10,
-        weight: "Peso Corporal",
-        restTime: 75,
-        instructions: "Incline o tronco levemente para frente",
-        muscleGroups: ["peitoral inferior", "tríceps"]
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: "Treino de Costas",
-    date: "Quinta-feira",
-    difficulty: "Avançado",
-    exercises: [
-      {
-        id: "back-1",
-        name: "Barra Fixa",
-        sets: 4,
-        reps: 8,
-        weight: "Peso Corporal",
-        restTime: 90,
-        instructions: "Pegada pronada, puxada até o queixo",
-        muscleGroups: ["latíssimo", "bíceps"]
-      },
-      {
-        id: "back-2",
-        name: "Remada Curvada",
-        sets: 4,
-        reps: 10,
-        weight: "65kg",
-        restTime: 75,
-        instructions: "Tronco inclinado 45°, puxada até o abdômen",
-        muscleGroups: ["latíssimo", "rombóides"]
-      },
-      {
-        id: "back-3",
-        name: "Puxada Frontal",
-        sets: 3,
-        reps: 12,
-        weight: "55kg",
-        restTime: 60,
-        instructions: "Pegada aberta, puxada até a altura do peito",
-        muscleGroups: ["latíssimo", "rombóides"]
-      },
-      {
-        id: "back-4",
-        name: "Remada Sentado",
-        sets: 3,
-        reps: 12,
-        weight: "50kg",
-        restTime: 60,
-        instructions: "Tronco ereto, puxada até o abdômen",
-        muscleGroups: ["latíssimo", "rombóides"]
-      },
-      {
-        id: "back-5",
-        name: "Levantamento Terra",
-        sets: 4,
-        reps: 8,
-        weight: "90kg",
-        restTime: 120,
-        instructions: "Mantenha as costas retas, força nas pernas",
-        muscleGroups: ["lombar", "glúteos", "isquiotibiais"]
-      },
-      {
-        id: "back-6",
-        name: "Pullover",
-        sets: 3,
-        reps: 12,
-        weight: "25kg",
-        restTime: 45,
-        instructions: "Movimento em arco, abertura da caixa torácica",
-        muscleGroups: ["latíssimo", "serrátil"]
-      },
-      {
-        id: "back-7",
-        name: "Encolhimento",
-        sets: 3,
-        reps: 15,
-        weight: "30kg",
-        restTime: 45,
-        instructions: "Movimento vertical, contração no topo",
-        muscleGroups: ["trapézio"]
-      }
-    ]
-  }
-];
+
 
 // Component for expandable onboarding card
 function OnboardingCard({ user }: { user: any }) {
@@ -462,7 +315,7 @@ export default function Home() {
   const { showSuccess, showError, showWarning, showWorkoutSuccess, showWorkoutError } = useGlobalNotification();
   const queryClient = useQueryClient();
   const [expandedTodaysWorkout, setExpandedTodaysWorkout] = useState(false);
-  const [expandedUpcomingWorkout, setExpandedUpcomingWorkout] = useState<number | null>(null);
+  
   const [expandedStatsCard, setExpandedStatsCard] = useState<string | null>(null);
   const [expandedWeeklyProgress, setExpandedWeeklyProgress] = useState(false);
   const [expandedCaloriesCard, setExpandedCaloriesCard] = useState(false);
@@ -539,9 +392,7 @@ export default function Home() {
   const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0;
   const todaysWorkout = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0 ? scheduledWorkouts[0] : null;
 
-  const toggleUpcomingWorkout = (workoutId: number) => {
-    setExpandedUpcomingWorkout(expandedUpcomingWorkout === workoutId ? null : workoutId);
-  };
+  
 
   const toggleStatsCard = (cardId: string) => {
     setExpandedStatsCard(expandedStatsCard === cardId ? null : cardId);
@@ -1086,73 +937,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Upcoming Workouts */}
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Próximos Treinos</h2>
-        <div className="space-y-2">
-          {mockUpcomingWorkouts.map((workout) => (
-            <Card 
-              key={workout.id} 
-              className="cursor-pointer transition-all duration-200"
-              onClick={() => toggleUpcomingWorkout(workout.id)}
-            >
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm">{workout.name}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {workout.date} • {workout.exercises.length} exercícios • {workout.difficulty}
-                    </p>
-                  </div>
-                  {expandedUpcomingWorkout === workout.id ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </div>
-
-                {/* Expanded Exercise Details */}
-                {expandedUpcomingWorkout === workout.id && (
-                  <div className="mt-4 pt-3 border-t border-border">
-                    <h4 className="font-semibold text-sm mb-3 text-foreground">Exercícios do Treino</h4>
-                    <div className="space-y-2">
-                      {workout.exercises.map((exercise, index) => (
-                        <div 
-                          key={exercise.id} 
-                          className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/30"
-                        >
-                          <div className="flex-1">
-                            <div className="flex flex-col">
-                              <h5 className="font-medium text-sm text-foreground">
-                                {exercise.name}
-                              </h5>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {exercise.sets} séries × {exercise.reps} reps
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {exercise.instructions}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right ml-3">
-                            <span className="text-sm font-semibold text-primary">
-                              {exercise.weight}
-                            </span>
-                            <p className="text-xs text-muted-foreground flex items-center justify-end">
-                              <Clock className="mr-1 h-2 w-2" />
-                              {exercise.restTime}s
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      
     </div>
   );
 }
