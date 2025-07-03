@@ -998,6 +998,48 @@ ${JSON.stringify(n8nResponse, null, 2)}
     }
   );
 
+  // Upload avatar (same as profile photo but with different field name)
+  app.post(
+    "/api/profile/avatar",
+    authenticateToken,
+    upload.single("avatar"),
+    handleMulterError,
+    async (req: Request, res: Response) => {
+      try {
+        console.log("Avatar upload endpoint hit");
+        console.log("File received:", req.file?.filename);
+        console.log("User:", req.user?.id);
+
+        if (!req.file) {
+          return res.status(400).json({ message: "Nenhum arquivo enviado" });
+        }
+
+        const user = req.user!;
+        const avatarUrl = `/uploads/${req.file.filename}`;
+
+        // Update user profile with avatar URL
+        const updatedUser = await storage.updateUser(user.id, {
+          avatarUrl: avatarUrl,
+        });
+
+        if (!updatedUser) {
+          return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+
+        console.log("Avatar updated successfully for user:", user.id);
+
+        res.json({
+          message: "Avatar atualizado com sucesso",
+          avatarUrl,
+          user: sanitizeUser(updatedUser),
+        });
+      } catch (error) {
+        console.error("Error uploading avatar:", error);
+        res.status(500).json({ message: "Erro ao fazer upload do avatar" });
+      }
+    }
+  );
+
   // Serve uploaded files
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 

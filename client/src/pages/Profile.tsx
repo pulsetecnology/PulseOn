@@ -312,34 +312,43 @@ export default function Profile() {
       formData.append('avatar', file);
 
       const token = localStorage.getItem("authToken");
-      const response = await fetch("/api/profile/avatar", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      console.log('Avatar upload response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Avatar upload error response:', errorText);
-
-        let errorMessage = "Erro ao fazer upload da imagem";
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.message || errorMessage;
-        } catch {
-          // Fallback to default message if parsing fails
-        }
-
-        throw new Error(errorMessage);
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado");
       }
 
-      const result = await response.json();
-      console.log('Avatar upload success:', result);
-      return result;
+      try {
+        const response = await fetch("/api/profile/avatar", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        console.log('Avatar upload response status:', response.status);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Avatar upload error response:', errorText);
+
+          let errorMessage = "Erro ao fazer upload da imagem";
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorMessage;
+          } catch {
+            // Fallback to default message if parsing fails
+          }
+
+          throw new Error(errorMessage);
+        }
+
+        const result = await response.json();
+        console.log('Avatar upload success:', result);
+        return result;
+      } catch (error) {
+        console.error('Network error during avatar upload:', error);
+        throw new Error("Erro de rede. Verifique sua conexão e tente novamente.");
+      }
     },
     onSuccess: (data) => {
       console.log('Avatar upload mutation success:', data);
