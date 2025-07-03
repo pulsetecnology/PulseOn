@@ -270,15 +270,15 @@ export default function ActiveWorkout() {
             <div className="grid grid-cols-2 gap-4 text-center">
               <div className="bg-white/20 p-3 rounded-lg">
                 <p className="text-2xl font-bold">{currentSeries}</p>
-                <p className="text-xs text-white/80">Série</p>
+                <p className="text-xs text-primary-foreground/80">Série</p>
               </div>
               <div className="bg-white/20 p-3 rounded-lg">
                 <p className="text-2xl font-bold">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 
-                    ? `${currentExercise.repetitions}` 
+                    ? currentExercise.repetitions
                     : formatExerciseTime(currentExercise.timeExec || currentExercise.time || 30)}
                 </p>
-                <p className="text-xs text-white/80">
+                <p className="text-xs text-primary-foreground/80">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 ? 'Repetições' : 'Tempo'}
                 </p>
               </div>
