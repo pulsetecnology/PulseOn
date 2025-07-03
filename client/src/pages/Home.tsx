@@ -337,6 +337,7 @@ export default function Home() {
     queryKey: ["scheduled-workouts"],
     queryFn: async () => {
       const token = localStorage.getItem('authToken');
+      console.log("Fetching scheduled workouts...");
       const response = await fetch('/api/scheduled-workouts', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -344,10 +345,16 @@ export default function Home() {
       });
 
       if (!response.ok) {
+        console.error("Failed to fetch scheduled workouts:", response.status);
         throw new Error('Erro ao carregar treinos programados');
       }
 
-      return response.json();
+      const data = await response.json();
+      console.log("Received scheduled workouts:", data.length, "workouts");
+      if (data.length > 0) {
+        console.log("First workout data:", data[0]);
+      }
+      return data;
     },
     enabled: hasCompletedOnboarding,
   });
@@ -488,7 +495,14 @@ export default function Home() {
   }, [workoutSessions]);
 
   const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0;
-  const todaysWorkout = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0 ? scheduledWorkouts[0] : null;
+  const todaysWorkout = hasWorkoutsAvailable ? scheduledWorkouts[0] : null;
+  
+  // Debug logs
+  React.useEffect(() => {
+    console.log("Home component - scheduledWorkouts:", scheduledWorkouts);
+    console.log("Home component - hasWorkoutsAvailable:", hasWorkoutsAvailable);
+    console.log("Home component - todaysWorkout:", todaysWorkout);
+  }, [scheduledWorkouts, hasWorkoutsAvailable, todaysWorkout]);
 
   
 

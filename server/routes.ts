@@ -537,48 +537,59 @@ ${JSON.stringify(n8nResponse, null, 2)}
             });
           }
 
-          // Fallback: Create workout locally if N8N didn't save it
-          let aiWorkoutResponse: any = {
-            userId: user.id,
-            workoutPlan: n8nResponse.workoutPlan || [],
-            workoutName: n8nResponse.workoutName || null,
-          };
+          // Process N8N response - try to extract workout data from output field
+          let aiWorkoutResponse: any = null;
 
+          // First, check if N8N returned data directly
+          if (n8nResponse.workoutPlan && Array.isArray(n8nResponse.workoutPlan)) {
+            aiWorkoutResponse = {
+              userId: user.id,
+              workoutPlan: n8nResponse.workoutPlan,
+              workoutName: n8nResponse.workoutName || "Treino Personalizado"
+            };
+          }
           // If not found directly, try to parse from output field
-          if (!aiWorkoutResponse && n8nResponse.output) {
+          else if (n8nResponse.output) {
             try {
-              console.log("Parsing N8N output:", n8nResponse.output);
+              console.log("Parsing N8N output...");
 
               // Extract JSON from the output string (it may be wrapped in ```json)
-              const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/) || n8nResponse.output.match(/({[\s\S]*})/);
+              const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/);
               if (jsonMatch) {
-                console.log("JSON match found:", jsonMatch[1]);
+                console.log("JSON match found, parsing...");
                 const parsed = JSON.parse(jsonMatch[1]);
-                console.log("Parsed JSON:", parsed);
+                console.log("Parsed JSON successfully:", {
+                  hasWorkoutPlan: !!parsed.workoutPlan,
+                  exerciseCount: parsed.workoutPlan?.length || 0,
+                  workoutName: parsed.workoutName
+                });
 
-                if (parsed.workoutPlan && Array.isArray(parsed.workoutPlan)) {
-                  console.log("Valid workoutPlan found with", parsed.workoutPlan.length, "exercises");
+                if (parsed.workoutPlan && Array.isArray(parsed.workoutPlan) && parsed.workoutPlan.length > 0) {
                   aiWorkoutResponse = {
                     userId: parsed.userId || user.id,
                     workoutPlan: parsed.workoutPlan,
                     workoutName: parsed.workoutName || "Treino Personalizado"
                   };
+                  console.log("Valid AI workout response extracted successfully");
                 }
+              } else {
+                console.log("No JSON pattern found in output");
               }
             } catch (parseError) {
               console.error("Error parsing N8N output:", parseError);
-              console.error("Raw output:", n8nResponse.output);
+              console.error("Raw output snippet:", n8nResponse.output?.substring(0, 200));
             }
           }
 
           // If we successfully extracted workout data, create the scheduled workout
-          if (aiWorkoutResponse && aiWorkoutResponse.workoutPlan.length > 0) {
-            console.log("Processing valid AI workout response");
+          if (aiWorkoutResponse && aiWorkoutResponse.workoutPlan && aiWorkoutResponse.workoutPlan.length > 0) {
+            console.log("Creating scheduled workout with", aiWorkoutResponse.workoutPlan.length, "exercises");
 
             // Calculate total duration and calories from the workout plan
             const totalDuration = aiWorkoutResponse.workoutPlan.reduce(
               (sum: number, exercise: any) => {
-                return sum + (exercise.time || exercise.timeExec || 0);
+                const exerciseTime = exercise.time || exercise.timeExec || 0;
+                return sum + exerciseTime;
               },
               0,
             );
@@ -598,7 +609,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
               status: "pending",
             });
 
-            console.log("AI workout saved to database:", scheduledWorkout.id);
+            console.log("AI workout saved to database successfully:", scheduledWorkout.id);
 
             return res.status(201).json({
               message: "Treino gerado pela IA com sucesso!",
@@ -606,8 +617,8 @@ ${JSON.stringify(n8nResponse, null, 2)}
             });
           }
 
-          console.error("No valid workout data found in N8N response");
-          throw new Error("No valid workout data found in N8N response");
+          console.log("No valid workout data found in N8N response, using fallback");
+          // Continue to fallback below
         } catch (n8nError) {
           console.error("N8N service error:", n8nError);
 
@@ -675,7 +686,16 @@ ${JSON.stringify(n8nResponse, null, 2)}
     async (req: Request, res: Response) => {
       try {
         const user = req.user!;
+        console.log("Fetching scheduled workouts for user:", user.id);
         const workouts = await storage.getScheduledWorkouts(user.id);
+        console.log("Found", workouts.length, "scheduled workouts for user", user.id);
+        if (workouts.length > 0) {
+          console.log("First workout:", {
+            id: workouts[0].id,
+            name: workouts[0].name,
+            exerciseCount: workouts[0].exercises?.length || 0
+          });
+        }
         res.json(workouts);
       } catch (error) {
         console.error("Error fetching scheduled workouts:", error);
