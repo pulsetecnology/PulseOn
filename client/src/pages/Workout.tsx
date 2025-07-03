@@ -257,12 +257,22 @@ export default function Workout() {
               {todaysWorkout.totalCalories} kcal
             </span>
           </div>
-          <Link href="/active-workout">
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold">
-              <Play className="mr-2 h-5 w-5" />
-              Iniciar treino completo
-            </Button>
-          </Link>
+          <Button 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
+            onClick={() => {
+              // Salvar dados do treino no localStorage
+              const workoutData = {
+                workoutName: todaysWorkout.name,
+                workoutPlan: todaysWorkout.exercises || []
+              };
+              localStorage.setItem('activeWorkout', JSON.stringify(workoutData));
+              // Redirecionar para a tela de treino ativo
+              window.location.href = '/active-workout';
+            }}
+          >
+            <Play className="mr-2 h-5 w-5" />
+            Iniciar treino completo
+          </Button>
         </CardContent>
       </Card>
 
