@@ -10,8 +10,17 @@ import { ptBR } from "date-fns/locale";
 import type { WorkoutSession } from "@shared/schema";
 
 export default function WorkoutDetails() {
-  const params = useParams();
   const [, setLocation] = useLocation();
+
+  const formatExerciseTime = (timeExec: number) => {
+    if (timeExec >= 60) {
+      const minutes = Math.floor(timeExec / 60);
+      const seconds = timeExec % 60;
+      return seconds > 0 ? `${minutes}min ${seconds}s` : `${minutes}min`;
+    }
+    return `${timeExec}s`;
+  };
+  const params = useParams();
   const sessionId = params.id;
 
   const { data: session, isLoading } = useQuery<WorkoutSession>({
@@ -90,7 +99,7 @@ export default function WorkoutDetails() {
               <p className="text-xs text-slate-600 dark:text-slate-400">Minutos</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4 text-center">
               <Flame className="h-6 w-6 text-orange-600 dark:text-orange-400 mx-auto mb-2" />
@@ -100,7 +109,7 @@ export default function WorkoutDetails() {
               <p className="text-xs text-slate-600 dark:text-slate-400">Calorias</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-4 text-center">
               <Target className="h-6 w-6 text-green-600 dark:text-green-400 mx-auto mb-2" />
@@ -125,7 +134,7 @@ export default function WorkoutDetails() {
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             Exercícios Realizados
           </h2>
-          
+
           {exercises.map((exercise: any, index: number) => (
             <Card key={index} className="border border-slate-200 dark:border-slate-700">
               <CardHeader className="pb-2">
@@ -136,7 +145,7 @@ export default function WorkoutDetails() {
                   {exercise.muscleGroup}
                 </Badge>
               </CardHeader>
-              
+
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -150,7 +159,7 @@ export default function WorkoutDetails() {
                       {exercise.repetitions > 0 ? "Repetições" : "Tempo de Execução"}
                     </p>
                     <p className="font-semibold text-slate-900 dark:text-white">
-                      {exercise.repetitions > 0 ? exercise.repetitions : `${exercise.timeExec || exercise.time}s`}
+                      {exercise.repetitions > 0 ? exercise.repetitions : (exercise.timeExec ? formatExerciseTime(exercise.timeExec) : `${exercise.time}s`)}
                     </p>
                   </div>
                   {exercise.weight > 0 && (
@@ -184,7 +193,7 @@ export default function WorkoutDetails() {
                     </p>
                   </div>
                 </div>
-                
+
                 {exercise.completed && (
                   <Badge variant="default" className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
                     ✓ Concluído
@@ -218,7 +227,7 @@ export default function WorkoutDetails() {
           >
             Voltar ao Histórico
           </Button>
-          
+
           <Button
             onClick={() => setLocation("/workout")}
             className="w-full"

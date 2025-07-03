@@ -469,6 +469,15 @@ export default function Home() {
 
   const hasCompletedOnboarding = user?.onboardingCompleted || false;
 
+  const formatExerciseTime = (timeExec: number) => {
+    if (timeExec >= 60) {
+      const minutes = Math.floor(timeExec / 60);
+      const seconds = timeExec % 60;
+      return seconds > 0 ? `${minutes}min ${seconds}s` : `${minutes}min`;
+    }
+    return `${timeExec}s`;
+  };
+
   // Fetch scheduled workouts from database
   const { data: scheduledWorkouts = [], isLoading: workoutsLoading } = useQuery({
     queryKey: ["scheduled-workouts"],
@@ -479,11 +488,11 @@ export default function Home() {
           'Authorization': `Bearer ${token}`,
         },
       });
-      
+
       if (!response.ok) {
         throw new Error('Erro ao carregar treinos programados');
       }
-      
+
       return response.json();
     },
     enabled: hasCompletedOnboarding,
@@ -499,11 +508,11 @@ export default function Home() {
           'Authorization': `Bearer ${token}`,
         },
       });
-      
+
       if (!response.ok) {
         throw new Error('Erro ao carregar sessões de treino');
       }
-      
+
       return response.json();
     },
     enabled: hasCompletedOnboarding,
@@ -553,7 +562,7 @@ export default function Home() {
         <OnboardingCard user={user} />
       )}
 
-      
+
 
       {/* Quick Stats */}
       <div className="space-y-3">
@@ -972,7 +981,7 @@ export default function Home() {
               )}
             </Button>
           </div>
-          
+
           {workoutsLoading ? (
             <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
               <CardContent className="p-4">
@@ -1034,7 +1043,7 @@ export default function Home() {
                                 {exercise.exercise}
                               </h5>
                               <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                                {exercise.series} séries × {exercise.repetitions > 0 ? `${exercise.repetitions} reps` : `${exercise.timeExec || exercise.time}s`}
+                                {exercise.series} séries × {exercise.repetitions > 0 ? `${exercise.repetitions} reps` : `${formatExerciseTime(exercise.timeExec || exercise.time)}`}
                               </p>
                               <p className="text-xs text-blue-600 dark:text-blue-400">
                                 {exercise.instructions}

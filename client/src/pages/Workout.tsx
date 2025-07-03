@@ -44,11 +44,11 @@ const fetchScheduledWorkouts = async (): Promise<ScheduledWorkout[]> => {
       'Authorization': `Bearer ${token}`,
     },
   });
-  
+
   if (!response.ok) {
     throw new Error('Erro ao carregar treinos programados');
   }
-  
+
   return response.json();
 };
 
@@ -79,6 +79,15 @@ export default function Workout() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatExerciseTime = (timeExec: number) => {
+    if (timeExec >= 60) {
+      const minutes = Math.floor(timeExec / 60);
+      const seconds = timeExec % 60;
+      return seconds > 0 ? `${minutes}min ${seconds}s` : `${minutes}min`;
+    }
+    return `${timeExec}s`;
   };
 
   const startIndividualExercise = (exerciseId: string) => {
@@ -379,8 +388,7 @@ export default function Workout() {
                       ? "Próxima série" : "Finalizar exercício"}
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
-                </div>
-              )}
+                </div>              )}
             </div>
           </CardContent>
         </Card>
@@ -402,7 +410,7 @@ export default function Workout() {
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {exercise.series}x{exercise.repetitions > 0 ? exercise.repetitions : `${exercise.timeExec || exercise.time}s`}
+                    {exercise.series}x{exercise.repetitions > 0 ? exercise.repetitions : formatExerciseTime(exercise.timeExec || exercise.time || 0)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">

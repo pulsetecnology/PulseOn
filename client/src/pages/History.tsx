@@ -58,8 +58,17 @@ const fetchWorkoutSessions = async (): Promise<WorkoutSession[]> => {
 };
 
 export default function History() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutSession | null>(null);
+
+  const formatExerciseTime = (timeExec: number) => {
+    if (timeExec >= 60) {
+      const minutes = Math.floor(timeExec / 60);
+      const seconds = timeExec % 60;
+      return seconds > 0 ? `${minutes}min ${seconds}s` : `${minutes}min`;
+    }
+    return `${timeExec}s`;
+  };
 
   const { data: workoutSessions = [], isLoading, error } = useQuery({
     queryKey: ["/api/workout-sessions"],
@@ -81,7 +90,7 @@ export default function History() {
         workoutsByDate[dateKey] = [];
       }
       workoutsByDate[dateKey].push(session);
-      
+
       totalWorkouts++;
       totalCalories += session.totalCalories;
       totalMinutes += session.totalDuration;
@@ -128,11 +137,11 @@ export default function History() {
   const getWorkoutStatus = (date: Date) => {
     const workouts = getWorkoutsForDate(date);
     if (workouts.length === 0) return null;
-    
+
     const completedExercises = workouts.reduce((total, workout) => 
       total + workout.exercises.filter(ex => ex.completed).length, 0);
     const totalExercises = workouts.reduce((total, workout) => total + workout.exercises.length, 0);
-    
+
     if (completedExercises === totalExercises) return "completed";
     if (completedExercises > 0) return "partial";
     return "skipped";
@@ -200,7 +209,7 @@ export default function History() {
                 <p className="text-sm text-muted-foreground">minutos</p>
               </CardContent>
             </Card>
-            
+
             <Card className="text-center">
               <CardContent className="p-4">
                 <Flame className="h-5 w-5 text-red-600 dark:text-red-400 mx-auto mb-2" />
@@ -210,7 +219,7 @@ export default function History() {
                 <p className="text-sm text-muted-foreground">kcal</p>
               </CardContent>
             </Card>
-            
+
             <Card className="text-center">
               <CardContent className="p-4">
                 <Dumbbell className="h-5 w-5 text-green-600 dark:text-green-400 mx-auto mb-2" />
@@ -241,7 +250,7 @@ export default function History() {
                       {exercise.completed ? "Concluído" : "Pulado"}
                     </Badge>
                   </div>
-                  
+
                   {exercise.completed && (
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
@@ -264,6 +273,12 @@ export default function History() {
                       </div>
                     </div>
                   )}
+                   {exercise.actualTime && exercise.actualTime > 0 && (
+                        <div>
+                          <span className="text-muted-foreground">Tempo:</span>
+                          <span className="ml-1 font-medium">{formatExerciseTime(exercise.actualTime)}</span>
+                        </div>
+                      )}
                 </CardContent>
               </Card>
             ))}
@@ -292,7 +307,7 @@ export default function History() {
               <p className="text-sm opacity-90">Treinos Realizados</p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
             <CardContent className="p-4 text-center">
               <Flame className="h-6 w-6 mx-auto mb-2" />
@@ -310,7 +325,7 @@ export default function History() {
               <p className="text-sm opacity-90">Dias Consecutivos</p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
             <CardContent className="p-4 text-center">
               <Clock className="h-6 w-6 mx-auto mb-2" />
@@ -343,7 +358,7 @@ export default function History() {
               </Button>
             </div>
           </CardHeader>
-          
+
           <CardContent>
             {/* Calendar Header */}
             <div className="grid grid-cols-7 gap-2 mb-3">
@@ -353,7 +368,7 @@ export default function History() {
                 </div>
               ))}
             </div>
-            
+
             {/* Calendar Days */}
             <div className="grid grid-cols-7 gap-2">
               {calendarDays.map((day) => {
@@ -361,7 +376,7 @@ export default function History() {
                 const status = getWorkoutStatus(day);
                 const isCurrentMonth = day.getMonth() === currentMonth;
                 const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-                
+
                 return (
                   <button
                     key={day.toISOString()}

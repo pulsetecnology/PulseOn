@@ -72,6 +72,15 @@ export default function ActiveWorkout() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const formatExerciseTime = (timeExec: number) => {
+    if (timeExec >= 60) {
+      const minutes = Math.floor(timeExec / 60);
+      const seconds = timeExec % 60;
+      return seconds > 0 ? `${minutes}min ${seconds}s` : `${minutes}min`;
+    }
+    return `${timeExec}s`;
+  };
+
   const startRest = (duration: number) => {
     setRestTime(duration);
     setIsResting(true);
@@ -172,7 +181,7 @@ export default function ActiveWorkout() {
               </div>
               <div className="bg-muted p-3 rounded-lg">
                 <p className="text-2xl font-bold">
-                  {currentExercise.repetitions ? `${currentExercise.repetitions}` : `${currentExercise.timeExec}s`}
+                  {currentExercise.repetitions ? `${currentExercise.repetitions}` : formatExerciseTime(currentExercise.timeExec || 0)}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {currentExercise.repetitions ? 'Repetições' : 'Tempo'}
