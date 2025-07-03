@@ -295,12 +295,14 @@ export default function History() {
                           <span className="ml-1 font-medium">{formatExerciseTime(exercise.actualTime)}</span>
                         </div>
                       )}
-                      {exercise.actualWeight && exercise.actualWeight > 0 && (
-                        <div>
-                          <span className="text-muted-foreground">Peso:</span>
-                          <span className="ml-1 font-medium">{exercise.actualWeight}kg</span>
-                        </div>
-                      )}
+                      <div>
+                        <span className="text-muted-foreground">Peso:</span>
+                        <span className="ml-1 font-medium">
+                          {exercise.actualWeight && exercise.actualWeight > 0 
+                            ? `${exercise.actualWeight}kg` 
+                            : 'Peso corporal'}
+                        </span>
+                      </div>
                       <div>
                         <span className="text-muted-foreground">Esforço:</span>
                         <span className="ml-1 font-medium">{exercise.effortLevel}/10</span>

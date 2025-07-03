@@ -245,10 +245,10 @@ export default function ActiveWorkout() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 dark:from-slate-900 dark:via-slate-800 dark:to-slate-700 flex items-center justify-center">
-        <div className="text-center text-white dark:text-slate-100">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white dark:border-slate-300 mx-auto mb-4"></div>
-          <p className="text-lg">Preparando seu treino...</p>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-slate-100 mx-auto mb-4"></div>
+          <p className="text-lg text-slate-900 dark:text-slate-100">Preparando seu treino...</p>
         </div>
       </div>
     );
@@ -266,61 +266,63 @@ export default function ActiveWorkout() {
   const progress = ((currentExerciseIndex + (currentSeries / currentExercise.series)) / workoutData.workoutPlan.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 dark:from-slate-900 dark:via-slate-800 dark:to-slate-700 p-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4">
       <div className="max-w-md mx-auto space-y-4">
         {/* Header */}
-        <Card className="bg-white/10 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700 text-white dark:text-white">
-          <CardHeader className="text-center">
-            <CardTitle className="text-xl">{workoutData.workoutName}</CardTitle>
-            <div className="flex justify-between text-sm text-white/80 dark:text-slate-300">
+        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+          <CardHeader className="text-center py-4">
+            <CardTitle className="text-xl text-slate-900 dark:text-white">{workoutData.workoutName}</CardTitle>
+            <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
               <span>Exercício {currentExerciseIndex + 1} de {workoutData.workoutPlan.length}</span>
               <span>{formatTime(elapsedTime)}</span>
             </div>
-            <Progress value={progress} className="w-full bg-white/20 dark:bg-slate-700" />
+            <Progress value={progress} className="w-full" />
           </CardHeader>
         </Card>
 
         {/* Current Exercise */}
-        <Card className="bg-white/15 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700 text-white dark:text-white">
-          <CardHeader>
-            <CardTitle className="text-lg">{currentExercise.exercise}</CardTitle>
-            <p className="text-sm text-white/80 dark:text-slate-300">{currentExercise.muscleGroup}</p>
+        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+          <CardHeader className="py-3">
+            <CardTitle className="text-lg text-slate-900 dark:text-white">{currentExercise.exercise}</CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-400">{currentExercise.muscleGroup}</p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-white/90 dark:text-slate-200">{currentExercise.instructions}</p>
+          <CardContent className="space-y-3 pb-4">
+            <p className="text-sm text-slate-700 dark:text-slate-300">{currentExercise.instructions}</p>
 
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="bg-white/20 dark:bg-slate-800/80 p-3 rounded-lg">
-                <p className="text-2xl font-bold text-white dark:text-slate-100">{currentSeries}</p>
-                <p className="text-xs text-white/80 dark:text-slate-300">Série</p>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg">
+                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{currentSeries}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Série</p>
               </div>
-              <div className="bg-white/20 dark:bg-slate-800/80 p-3 rounded-lg">
-                <p className="text-2xl font-bold text-white dark:text-slate-100">
+              <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg">
+                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 
                     ? currentExercise.repetitions
                     : formatExerciseTime(currentExercise.timeExec || currentExercise.time || 30)}
                 </p>
-                <p className="text-xs text-white/80 dark:text-slate-300">
+                <p className="text-xs text-slate-600 dark:text-slate-400">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 ? 'Repetições' : 'Tempo'}
                 </p>
               </div>
-              <div className="bg-white/20 dark:bg-slate-800/80 p-3 rounded-lg">
-                <p className="text-2xl font-bold text-white dark:text-slate-100">
+              <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg">
+                <p className={`font-bold text-slate-900 dark:text-slate-100 ${
+                  currentExercise.weight && currentExercise.weight > 0 ? 'text-xl' : 'text-sm'
+                }`}>
                   {currentExercise.weight && currentExercise.weight > 0 
                     ? `${currentExercise.weight}kg`
-                    : 'Peso corporal'}
+                    : 'Corporal'}
                 </p>
-                <p className="text-xs text-white/80 dark:text-slate-300">Peso</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Peso</p>
               </div>
             </div>
 
             {/* Barra de Intensidade */}
-            <div className="bg-white/20 dark:bg-slate-800/80 p-4 rounded-lg">
-              <p className="text-sm text-white/80 dark:text-slate-300 mb-2">Intensidade do Exercício:</p>
+            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-lg">
+              <p className="text-sm text-slate-700 dark:text-slate-300 mb-2">Intensidade do Exercício:</p>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-white/70 dark:text-slate-400">Suave</span>
-                <span className="text-xs text-white/70 dark:text-slate-400">Moderado</span>
-                <span className="text-xs text-white/70 dark:text-slate-400">Intenso</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400">Suave</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400">Moderado</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400">Intenso</span>
               </div>
               <div className="flex space-x-1">
                 {[1, 2, 3].map((level) => (
@@ -334,12 +336,12 @@ export default function ActiveWorkout() {
                           : level === 2
                           ? 'bg-yellow-500'
                           : 'bg-red-500'
-                        : 'bg-white/30 dark:bg-slate-600'
+                        : 'bg-slate-300 dark:bg-slate-600'
                     }`}
                   />
                 ))}
               </div>
-              <p className="text-center text-sm text-white/90 dark:text-slate-200 mt-2">
+              <p className="text-center text-sm text-slate-700 dark:text-slate-200 mt-2">
                 {exerciseIntensity === 1 ? 'Suave' : exerciseIntensity === 2 ? 'Moderado' : 'Intenso'}
               </p>
             </div>
@@ -348,20 +350,20 @@ export default function ActiveWorkout() {
 
         {/* Rest Timer */}
         {isResting && (
-          <Card className="bg-orange-500/20 backdrop-blur-md border-orange-300/30 text-white">
-            <CardContent className="text-center py-6">
-              <Timer className="h-8 w-8 mx-auto mb-2 text-orange-300" />
-              <p className="text-lg font-bold">
+          <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
+            <CardContent className="text-center py-4">
+              <Timer className="h-8 w-8 mx-auto mb-2 text-orange-600 dark:text-orange-400" />
+              <p className="text-lg font-bold text-slate-900 dark:text-white">
                 {isRestingBetweenSeries ? 'Descanso entre séries' : 'Descanso entre exercícios'}
               </p>
-              <p className="text-4xl font-bold text-orange-300 mb-4">{formatTime(restTime)}</p>
+              <p className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-4">{formatTime(restTime)}</p>
 
               <div className="flex justify-center space-x-3 mb-4">
                 <Button 
                   onClick={pauseResumeTimer}
                   variant="outline"
                   size="sm"
-                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                  className="border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-800"
                 >
                   {isTimerActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </Button>
@@ -369,7 +371,7 @@ export default function ActiveWorkout() {
                   onClick={skipToNextSeries}
                   variant="outline"
                   size="sm"
-                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                  className="border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-800"
                 >
                   <SkipForward className="h-4 w-4" />
                 </Button>
@@ -377,7 +379,7 @@ export default function ActiveWorkout() {
 
               <Button 
                 onClick={skipToNextSeries}
-                className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                className="bg-orange-600 hover:bg-orange-700 text-white"
               >
                 Pular Descanso
               </Button>
@@ -402,7 +404,7 @@ export default function ActiveWorkout() {
             <Button 
               variant="outline" 
               onClick={skipExercise}
-              className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+              className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <SkipForward className="h-4 w-4 mr-2" />
               Pular
