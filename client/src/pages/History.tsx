@@ -119,6 +119,7 @@ export default function History() {
   }, [workoutSessions]);
 
   // Get current month data for calendar
+  const [currentDate, setCurrentDate] = useState(new Date());
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1);

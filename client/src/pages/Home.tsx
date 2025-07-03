@@ -388,7 +388,104 @@ export default function Home() {
   });
 
   const completedWorkouts = Array.isArray(workoutSessions) ? workoutSessions.filter((session: any) => session.completedAt).length : 0;
-  const currentStreak = 7; // Calculate based on consecutive workout days
+  
+  // Calculate real stats from workout sessions
+  const workoutStats = useMemo(() => {
+    if (!Array.isArray(workoutSessions)) {
+      return {
+        totalCalories: 0,
+        totalMinutes: 0,
+        totalExercises: 0,
+        currentStreak: 0,
+        weeklyCalories: 0,
+        weeklyMinutes: 0,
+        weeklyExercises: 0,
+        averageWorkoutDuration: 0,
+        lastWorkoutCalories: 0,
+        yesterdayCalories: 0,
+        todayCalories: 0,
+        dailyAverage: 0,
+        maxCalories: 0,
+        longestWorkout: 0
+      };
+    }
+
+    const completedSessions = workoutSessions.filter((session: any) => session.completedAt);
+    const totalCalories = completedSessions.reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
+    const totalMinutes = completedSessions.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
+    const totalExercises = completedSessions.reduce((sum: number, session: any) => 
+      sum + (session.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0);
+
+    // Calculate current streak
+    const today = new Date();
+    const sortedSessions = completedSessions
+      .map((session: any) => ({
+        ...session,
+        completedDate: parseISO(session.completedAt).toDateString()
+      }))
+      .sort((a: any, b: any) => parseISO(b.completedAt).getTime() - parseISO(a.completedAt).getTime());
+
+    let currentStreak = 0;
+    let checkDate = today;
+    
+    for (let i = 0; i < 30; i++) { // Check last 30 days
+      const dateString = checkDate.toDateString();
+      const hasWorkout = sortedSessions.some((session: any) => session.completedDate === dateString);
+      
+      if (hasWorkout) {
+        currentStreak++;
+      } else if (i > 0) { // Allow today to not have a workout yet
+        break;
+      }
+      
+      checkDate = subDays(checkDate, 1);
+    }
+
+    // Weekly stats (last 7 days)
+    const weekAgo = subDays(today, 7);
+    const weeklySessions = completedSessions.filter((session: any) => 
+      parseISO(session.completedAt) >= weekAgo
+    );
+    const weeklyCalories = weeklySessions.reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
+    const weeklyMinutes = weeklySessions.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
+    const weeklyExercises = weeklySessions.reduce((sum: number, session: any) => 
+      sum + (session.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0);
+
+    // Today's and yesterday's calories
+    const todayString = today.toDateString();
+    const yesterdayString = subDays(today, 1).toDateString();
+    const todayCalories = completedSessions
+      .filter((session: any) => parseISO(session.completedAt).toDateString() === todayString)
+      .reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
+    const yesterdayCalories = completedSessions
+      .filter((session: any) => parseISO(session.completedAt).toDateString() === yesterdayString)
+      .reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
+
+    // Additional stats
+    const lastWorkoutCalories = sortedSessions.length > 0 ? sortedSessions[0].totalCalories || 0 : 0;
+    const dailyAverage = completedSessions.length > 0 ? Math.round(totalCalories / completedSessions.length) : 0;
+    const maxCalories = Math.max(...completedSessions.map((session: any) => session.totalCalories || 0), 0);
+    const longestWorkout = Math.max(...completedSessions.map((session: any) => session.totalDuration || 0), 0);
+    const averageWorkoutDuration = completedSessions.length > 0 ? Math.round(totalMinutes / completedSessions.length) : 0;
+
+    return {
+      totalCalories,
+      totalMinutes,
+      totalExercises,
+      currentStreak,
+      weeklyCalories,
+      weeklyMinutes,
+      weeklyExercises,
+      averageWorkoutDuration,
+      lastWorkoutCalories,
+      yesterdayCalories,
+      todayCalories,
+      dailyAverage,
+      maxCalories,
+      longestWorkout
+    };
+  }, [workoutSessions]);
+
   const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0;
   const todaysWorkout = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0 ? scheduledWorkouts[0] : null;
 
@@ -438,9 +535,9 @@ export default function Home() {
                   </div>
                 </div>
                 <span className="text-xl font-bold">{completedWorkouts}</span>
-                {completedWorkouts > 0 && (
+                {workoutStats.weeklyExercises > 0 && (
                   <Badge variant="secondary" className="mt-1 text-xs">
-                    +3 esta semana
+                    +{Math.ceil(workoutStats.weeklyExercises / 5)} esta semana
                   </Badge>
                 )}
 
@@ -449,23 +546,23 @@ export default function Home() {
                   <div className="mt-3 pt-3 border-t border-border space-y-2">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Esta semana:</span>
-                      <span className="font-medium">3 treinos</span>
+                      <span className="font-medium">{workoutStats.weeklyExercises > 0 ? Math.ceil(workoutStats.weeklyExercises / 5) : 0} treinos</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Este mês:</span>
-                      <span className="font-medium">12 treinos</span>
+                      <span className="text-muted-foreground">Total exercícios:</span>
+                      <span className="font-medium">{workoutStats.totalExercises}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Média/semana:</span>
-                      <span className="font-medium">2.8 treinos</span>
+                      <span className="text-muted-foreground">Tempo total:</span>
+                      <span className="font-medium">{Math.floor(workoutStats.totalMinutes / 60)}h {workoutStats.totalMinutes % 60}min</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Maior sequência:</span>
-                      <span className="font-medium text-orange-600">14 dias</span>
+                      <span className="font-medium text-orange-600">{workoutStats.currentStreak} dias</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Treino favorito:</span>
-                      <span className="font-medium">Pernas</span>
+                      <span className="text-muted-foreground">Média/treino:</span>
+                      <span className="font-medium">{workoutStats.averageWorkoutDuration}min</span>
                     </div>
                   </div>
                 )}
@@ -493,8 +590,8 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold">{currentStreak} dias</span>
-                  {currentStreak >= 7 && (
+                  <span className="text-xl font-bold">{workoutStats.currentStreak} dias</span>
+                  {workoutStats.currentStreak >= 7 && (
                     <Badge variant="destructive" className="text-xs">
                       Em chamas!
                     </Badge>
@@ -559,42 +656,42 @@ export default function Home() {
                     )}
                   </div>
                 </div>
-                <span className="text-xl font-bold">{hasCompletedOnboarding ? "1,845" : "0"}</span>
-                {hasCompletedOnboarding && (
+                <span className="text-xl font-bold">{workoutStats.weeklyCalories.toLocaleString()}</span>
+                {workoutStats.weeklyCalories > 0 && (
                   <Badge variant="secondary" className="mt-1 text-xs">
                     Esta semana
                   </Badge>
                 )}
 
                 {/* Expanded Content */}
-                {expandedStatsCard === 'calories' && hasCompletedOnboarding && (
+                {expandedStatsCard === 'calories' && workoutStats.totalCalories > 0 && (
                   <div className="mt-3 pt-3 border-t border-border space-y-2">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Hoje:</span>
-                      <span className="font-medium">420 kcal</span>
+                      <span className="font-medium">{workoutStats.todayCalories} kcal</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Ontem:</span>
-                      <span className="font-medium">385 kcal</span>
+                      <span className="font-medium">{workoutStats.yesterdayCalories} kcal</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Média/dia:</span>
-                      <span className="font-medium">263 kcal</span>
+                      <span className="font-medium">{workoutStats.dailyAverage} kcal</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Meta semanal:</span>
-                      <span className="font-medium text-blue-600">2,100 kcal</span>
+                      <span className="text-muted-foreground">Total geral:</span>
+                      <span className="font-medium text-blue-600">{workoutStats.totalCalories.toLocaleString()} kcal</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Maior queima:</span>
-                      <span className="font-medium text-orange-600">520 kcal</span>
+                      <span className="font-medium text-orange-600">{workoutStats.maxCalories} kcal</span>
                     </div>
                     <div className="w-full mt-2">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Meta semanal</span>
-                        <span className="font-medium">88%</span>
+                        <span className="text-muted-foreground">Meta semanal (1,500 kcal)</span>
+                        <span className="font-medium">{Math.min(100, Math.round((workoutStats.weeklyCalories / 1500) * 100))}%</span>
                       </div>
-                      <Progress value={88} className="h-1" />
+                      <Progress value={Math.min(100, Math.round((workoutStats.weeklyCalories / 1500) * 100))} className="h-1" />
                     </div>
                   </div>
                 )}
@@ -621,42 +718,42 @@ export default function Home() {
                     )}
                   </div>
                 </div>
-                <span className="text-xl font-bold">{hasCompletedOnboarding ? "18h" : "0h"}</span>
-                {hasCompletedOnboarding && (
+                <span className="text-xl font-bold">{Math.floor(workoutStats.weeklyMinutes / 60)}h {workoutStats.weeklyMinutes % 60}min</span>
+                {workoutStats.weeklyMinutes > 0 && (
                   <Badge variant="secondary" className="mt-1 text-xs">
-                    Este mês
+                    Esta semana
                   </Badge>
                 )}
 
                 {/* Expanded Content */}
-                {expandedStatsCard === 'time' && hasCompletedOnboarding && (
+                {expandedStatsCard === 'time' && workoutStats.totalMinutes > 0 && (
                   <div className="mt-3 pt-3 border-t border-border space-y-2">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Esta semana:</span>
-                      <span className="font-medium">2h 15min</span>
+                      <span className="font-medium">{Math.floor(workoutStats.weeklyMinutes / 60)}h {workoutStats.weeklyMinutes % 60}min</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Último treino:</span>
-                      <span className="font-medium">45min</span>
+                      <span className="text-muted-foreground">Total geral:</span>
+                      <span className="font-medium">{Math.floor(workoutStats.totalMinutes / 60)}h {workoutStats.totalMinutes % 60}min</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Média/treino:</span>
-                      <span className="font-medium">45min</span>
+                      <span className="font-medium">{workoutStats.averageWorkoutDuration}min</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Maior treino:</span>
-                      <span className="font-medium text-green-600">1h 20min</span>
+                      <span className="font-medium text-green-600">{Math.floor(workoutStats.longestWorkout / 60)}h {workoutStats.longestWorkout % 60}min</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Meta mensal:</span>
-                      <span className="font-medium text-blue-600">20h</span>
+                      <span className="text-muted-foreground">Meta semanal:</span>
+                      <span className="font-medium text-blue-600">300min</span>
                     </div>
                     <div className="w-full mt-2">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Meta mensal</span>
-                        <span className="font-medium">90%</span>
+                        <span className="text-muted-foreground">Meta semanal</span>
+                        <span className="font-medium">{Math.min(100, Math.round((workoutStats.weeklyMinutes / 300) * 100))}%</span>
                       </div>
-                      <Progress value={90} className="h-1" />
+                      <Progress value={Math.min(100, Math.round((workoutStats.weeklyMinutes / 300) * 100))} className="h-1" />
                     </div>
                   </div>
                 )}
@@ -697,23 +794,23 @@ export default function Home() {
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Calorias</p>
-                <p className="text-sm font-semibold">645 kcal</p>
+                <p className="text-sm font-semibold">{workoutStats.weeklyCalories} kcal</p>
                 <div className="w-full bg-muted rounded-full h-1">
-                  <div className="bg-red-500 h-1 rounded-full" style={{ width: '80%' }}></div>
+                  <div className="bg-red-500 h-1 rounded-full" style={{ width: `${Math.min(100, Math.round((workoutStats.weeklyCalories / 1500) * 100))}%` }}></div>
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Tempo</p>
-                <p className="text-sm font-semibold">2h 15min</p>
+                <p className="text-sm font-semibold">{Math.floor(workoutStats.weeklyMinutes / 60)}h {workoutStats.weeklyMinutes % 60}min</p>
                 <div className="w-full bg-muted rounded-full h-1">
-                  <div className="bg-blue-500 h-1 rounded-full" style={{ width: '75%' }}></div>
+                  <div className="bg-blue-500 h-1 rounded-full" style={{ width: `${Math.min(100, Math.round((workoutStats.weeklyMinutes / 300) * 100))}%` }}></div>
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Exercícios</p>
-                <p className="text-sm font-semibold">15</p>
+                <p className="text-sm font-semibold">{workoutStats.weeklyExercises}</p>
                 <div className="w-full bg-muted rounded-full h-1">
-                  <div className="bg-green-500 h-1 rounded-full" style={{ width: '90%' }}></div>
+                  <div className="bg-green-500 h-1 rounded-full" style={{ width: `${Math.min(100, Math.round((workoutStats.weeklyExercises / 20) * 100))}%` }}></div>
                 </div>
               </div>
             </div>
