@@ -35,6 +35,7 @@ export default function ActiveWorkout() {
   const [restTime, setRestTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [startTime] = useState(new Date());
 
   useEffect(() => {
     // Recuperar dados do treino do localStorage ou state
@@ -87,6 +88,12 @@ export default function ActiveWorkout() {
     setIsActive(true);
   };
 
+  const skipToNextSeries = () => {
+    setIsResting(false);
+    setIsActive(false);
+    setRestTime(0);
+  };
+
   const completeSeries = () => {
     const currentExercise = workoutData?.workoutPlan[currentExerciseIndex];
     if (!currentExercise) return;
@@ -121,17 +128,38 @@ export default function ActiveWorkout() {
   };
 
   const finishWorkout = () => {
-    // Salvar histórico do treino
-    const completedWorkout = {
-      ...workoutData,
-      completedAt: new Date().toISOString(),
-      duration: elapsedTime,
+    if (!workoutData) return;
+
+    // Calcular duração total em minutos
+    const endTime = new Date();
+    const durationMs = endTime.getTime() - startTime.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
+
+    // Calcular calorias totais
+    const totalCalories = workoutData.workoutPlan.reduce((sum, exercise) => sum + (exercise.calories || 0), 0);
+
+    // Criar objeto de sessão de treino compatível com o formato do histórico
+    const workoutSession = {
+      id: Date.now(), // ID temporário baseado em timestamp
+      userId: 1, // Assumindo usuário logado
+      scheduledWorkoutId: null,
+      workoutName: workoutData.workoutName,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      duration: durationMinutes,
+      totalCalories: totalCalories,
+      exercisesCompleted: workoutData.workoutPlan.length,
+      status: 'completed',
+      notes: null,
+      createdAt: endTime.toISOString(),
+      updatedAt: endTime.toISOString()
     };
-    
-    const history = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
-    history.push(completedWorkout);
-    localStorage.setItem('workoutHistory', JSON.stringify(history));
-    
+
+    // Salvar no localStorage como histórico de sessões
+    const existingSessions = JSON.parse(localStorage.getItem('workoutSessions') || '[]');
+    existingSessions.unshift(workoutSession); // Adicionar no início da lista
+    localStorage.setItem('workoutSessions', JSON.stringify(existingSessions));
+
     // Limpar treino ativo
     localStorage.removeItem('activeWorkout');
     
@@ -204,7 +232,14 @@ export default function ActiveWorkout() {
             <CardContent className="text-center py-6">
               <Timer className="h-8 w-8 mx-auto mb-2 text-orange-600" />
               <p className="text-lg font-bold text-orange-800">Descansando</p>
-              <p className="text-3xl font-bold text-orange-600">{formatTime(restTime)}</p>
+              <p className="text-3xl font-bold text-orange-600 mb-4">{formatTime(restTime)}</p>
+              <Button 
+                onClick={skipToNextSeries}
+                variant="outline"
+                className="border-orange-300 text-orange-700 hover:bg-orange-100"
+              >
+                Pular Descanso
+              </Button>
             </CardContent>
           </Card>
         )}
