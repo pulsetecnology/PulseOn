@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Play, Pause, SkipForward, CheckCircle2, Timer, Clock } from "lucide-react";
 
@@ -39,6 +39,7 @@ export default function ActiveWorkout() {
   const [startTime] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [isRestingBetweenSeries, setIsRestingBetweenSeries] = useState(false);
+  const [exerciseIntensity, setExerciseIntensity] = useState(1); // 1-3: suave, moderado, intenso
 
   useEffect(() => {
     // Simular carregamento rápido e recuperar dados
@@ -58,7 +59,7 @@ export default function ActiveWorkout() {
         setLocation('/');
         return;
       }
-      
+
       // Pequeno delay para evitar flash de carregamento
       setTimeout(() => {
         setIsLoading(false);
@@ -70,7 +71,7 @@ export default function ActiveWorkout() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (isTimerActive) {
       interval = setInterval(() => {
         if (isResting && restTime > 0) {
@@ -197,7 +198,7 @@ export default function ActiveWorkout() {
       }
     } catch (error) {
       console.error('Erro ao salvar treino no backend:', error);
-      
+
       // Fallback: salvar no localStorage
       const sessionWithId = {
         ...workoutSession,
@@ -215,7 +216,7 @@ export default function ActiveWorkout() {
 
     // Limpar treino ativo
     localStorage.removeItem('activeWorkout');
-    
+
     // Redirecionar para home
     setLocation('/');
   };
@@ -265,7 +266,7 @@ export default function ActiveWorkout() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-white/90">{currentExercise.instructions}</p>
-            
+
             <div className="grid grid-cols-2 gap-4 text-center">
               <div className="bg-white/20 p-3 rounded-lg">
                 <p className="text-2xl font-bold">{currentSeries}</p>
@@ -301,7 +302,7 @@ export default function ActiveWorkout() {
                 {isRestingBetweenSeries ? 'Descanso entre séries' : 'Descanso entre exercícios'}
               </p>
               <p className="text-4xl font-bold text-orange-300 mb-4">{formatTime(restTime)}</p>
-              
+
               <div className="flex justify-center space-x-3 mb-4">
                 <Button 
                   onClick={pauseResumeTimer}
@@ -320,7 +321,7 @@ export default function ActiveWorkout() {
                   <SkipForward className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               <Button 
                 onClick={skipToNextSeries}
                 className="bg-white/20 border-white/30 text-white hover:bg-white/30"
@@ -343,7 +344,7 @@ export default function ActiveWorkout() {
               Concluir Série
             </Button>
           )}
-          
+
           <div className="grid grid-cols-2 gap-2">
             <Button 
               variant="outline" 

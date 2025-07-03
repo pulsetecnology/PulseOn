@@ -381,8 +381,14 @@ export default function History() {
                   <button
                     key={day.toISOString()}
                     onClick={() => {
-                      if (workouts.length > 0) {
-                        setSelectedWorkout(workouts[0]);
+                      setSelectedDate(day);
+                      const dayWorkouts = workoutSessions?.filter(session => 
+                        isSameDay(parseISO(session.completedAt || session.startedAt), day)
+                      );
+                      if (dayWorkouts && dayWorkouts.length > 0) {
+                        setSelectedWorkout(dayWorkouts[0]);
+                      } else {
+                        setSelectedWorkout(null);
                       }
                     }}
                     className={`
