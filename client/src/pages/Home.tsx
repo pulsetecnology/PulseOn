@@ -992,7 +992,7 @@ export default function Home() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg text-blue-800 dark:text-blue-200">{todaysWorkout.name}</h3>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      {todaysWorkout.exercises?.length || 0} exercícios • {todaysWorkout.totalDuration || 0} min • {todaysWorkout.totalCalories || 0} kcal
+                      {todaysWorkout.exercises?.length || 0} exercícios • {todaysWorkout.totalCalories || 0} kcal
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1034,7 +1034,7 @@ export default function Home() {
                                 {exercise.exercise}
                               </h5>
                               <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                                {exercise.series} séries × {exercise.repetitions} reps
+                                {exercise.series} séries × {exercise.repetitions > 0 ? `${exercise.repetitions} reps` : `${exercise.timeExec || exercise.time}s`}
                               </p>
                               <p className="text-xs text-blue-600 dark:text-blue-400">
                                 {exercise.instructions}

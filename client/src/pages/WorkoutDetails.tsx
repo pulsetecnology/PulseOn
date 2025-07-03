@@ -146,9 +146,11 @@ export default function WorkoutDetails() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-600 dark:text-slate-400">Repetições</p>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      {exercise.repetitions > 0 ? "Repetições" : "Tempo de Execução"}
+                    </p>
                     <p className="font-semibold text-slate-900 dark:text-white">
-                      {exercise.repetitions}
+                      {exercise.repetitions > 0 ? exercise.repetitions : `${exercise.timeExec || exercise.time}s`}
                     </p>
                   </div>
                   {exercise.weight > 0 && (

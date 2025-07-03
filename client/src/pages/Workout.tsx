@@ -222,7 +222,6 @@ export default function Workout() {
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold">{todaysWorkout.name}</h1>
-            <Badge variant="secondary">{todaysWorkout.totalDuration} min</Badge>
           </div>
           <p className="text-muted-foreground mb-4">
             Treino personalizado gerado pela IA com {todaysWorkout.exercises?.length} exercícios
@@ -403,8 +402,7 @@ export default function Workout() {
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {exercise.series}x{exercise.repetitions}
-                    {exercise.time > 0 && ` - ${exercise.time}min`}
+                    {exercise.series}x{exercise.repetitions > 0 ? exercise.repetitions : `${exercise.timeExec || exercise.time}s`}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
