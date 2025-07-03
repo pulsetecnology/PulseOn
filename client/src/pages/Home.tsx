@@ -978,12 +978,22 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center justify-between mb-3">
-                  <Link href="/active-workout">
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                      <Play className="mr-2 h-4 w-4" />
-                      Ir para treino
-                    </Button>
-                  </Link>
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => {
+                      // Salvar dados do treino no localStorage
+                      const workoutData = {
+                        workoutName: todaysWorkout.name,
+                        workoutPlan: todaysWorkout.exercises || []
+                      };
+                      localStorage.setItem('activeWorkout', JSON.stringify(workoutData));
+                      // Redirecionar para a tela de treino ativo
+                      window.location.href = '/active-workout';
+                    }}
+                  >
+                    <Play className="mr-2 h-4 w-4" />
+                    Ir para treino
+                  </Button>
                   <div className="text-right">
                     <p className="text-xs text-blue-600 dark:text-blue-400">Recomendado pela IA</p>
                     <p className="text-xs text-blue-700 dark:text-blue-300">Baseado no seu progresso</p>

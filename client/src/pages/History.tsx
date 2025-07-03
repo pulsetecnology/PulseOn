@@ -42,18 +42,44 @@ interface WorkoutSession {
 
 // Fetch workout sessions
 const fetchWorkoutSessions = async (): Promise<WorkoutSession[]> => {
-  const token = localStorage.getItem('authToken');
-  const response = await fetch('/api/workout-sessions', {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch('/api/workout-sessions', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error('Erro ao carregar histórico de treinos');
+    if (!response.ok) {
+      throw new Error('Erro ao carregar histórico de treinos');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao carregar do backend, tentando localStorage:', error);
+    
+    // Fallback: carregar do localStorage
+    const localSessions = localStorage.getItem('workoutSessions');
+    if (localSessions) {
+      const sessions = JSON.parse(localSessions);
+      
+      // Converter formato localStorage para formato esperado pela tela
+      return sessions.map((session: any) => ({
+        id: session.id,
+        userId: session.userId,
+        scheduledWorkoutId: session.scheduledWorkoutId,
+        name: session.workoutName || session.name,
+        startedAt: session.startTime || session.startedAt,
+        completedAt: session.endTime || session.completedAt,
+        exercises: session.exercises || [],
+        totalDuration: session.duration || session.totalDuration,
+        totalCalories: session.totalCalories,
+        notes: session.notes
+      }));
+    }
+    
+    return [];
   }
-
-  return response.json();
 };
 
 export default function History() {

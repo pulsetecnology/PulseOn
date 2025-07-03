@@ -166,6 +166,27 @@ export default function ActiveWorkout() {
     // Calcular calorias totais
     const totalCalories = workoutData.workoutPlan.reduce((sum, exercise) => sum + (exercise.calories || 0), 0);
 
+    // Criar exercícios completados com formato adequado
+    const completedExercises = workoutData.workoutPlan.map(exercise => ({
+      exercise: exercise.exercise,
+      muscleGroup: exercise.muscleGroup,
+      type: exercise.type,
+      instructions: exercise.instructions,
+      time: exercise.time || exercise.timeExec || 0,
+      series: exercise.series,
+      repetitions: exercise.repetitions || 0,
+      restBetweenSeries: exercise.restBetweenSeries,
+      restBetweenExercises: exercise.restBetweenExercises,
+      weight: exercise.weight || 0,
+      calories: exercise.calories,
+      actualWeight: exercise.weight || 0,
+      actualTime: exercise.timeExec || exercise.time || 0,
+      actualCalories: exercise.calories,
+      effortLevel: exerciseIntensity || 8, // Usar intensidade atual ou padrão
+      completed: true, // Assumir que todos foram completados
+      notes: null
+    }));
+
     // Criar objeto de sessão de treino
     const workoutSession = {
       scheduledWorkoutId: null,
@@ -176,7 +197,8 @@ export default function ActiveWorkout() {
       totalCalories: totalCalories,
       exercisesCompleted: workoutData.workoutPlan.length,
       status: 'completed',
-      notes: null
+      notes: null,
+      exercises: completedExercises
     };
 
     try {
@@ -223,9 +245,9 @@ export default function ActiveWorkout() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center">
-        <div className="text-center text-white">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 dark:from-slate-900 dark:via-slate-800 dark:to-slate-700 flex items-center justify-center">
+        <div className="text-center text-white dark:text-slate-100">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white dark:border-slate-300 mx-auto mb-4"></div>
           <p className="text-lg">Preparando seu treino...</p>
         </div>
       </div>
@@ -244,60 +266,61 @@ export default function ActiveWorkout() {
   const progress = ((currentExerciseIndex + (currentSeries / currentExercise.series)) / workoutData.workoutPlan.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 dark:from-slate-900 dark:via-slate-800 dark:to-slate-700 p-4">
       <div className="max-w-md mx-auto space-y-4">
         {/* Header */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20 text-white">
+        <Card className="bg-white/10 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700 text-white dark:text-white">
           <CardHeader className="text-center">
             <CardTitle className="text-xl">{workoutData.workoutName}</CardTitle>
-            <div className="flex justify-between text-sm text-white/80">
+            <div className="flex justify-between text-sm text-white/80 dark:text-slate-300">
               <span>Exercício {currentExerciseIndex + 1} de {workoutData.workoutPlan.length}</span>
               <span>{formatTime(elapsedTime)}</span>
             </div>
-            <Progress value={progress} className="w-full bg-white/20" />
+            <Progress value={progress} className="w-full bg-white/20 dark:bg-slate-700" />
           </CardHeader>
         </Card>
 
         {/* Current Exercise */}
-        <Card className="bg-white/15 backdrop-blur-md border-white/20 text-white">
+        <Card className="bg-white/15 dark:bg-slate-900/80 backdrop-blur-md border-white/20 dark:border-slate-700 text-white dark:text-white">
           <CardHeader>
             <CardTitle className="text-lg">{currentExercise.exercise}</CardTitle>
-            <p className="text-sm text-white/80">{currentExercise.muscleGroup}</p>
+            <p className="text-sm text-white/80 dark:text-slate-300">{currentExercise.muscleGroup}</p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-white/90">{currentExercise.instructions}</p>
+            <p className="text-sm text-white/90 dark:text-slate-200">{currentExercise.instructions}</p>
 
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="bg-white/20 p-3 rounded-lg">
-                <p className="text-2xl font-bold">{currentSeries}</p>
-                <p className="text-xs text-primary-foreground/80">Série</p>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="bg-white/20 dark:bg-slate-800/80 p-3 rounded-lg">
+                <p className="text-2xl font-bold text-white dark:text-slate-100">{currentSeries}</p>
+                <p className="text-xs text-white/80 dark:text-slate-300">Série</p>
               </div>
-              <div className="bg-white/20 p-3 rounded-lg">
-                <p className="text-2xl font-bold">
+              <div className="bg-white/20 dark:bg-slate-800/80 p-3 rounded-lg">
+                <p className="text-2xl font-bold text-white dark:text-slate-100">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 
                     ? currentExercise.repetitions
                     : formatExerciseTime(currentExercise.timeExec || currentExercise.time || 30)}
                 </p>
-                <p className="text-xs text-primary-foreground/80">
+                <p className="text-xs text-white/80 dark:text-slate-300">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 ? 'Repetições' : 'Tempo'}
                 </p>
               </div>
+              <div className="bg-white/20 dark:bg-slate-800/80 p-3 rounded-lg">
+                <p className="text-2xl font-bold text-white dark:text-slate-100">
+                  {currentExercise.weight && currentExercise.weight > 0 
+                    ? `${currentExercise.weight}kg`
+                    : 'Peso corporal'}
+                </p>
+                <p className="text-xs text-white/80 dark:text-slate-300">Peso</p>
+              </div>
             </div>
 
-            {currentExercise.weight && currentExercise.weight > 0 && (
-              <div className="text-center bg-white/20 p-3 rounded-lg">
-                <p className="text-lg font-bold">{currentExercise.weight}kg</p>
-                <p className="text-xs text-white/80">Peso</p>
-              </div>
-            )}
-
             {/* Barra de Intensidade */}
-            <div className="bg-white/20 p-4 rounded-lg">
-              <p className="text-sm text-white/80 mb-2">Intensidade do Exercício:</p>
+            <div className="bg-white/20 dark:bg-slate-800/80 p-4 rounded-lg">
+              <p className="text-sm text-white/80 dark:text-slate-300 mb-2">Intensidade do Exercício:</p>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-white/70">Suave</span>
-                <span className="text-xs text-white/70">Moderado</span>
-                <span className="text-xs text-white/70">Intenso</span>
+                <span className="text-xs text-white/70 dark:text-slate-400">Suave</span>
+                <span className="text-xs text-white/70 dark:text-slate-400">Moderado</span>
+                <span className="text-xs text-white/70 dark:text-slate-400">Intenso</span>
               </div>
               <div className="flex space-x-1">
                 {[1, 2, 3].map((level) => (
@@ -311,12 +334,12 @@ export default function ActiveWorkout() {
                           : level === 2
                           ? 'bg-yellow-500'
                           : 'bg-red-500'
-                        : 'bg-white/30'
+                        : 'bg-white/30 dark:bg-slate-600'
                     }`}
                   />
                 ))}
               </div>
-              <p className="text-center text-sm text-white/90 mt-2">
+              <p className="text-center text-sm text-white/90 dark:text-slate-200 mt-2">
                 {exerciseIntensity === 1 ? 'Suave' : exerciseIntensity === 2 ? 'Moderado' : 'Intenso'}
               </p>
             </div>
