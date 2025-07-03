@@ -1,11 +1,10 @@
-import { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Calendar, Clock, Flame, TrendingUp, ChevronLeft, ChevronRight, Eye, Dumbbell, Trophy, Target } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { format, parseISO, isToday, isYesterday, startOfWeek, endOfWeek, eachDayOfInterval, subDays } from "date-fns";
+import { Calendar, Flame, Trophy, Clock, ChevronDown, ChevronUp, Target } from "lucide-react";
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, subMonths, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface CompletedExercise {
@@ -59,6 +58,7 @@ const fetchWorkoutSessions = async (): Promise<WorkoutSession[]> => {
 
 export default function History() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutSession | null>(null);
 
   const formatExerciseTime = (timeExec: number) => {
@@ -119,7 +119,6 @@ export default function History() {
   }, [workoutSessions]);
 
   // Get current month data for calendar
-  const currentDate = new Date();
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
