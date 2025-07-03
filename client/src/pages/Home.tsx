@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { parseISO, subDays } from "date-fns";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -316,7 +316,7 @@ export default function Home() {
   const { showSuccess, showError, showWarning, showWorkoutSuccess, showWorkoutError } = useGlobalNotification();
   const queryClient = useQueryClient();
   const [expandedTodaysWorkout, setExpandedTodaysWorkout] = useState(false);
-  
+
   const [expandedStatsCard, setExpandedStatsCard] = useState<string | null>(null);
   const [expandedWeeklyProgress, setExpandedWeeklyProgress] = useState(false);
   const [expandedCaloriesCard, setExpandedCaloriesCard] = useState(false);
@@ -396,7 +396,7 @@ export default function Home() {
   });
 
   const completedWorkouts = Array.isArray(workoutSessions) ? workoutSessions.filter((session: any) => session.completedAt).length : 0;
-  
+
   // Calculate real stats from workout sessions
   const workoutStats = useMemo(() => {
     if (!Array.isArray(workoutSessions)) {
@@ -435,17 +435,17 @@ export default function Home() {
 
     let currentStreak = 0;
     let checkDate = today;
-    
+
     for (let i = 0; i < 30; i++) { // Check last 30 days
       const dateString = checkDate.toDateString();
       const hasWorkout = sortedSessions.some((session: any) => session.completedDate === dateString);
-      
+
       if (hasWorkout) {
         currentStreak++;
       } else if (i > 0) { // Allow today to not have a workout yet
         break;
       }
-      
+
       checkDate = subDays(checkDate, 1);
     }
 
@@ -496,7 +496,7 @@ export default function Home() {
 
   const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0;
   const todaysWorkout = hasWorkoutsAvailable ? scheduledWorkouts[0] : null;
-  
+
   // Debug logs
   React.useEffect(() => {
     console.log("Home component - scheduledWorkouts:", scheduledWorkouts);
@@ -504,7 +504,7 @@ export default function Home() {
     console.log("Home component - todaysWorkout:", todaysWorkout);
   }, [scheduledWorkouts, hasWorkoutsAvailable, todaysWorkout]);
 
-  
+
 
   const toggleStatsCard = (cardId: string) => {
     setExpandedStatsCard(expandedStatsCard === cardId ? null : cardId);
@@ -1049,7 +1049,7 @@ export default function Home() {
         </div>
       )}
 
-      
+
     </div>
   );
 }

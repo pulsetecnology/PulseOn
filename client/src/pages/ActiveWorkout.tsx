@@ -27,7 +27,7 @@ interface WorkoutData {
   workoutPlan: Exercise[];
 }
 
-export default function ActiveWorkout() {
+export default export default function ActiveWorkout() {
   const [, setLocation] = useLocation();
   const [workoutData, setWorkoutData] = useState<WorkoutData | null>(null);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
