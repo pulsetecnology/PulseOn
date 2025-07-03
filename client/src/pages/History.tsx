@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Flame, Trophy, Clock, ChevronDown, ChevronUp, Target } from "lucide-react";
-import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, subMonths, addMonths } from "date-fns";
+import { Calendar, Flame, Trophy, Clock, ChevronDown, ChevronUp, Target, Dumbbell, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, subMonths, addMonths, startOfWeek, endOfWeek, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface CompletedExercise {
