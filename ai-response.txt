@@ -1,50 +1,27 @@
-AI Response Log - PulseOn (Sync Data)
+AI Response Log - PulseOn
 =========================
 
-Data da última atualização: 03/07/2025, 22:23:44
+Data da última atualização: 03/07/2025, 22:50:23
 
-Sync Request Data:
+Request Data:
 {
   "userId": 1,
-  "timestamp": "2025-07-03T22:23:44.356Z",
-  "personalInfo": {
-    "name": "André Luis da Silva",
-    "email": "andre.luiss75@gmail.com",
-    "birthDate": "1975-06-18",
-    "age": 50,
-    "weight": 85,
-    "height": 180,
-    "gender": "male"
-  },
-  "fitnessProfile": {
-    "fitnessGoal": "lose_weight",
-    "experienceLevel": "intermediate",
-    "weeklyFrequency": 3,
-    "customEquipment": [
-      "bodyweight",
-      "others"
-    ],
-    "physicalRestrictions": "Tendinite no ombro direito. DOR.",
-    "preferredWorkoutTime": "afternoon",
-    "availableDaysPerWeek": 3,
-    "averageWorkoutDuration": "1h_or_more",
-    "preferredLocation": "outdoor"
-  },
-  "lifestyle": {
-    "smokingStatus": "yes",
-    "alcoholConsumption": "socially",
-    "dietType": "balanced",
-    "sleepHours": "8-9",
-    "stressLevel": "low"
-  },
-  "metadata": {
-    "onboardingCompleted": true,
-    "lastUpdated": "2025-07-03T22:23:44.356Z"
-  },
-  "validationField": "test-connection-railway-n8n"
+  "age": 50,
+  "weight": 85,
+  "height": 180,
+  "fitnessGoal": "lose_weight",
+  "experienceLevel": "intermediate",
+  "weeklyFrequency": 3,
+  "availableEquipment": [
+    "bodyweight",
+    "others"
+  ],
+  "physicalRestrictions": "Tendinite no ombro direito. DOR."
 }
 
-N8N Sync Response:
-[Pending response]
+N8N Response:
+{
+  "output": "<think>\nOkay, I need to create a personalized workout plan based on the user's JSON data. Let me start by carefully reading the input JSON to understand all the details.\n\nThe user is a 50-year-old male, weighing 85kg and 180cm tall. His main goal is to lose weight, which means I should focus on exercises that burn calories and build lean muscle. He has an intermediate experience level, so the exercises shouldn't be too basic but also not overly complex.\n\nHe has a physical restriction: tendinitis in the right shoulder, which causes pain. That means I need to avoid any exercises that might strain the shoulder, like overhead presses or heavy lifting that involves the shoulders. I should focus on lower body and core exercises, as well as some chest and back exercises that don't involve heavy shoulder use.\n\nAvailable equipment includes bodyweight and others, but since he has tendinitis, maybe using bodyweight is better to avoid aggravating the injury. Alternatively, if \"others\" refers to light equipment, that could be considered.\n\nHis weekly frequency is 3 times, and each session should be around 60 minutes. So I need to structure the workout to fit within that time, making sure each exercise is efficient.\n\nLooking at the example JSON, I see that each exercise has specific details like muscle group, type, instructions, time, series, reps, rest periods, weight, and calories burned. I need to follow that structure.\n\nI should include a variety of exercises that work different muscle groups but avoid the shoulders. Let's think about lower body: squats, lunges, maybe glute bridges. Core: planks, Russian twists. Maybe some chest exercises like push-ups, which don't require heavy shoulder involvement if done correctly. For the back, maybe inverted rows using a bar or resistance bands.\n\nI also need to consider warm-up and cool-down times. The example includes a warm-up walk, which is good. For cool-down, stretching is essential, especially for the lower body and back.\n\nLet me outline the workout plan:\n\n1. Warm-up: Walking for 5 minutes to get the heart rate up without stressing the shoulder.\n2. Bodyweight squats to work the legs and glutes.\n3. Push-ups to target the chest without heavy shoulder strain.\n4. Glute bridges to strengthen the glutes and lower back.\n5. Inverted rows to work the back muscles.\n6. Plank for core stability.\n7. Russian twists for oblique muscles.\n8. Cool-down: Stretching focusing on lower body and back.\n\nI need to ensure each exercise has proper instructions to avoid injury, especially for the push-ups, making sure the user knows to keep the shoulder blades together to avoid strain. For the inverted rows, using a bar or resistance band can be effective without heavy weights.\n\nRest periods between sets and exercises should be adequate to prevent overexertion but also keep the workout efficient. I'll set rest between sets to 60 seconds and between exercises to 90 seconds to allow recovery.\n\nEach exercise should have a specific number of series and repetitions. For example, squats can be 3 series of 15 reps, which is manageable for an intermediate user. Push-ups can be 3 sets of 12 reps, adjusting if needed based on the user's capability.\n\nI'll assign calories burned to each exercise based on their intensity and duration. For example, squats burn around 70 calories over 40 seconds, considering the effort involved.\n\nFinally, I'll make sure the workout name reflects the goal, maybe something like \"Emagrecimento e Força Corporal\" to emphasize both weight loss and strength.\n\nI think that covers all the necessary points, respecting the user's physical restrictions, available equipment, and fitness goals. Now I'll structure this into the required JSON format, ensuring each exercise is detailed correctly and the workout flows logically from warm-up to cool-down.\n</think>\n\n```json\n{\n  \"userId\": 1,\n  \"workoutName\": \"Treino de Emagrecimento e Força Corporal\",\n  \"workoutPlan\": [\n    {\n      \"exercise\": \"Caminhada rápida\",\n      \"muscleGroup\": \"Cardio\",\n      \"type\": \"Aeróbico\",\n      \"instructions\": \"Caminhe rapidamente no lugar ou em uma esteira para aquecer o corpo.\",\n      \"time\": 300,\n      \"timeExec\": 300,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 0,\n      \"weight\": 0,\n      \"calories\": 30\n    },\n    {\n      \"exercise\": \"Agachamento corpo livre\",\n      \"muscleGroup\": \"Pernas e glúteos\",\n      \"type\": \"Força\",\n      \"instructions\": \"Fique de pé, afaste os pés na largura dos ombros, incline o tronco ligeiramente e agache até os joelhos estarem levemente dobrados.\",\n      \"time\": 40,\n      \"timeExec\": 40,\n      \"series\": 3,\n      \"repetitions\": 15,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 0,\n      \"calories\": 70\n    },\n    {\n      \"exercise\": \"Flexão de braço (push-up)\",\n      \"muscleGroup\": \"Peitoral e ombros\",\n      \"type\": \"Força\",\n      \"instructions\": \"Deite-se no chão, mãos afastadas na largura dos ombros, e faça flexões de braço mantendo o corpo reto. Evite esticar totalmente os ombros.\",\n      \"time\": 30,\n      \"timeExec\": 30,\n      \"series\": 3,\n      \"repetitions\": 12,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 0,\n      \"calories\": 45\n    },\n    {\n      \"exercise\": \"Ponte de glúteos\",\n      \"muscleGroup\": \"Glúteos e lombares\",\n      \"type\": \"Força\",\n      \"instructions\": \"Deite-se de costas, dobre os joelhos, afaste os pés na largura dos ombros e levante os glúteos mantendo o contato dos calcanhares.\",\n      \"time\": 40,\n      \"timeExec\": 40,\n      \"series\": 3,\n      \"repetitions\": 15,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 0,\n      \"calories\": 50\n    },\n    {\n      \"exercise\": \"Puxada invertida (com barra ou banda)\",\n      \"muscleGroup\": \"Costas\",\n      \"type\": \"Força\",\n      \"instructions\": \"Segure uma barra ou banda resistiva, incline levemente o tronco para frente e puxe a barra em direção à cintura, mantendo os cotovelos junto ao corpo.\",\n      \"time\": 35,\n      \"timeExec\": 35,\n      \"series\": 3,\n      \"repetitions\": 12,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 0,\n      \"calories\": 60\n    },\n    {\n      \"exercise\": \"Planka\",\n      \"muscleGroup\": \"Core\",\n      \"type\": \"Força\",\n      \"instructions\": \"Fique em posição de prancha, mãos no chão, corpo reto e mantenha a posição estável.\",\n      \"time\": 30,\n      \"timeExec\": 30,\n      \"series\": 3,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 0,\n      \"calories\": 20\n    },\n    {\n      \"exercise\": \"Torção russa\",\n      \"muscleGroup\": \"Obliquos\",\n      \"type\": \"Força\",\n      \"instructions\": \"Sentado no chão, joelhos levemente dobrados, incline o tronco para trás e gire o torso de um lado para o outro, mantendo os pés elevados.\",\n      \"time\": 35,\n      \"timeExec\": 35,\n      \"series\": 3,\n      \"repetitions\": 15,\n      \"restBetweenSeries\": 60,\n      \"restBetweenExercises\": 90,\n      \"weight\": 0,\n      \"calories\": 40\n    },\n    {\n      \"exercise\": \"Alongamento\",\n      \"muscleGroup\": \"Geral\",\n      \"type\": \"Alongamento\",\n      \"instructions\": \"Realize alongamentos dinâmicos ou estáticos para os principais músculos trabalhados, focando em pernas, costas e ombros.\",\n      \"time\": 300,\n      \"timeExec\": 300,\n      \"series\": 1,\n      \"repetitions\": 0,\n      \"restBetweenSeries\": 0,\n      \"restBetweenExercises\": 0,\n      \"weight\": 0,\n      \"calories\": 10\n    }\n  ]\n}\n```"
+}
 
 =========================
