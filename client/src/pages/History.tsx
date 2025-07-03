@@ -120,8 +120,8 @@ export default function History() {
 
   // Get current month data for calendar
   const [currentDate, setCurrentDate] = useState(new Date());
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
   const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
   const startDate = startOfWeek(firstDayOfMonth, { weekStartsOn: 0 }); // Start on Sunday

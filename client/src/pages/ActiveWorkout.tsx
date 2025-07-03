@@ -38,6 +38,7 @@ export default function ActiveWorkout() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [startTime] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
+  const [isRestingBetweenSeries, setIsRestingBetweenSeries] = useState(false);
 
   useEffect(() => {
     // Simular carregamento rápido e recuperar dados
@@ -102,9 +103,10 @@ export default function ActiveWorkout() {
     return `${timeExec}s`;
   };
 
-  const startRest = (duration: number) => {
+  const startRest = (duration: number, isBetweenSeries: boolean = false) => {
     setRestTime(duration);
     setIsResting(true);
+    setIsRestingBetweenSeries(isBetweenSeries);
     setIsTimerActive(true);
   };
 
@@ -114,6 +116,7 @@ export default function ActiveWorkout() {
 
   const skipToNextSeries = () => {
     setIsResting(false);
+    setIsRestingBetweenSeries(false);
     setIsTimerActive(false);
     setRestTime(0);
   };
@@ -123,16 +126,16 @@ export default function ActiveWorkout() {
     if (!currentExercise) return;
 
     if (currentSeries < currentExercise.series) {
-      // Próxima série
+      // Próxima série - descanso entre séries
       setCurrentSeries(prev => prev + 1);
-      startRest(currentExercise.restBetweenSeries);
+      startRest(currentExercise.restBetweenSeries, true);
     } else {
       // Exercício completo
       if (currentExerciseIndex < workoutData.workoutPlan.length - 1) {
-        // Próximo exercício
+        // Próximo exercício - descanso entre exercícios
         setCurrentExerciseIndex(prev => prev + 1);
         setCurrentSeries(1);
-        startRest(currentExercise.restBetweenExercises);
+        startRest(currentExercise.restBetweenExercises, false);
       } else {
         // Treino completo
         finishWorkout();
@@ -270,10 +273,12 @@ export default function ActiveWorkout() {
               </div>
               <div className="bg-white/20 p-3 rounded-lg">
                 <p className="text-2xl font-bold">
-                  {currentExercise.repetitions ? `${currentExercise.repetitions}` : formatExerciseTime(currentExercise.timeExec || currentExercise.time || 0)}
+                  {currentExercise.repetitions && currentExercise.repetitions > 0 
+                    ? `${currentExercise.repetitions}` 
+                    : formatExerciseTime(currentExercise.timeExec || currentExercise.time || 30)}
                 </p>
                 <p className="text-xs text-white/80">
-                  {currentExercise.repetitions ? 'Repetições' : 'Tempo'}
+                  {currentExercise.repetitions && currentExercise.repetitions > 0 ? 'Repetições' : 'Tempo'}
                 </p>
               </div>
             </div>
@@ -292,7 +297,9 @@ export default function ActiveWorkout() {
           <Card className="bg-orange-500/20 backdrop-blur-md border-orange-300/30 text-white">
             <CardContent className="text-center py-6">
               <Timer className="h-8 w-8 mx-auto mb-2 text-orange-300" />
-              <p className="text-lg font-bold">Descansando</p>
+              <p className="text-lg font-bold">
+                {isRestingBetweenSeries ? 'Descanso entre séries' : 'Descanso entre exercícios'}
+              </p>
               <p className="text-4xl font-bold text-orange-300 mb-4">{formatTime(restTime)}</p>
               
               <div className="flex justify-center space-x-3 mb-4">
