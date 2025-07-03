@@ -257,10 +257,18 @@ export default function History() {
                         <span className="text-muted-foreground">Séries:</span>
                         <span className="ml-1 font-medium">{exercise.series}</span>
                       </div>
-                      <div>
-                        <span className="text-muted-foreground">Reps:</span>
-                        <span className="ml-1 font-medium">{exercise.repetitions}</span>
-                      </div>
+                      {exercise.repetitions && exercise.repetitions > 0 && (
+                        <div>
+                          <span className="text-muted-foreground">Reps:</span>
+                          <span className="ml-1 font-medium">{exercise.repetitions}</span>
+                        </div>
+                      )}
+                      {exercise.actualTime && exercise.actualTime > 0 && (
+                        <div>
+                          <span className="text-muted-foreground">Tempo:</span>
+                          <span className="ml-1 font-medium">{formatExerciseTime(exercise.actualTime)}</span>
+                        </div>
+                      )}
                       {exercise.actualWeight && exercise.actualWeight > 0 && (
                         <div>
                           <span className="text-muted-foreground">Peso:</span>
@@ -273,12 +281,6 @@ export default function History() {
                       </div>
                     </div>
                   )}
-                   {exercise.actualTime && exercise.actualTime > 0 && (
-                        <div>
-                          <span className="text-muted-foreground">Tempo:</span>
-                          <span className="ml-1 font-medium">{formatExerciseTime(exercise.actualTime)}</span>
-                        </div>
-                      )}
                 </CardContent>
               </Card>
             ))}
@@ -382,9 +384,7 @@ export default function History() {
                     key={day.toISOString()}
                     onClick={() => {
                       setSelectedDate(day);
-                      const dayWorkouts = workoutSessions?.filter(session => 
-                        isSameDay(parseISO(session.completedAt || session.startedAt), day)
-                      );
+                      const dayWorkouts = getWorkoutsForDate(day);
                       if (dayWorkouts && dayWorkouts.length > 0) {
                         setSelectedWorkout(dayWorkouts[0]);
                       } else {

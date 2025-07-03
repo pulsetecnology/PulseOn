@@ -290,6 +290,36 @@ export default function ActiveWorkout() {
                 <p className="text-xs text-white/80">Peso</p>
               </div>
             )}
+
+            {/* Barra de Intensidade */}
+            <div className="bg-white/20 p-4 rounded-lg">
+              <p className="text-sm text-white/80 mb-2">Intensidade do Exercício:</p>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-white/70">Suave</span>
+                <span className="text-xs text-white/70">Moderado</span>
+                <span className="text-xs text-white/70">Intenso</span>
+              </div>
+              <div className="flex space-x-1">
+                {[1, 2, 3].map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setExerciseIntensity(level)}
+                    className={`flex-1 h-2 rounded-full transition-all ${
+                      exerciseIntensity >= level
+                        ? level === 1
+                          ? 'bg-green-500'
+                          : level === 2
+                          ? 'bg-yellow-500'
+                          : 'bg-red-500'
+                        : 'bg-white/30'
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-center text-sm text-white/90 mt-2">
+                {exerciseIntensity === 1 ? 'Suave' : exerciseIntensity === 2 ? 'Moderado' : 'Intenso'}
+              </p>
+            </div>
           </CardContent>
         </Card>
 
