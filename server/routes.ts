@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import {
@@ -926,4 +927,40 @@ ${JSON.stringify(n8nResponse, null, 2)}
   app.post(
     "/api/profile/photo",
     authenticateToken,
-    upload.single("photo"),json\n([\s\S]*?)\n
+    upload.single("photo"),
+    handleMulterError,
+    async (req: Request, res: Response) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ message: "Nenhum arquivo enviado" });
+        }
+
+        const user = req.user!;
+        const photoUrl = `/uploads/${req.file.filename}`;
+
+        // Update user profile with photo URL
+        const updatedUser = await storage.updateUser(user.id, {
+          profilePhoto: photoUrl,
+        });
+
+        if (!updatedUser) {
+          return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+
+        res.json({
+          message: "Foto de perfil atualizada com sucesso",
+          photoUrl,
+          user: sanitizeUser(updatedUser),
+        });
+      } catch (error) {
+        console.error("Error uploading profile photo:", error);
+        res.status(500).json({ message: "Erro ao fazer upload da foto" });
+      }
+    }
+  );
+
+  // Serve uploaded files
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+  const httpServer = createServer(app);
+  return httpServer;
