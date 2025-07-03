@@ -375,7 +375,7 @@ export default function Home() {
   // AI workout generation mutation
   const generateWorkoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/n8n/sync-user-data", "POST");
+      return await apiRequest("/api/ai/generate-workout", "POST");
     },
     onSuccess: (data) => {
       showWorkoutSuccess(5000);
