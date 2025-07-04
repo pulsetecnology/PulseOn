@@ -561,7 +561,8 @@ ${JSON.stringify(n8nResponse, null, 2)}
                 console.log("Parsed JSON successfully:", {
                   hasWorkoutPlan: !!parsed.workoutPlan,
                   exerciseCount: parsed.workoutPlan?.length || 0,
-                  workoutName: parsed.workoutName
+                  workoutName: parsed.workoutName,
+                  workoutObs: parsed.workoutObs
                 });
 
                 if (parsed.workoutPlan && Array.isArray(parsed.workoutPlan) && parsed.workoutPlan.length > 0) {

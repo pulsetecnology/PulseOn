@@ -388,13 +388,8 @@ export default function Workout() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold">{todaysWorkout.name}</h1>
           </div>
-          {todaysWorkout.description && (
-            <p className="text-sm text-blue-700 dark:text-blue-300 mb-2 italic">
-              {todaysWorkout.description}
-            </p>
-          )}
           <p className="text-muted-foreground mb-4">
-            Treino personalizado gerado pela IA com {todaysWorkout.exercises?.length} exercícios
+            {(todaysWorkout as any).description || `Treino personalizado gerado pela IA com ${todaysWorkout.exercises?.length} exercícios`}
           </p>
 
           {/* Progress Counter */}
