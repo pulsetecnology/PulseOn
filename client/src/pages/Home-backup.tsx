@@ -1,1 +1,0 @@
-// Backup do arquivo Home.tsx antes da correção

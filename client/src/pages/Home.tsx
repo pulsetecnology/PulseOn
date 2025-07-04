@@ -1,120 +1,403 @@
-import React, { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { parseISO, subDays } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import {
-  Calendar,
-  Clock,
-  Dumbbell,
-  Fire,
-  Play,
-  Sparkles,
-  Loader2,
-  ChevronDown,
-  ChevronUp,
-  BarChart3,
-  CheckCircle,
-  X,
-  Target,
-  TrendingUp,
-  Flame
-} from 'lucide-react';
-import { Link } from 'wouter';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect, useMemo } from "react";
+import { parseISO, subDays } from "date-fns";
+import { Link } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useGlobalNotification } from "@/components/NotificationProvider";
+import { Clock, Dumbbell, User, Trophy, CheckCircle, AlertCircle, BarChart3, Calendar, Target, ChevronDown, ChevronUp, X, Scale, Heart, Flame, Play, Loader2, Sparkles } from "lucide-react";
+import FitnessIcon from "@/components/FitnessIcon";
 
-const FitnessIcon = Dumbbell;
+// Mock workout data with exercise details
+const mockTodaysWorkout = {
+  id: 1,
+  name: "Treino de Pernas",
+  duration: 45,
+  difficulty: "Intermediário",
+  exercises: [
+    {
+      id: "leg-1",
+      name: "Agachamento",
+      sets: 4,
+      reps: 12,
+      weight: "80kg",
+      restTime: 90,
+      instructions: "Mantenha os pés paralelos, desça até formar 90° nos joelhos",
+      muscleGroups: ["quadríceps", "glúteos"]
+    },
+    {
+      id: "leg-2", 
+      name: "Leg Press",
+      sets: 3,
+      reps: 15,
+      weight: "120kg",
+      restTime: 60,
+      instructions: "Posicione os pés na largura dos ombros, controle a descida",
+      muscleGroups: ["quadríceps", "glúteos"]
+    },
+    {
+      id: "leg-3",
+      name: "Extensão de Pernas",
+      sets: 3,
+      reps: 12,
+      weight: "40kg", 
+      restTime: 45,
+      instructions: "Movimento controlado, pausa de 1 segundo no topo",
+      muscleGroups: ["quadríceps"]
+    },
+    {
+      id: "leg-4",
+      name: "Flexão de Pernas",
+      sets: 3,
+      reps: 12,
+      weight: "35kg",
+      restTime: 45,
+      instructions: "Controle a fase excêntrica, não deixe o peso bater",
+      muscleGroups: ["isquiotibiais"]
+    },
+    {
+      id: "leg-5",
+      name: "Panturrilha em Pé",
+      sets: 4,
+      reps: 20,
+      weight: "60kg",
+      restTime: 30,
+      instructions: "Amplitude completa, pausa de 1 segundo no topo",
+      muscleGroups: ["panturrilha"]
+    }
+  ]
+};
 
-function formatExerciseTime(minutes: number): string {
-  if (minutes < 60) {
-    return `${minutes}min`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  if (remainingMinutes === 0) {
-    return `${hours}h`;
-  }
-  return `${hours}h ${remainingMinutes}min`;
-}
 
+
+// Component for expandable onboarding card
 function OnboardingCard({ user }: { user: any }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const getMissingFields = () => {
+    const missingFields = [];
+
+    if (!user?.birthDate) {
+      missingFields.push({
+        field: "Data de nascimento",
+        description: "Necessária para calcular sua idade e personalizar treinos",
+        icon: Calendar
+      });
+    }
+
+    if (!user?.weight || user.weight <= 0) {
+      missingFields.push({
+        field: "Peso",
+        description: "Importante para calcular cargas e intensidade dos exercícios",
+        icon: Scale
+      });
+    }
+
+    if (!user?.height || user.height <= 0) {
+      missingFields.push({
+        field: "Altura",
+        description: "Usada para cálculos de IMC e metabolismo basal",
+        icon: User
+      });
+    }
+
+    if (!user?.gender || user.gender === "not_specified") {
+      missingFields.push({
+        field: "Gênero",
+        description: "Influencia no cálculo de necessidades calóricas",
+        icon: User
+      });
+    }
+
+    if (!user?.fitnessGoal) {
+      missingFields.push({
+        field: "Objetivo fitness",
+        description: "Define o tipo de treino (perder peso, ganhar massa, etc.)",
+        icon: Target
+      });
+    }
+
+    if (!user?.experienceLevel) {
+      missingFields.push({
+        field: "Nível de experiência",
+        description: "Determina a complexidade e intensidade dos exercícios",
+        icon: Trophy
+      });
+    }
+
+    if (!user?.weeklyFrequency || user.weeklyFrequency <= 0) {
+      missingFields.push({
+        field: "Frequência semanal",
+        description: "Quantas vezes por semana você pretende treinar",
+        icon: Calendar
+      });
+    }
+
+    if (!user?.availableEquipment || user.availableEquipment.length === 0) {
+      missingFields.push({
+        field: "Equipamentos disponíveis",
+        description: "Tipos de equipamentos que você tem acesso para treinar",
+        icon: Dumbbell
+      });
+    }
+
+    // Adicionar validações para campos de estilo de vida se necessário
+    if (!user?.smokingStatus) {
+      missingFields.push({
+        field: "Status de tabagismo",
+        description: "Informação importante para personalizar treinos",
+        icon: Heart
+      });
+    }
+
+    if (!user?.alcoholConsumption) {
+      missingFields.push({
+        field: "Consumo de álcool",
+        description: "Influencia no planejamento de treinos",
+        icon: Heart
+      });
+    }
+
+    if (!user?.dietType) {
+      missingFields.push({
+        field: "Tipo de alimentação",
+        description: "Importante para recomendações personalizadas",
+        icon: Heart
+      });
+    }
+
+    if (!user?.sleepHours) {
+      missingFields.push({
+        field: "Horas de sono",
+        description: "Essencial para planejamento de recuperação",
+        icon: Heart
+      });
+    }
+
+    if (!user?.stressLevel) {
+      missingFields.push({
+        field: "Nível de estresse",
+        description: "Influencia na intensidade dos treinos",
+        icon: Heart
+      });
+    }
+
+    if (!user?.preferredWorkoutTime) {
+      missingFields.push({
+        field: "Horário preferido",
+        description: "Para otimizar seus treinos",
+        icon: Clock
+      });
+    }
+
+    if (!user?.availableDaysPerWeek || user.availableDaysPerWeek <= 0) {
+      missingFields.push({
+        field: "Dias disponíveis",
+        description: "Quantos dias por semana você pode treinar",
+        icon: Calendar
+      });
+    }
+
+    if (!user?.averageWorkoutDuration) {
+      missingFields.push({
+        field: "Duração dos treinos",
+        description: "Tempo médio que você tem para treinar",
+        icon: Clock
+      });
+    }
+
+    if (!user?.preferredLocation) {
+      missingFields.push({
+        field: "Local preferido",
+        description: "Onde você prefere treinar",
+        icon: Target
+      });
+    }
+
+    return missingFields;
+  };
+
+  const missingFields = getMissingFields();
+  const totalFields = 16; // Total de campos obrigatórios
+  const completionPercentage = Math.round(((totalFields - missingFields.length) / totalFields) * 100);
+
+  // Se não há campos faltando, não exibir o card
+  if (missingFields.length === 0) {
+    return null;
+  }
+
   return (
-    <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
-      <CardContent className="p-4">
-        <div className="flex items-start space-x-3">
-          <Target className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <h3 className="font-semibold text-orange-800 dark:text-orange-200 mb-1">
-              Complete seu perfil
-            </h3>
-            <p className="text-sm text-orange-700 dark:text-orange-300 mb-3">
-              Finalize suas informações para receber treinos personalizados pela nossa IA
-            </p>
-            <Link href="/profile">
-              <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
-                Completar Perfil
-              </Button>
-            </Link>
+    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+      <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
+        <CardContent className="p-4">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-orange-800 dark:text-orange-200">
+                  Complete seu perfil
+                </h3>
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300"
+                  >
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+
+              <div className="mb-3">
+                <p className="text-sm text-orange-700 dark:text-orange-300 mb-2">
+                  Finalize suas informações para receber treinos personalizados pela IA.
+                </p>
+                <div className="flex items-center space-x-2 mb-2">
+                  <Progress value={completionPercentage} className="flex-1 h-2" />
+                  <span className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                    {completionPercentage}%
+                  </span>
+                </div>
+                <p className="text-xs text-orange-600 dark:text-orange-400">
+                  {missingFields.length} {missingFields.length === 1 ? 'campo faltando' : 'campos faltando'}
+                </p>
+              </div>
+
+              <CollapsibleContent>
+                <div className="space-y-3 mb-4">
+                  <h4 className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                    Informações necessárias:
+                  </h4>
+                  {missingFields.map((field, index) => {
+                    const Icon = field.icon;
+                    return (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                        <Icon className="h-4 w-4 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                            {field.field}
+                          </p>
+                          <p className="text-xs text-orange-700 dark:text-orange-300">
+                            {field.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CollapsibleContent>
+
+              <Link href="/onboarding">
+                <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700 text-white">
+                  Completar Onboarding
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Collapsible>
   );
 }
 
 export default function Home() {
+  const { user } = useAuth();
   const { toast } = useToast();
+  const { showSuccess, showError, showWarning, showWorkoutSuccess, showWorkoutError } = useGlobalNotification();
   const queryClient = useQueryClient();
-  const [expandedStatsCard, setExpandedStatsCard] = useState<string | null>(null);
   const [expandedTodaysWorkout, setExpandedTodaysWorkout] = useState(false);
+
+  const [expandedStatsCard, setExpandedStatsCard] = useState<string | null>(null);
   const [expandedWeeklyProgress, setExpandedWeeklyProgress] = useState(false);
+  const [expandedCaloriesCard, setExpandedCaloriesCard] = useState(false);
 
-  // Fetch user data
-  const { data: user } = useQuery({
-    queryKey: ['/api/auth/me'],
-  });
+  const hasCompletedOnboarding = user?.onboardingCompleted || false;
 
-  // Fetch workout sessions
-  const { data: workoutSessions, isLoading: workoutSessionsLoading } = useQuery({
-    queryKey: ['/api/workout-sessions'],
-  });
+  const formatExerciseTime = (timeExec: number) => {
+    if (timeExec >= 60) {
+      const minutes = Math.floor(timeExec / 60);
+      const seconds = timeExec % 60;
+      return seconds > 0 ? `${minutes}min ${seconds}s` : `${minutes}min`;
+    }
+    return `${timeExec}s`;
+  };
 
-  // Fetch scheduled workouts
-  const { data: scheduledWorkouts, isLoading: workoutsLoading } = useQuery({
-    queryKey: ['/api/scheduled-workouts'],
-  });
-
-  // Generate workout mutation
-  const generateWorkoutMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/generate-workout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+  // Fetch scheduled workouts from database
+  const { data: scheduledWorkouts = [], isLoading: workoutsLoading } = useQuery({
+    queryKey: ["scheduled-workouts"],
+    queryFn: async () => {
+      const token = localStorage.getItem('authToken');
+      console.log("Fetching scheduled workouts...");
+      const response = await fetch('/api/scheduled-workouts', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
-      if (!response.ok) throw new Error('Failed to generate workout');
+
+      if (!response.ok) {
+        console.error("Failed to fetch scheduled workouts:", response.status);
+        throw new Error('Erro ao carregar treinos programados');
+      }
+
+      const data = await response.json();
+      console.log("Received scheduled workouts:", data.length, "workouts");
+      if (data.length > 0) {
+        console.log("First workout data:", data[0]);
+      }
+      return data;
+    },
+    enabled: hasCompletedOnboarding,
+  });
+
+  // Fetch workout sessions for statistics
+  const { data: workoutSessions = [], isLoading: sessionsLoading } = useQuery({
+    queryKey: ["workout-sessions"],
+    queryFn: async () => {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('/api/workout-sessions', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao carregar sessões de treino');
+      }
+
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/scheduled-workouts'] });
-      toast({
-        title: "Treino gerado!",
-        description: "Seu novo treino personalizado está pronto.",
-      });
+    enabled: hasCompletedOnboarding,
+  });
+
+  // AI workout generation mutation
+  const generateWorkoutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/ai/generate-workout", "POST");
+    },
+    onSuccess: (data) => {
+      showWorkoutSuccess(5000);
+      // Invalidate all scheduled workouts queries
+      queryClient.invalidateQueries({ queryKey: ["scheduled-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao gerar treino",
-        description: "Tente novamente em alguns minutos.",
-        variant: "destructive",
-      });
+      showWorkoutError(5000);
     },
   });
 
-  const hasCompletedOnboarding = user?.onboardingCompleted;
+  const completedWorkouts = Array.isArray(workoutSessions) ? workoutSessions.filter((session: any) => session.completedAt).length : 0;
 
-  // Calculate workout statistics
+  // Calculate real stats from workout sessions
   const workoutStats = useMemo(() => {
     if (!Array.isArray(workoutSessions)) {
       return {
@@ -136,65 +419,84 @@ export default function Home() {
     }
 
     const completedSessions = workoutSessions.filter((session: any) => 
-      session.completedAt && session.totalDuration && session.totalDuration >= 10
+      session.completedAt && session.totalDuration && session.totalDuration >= 1
     );
-
     const totalCalories = completedSessions.reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
     const totalMinutes = completedSessions.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
-    
-    let totalExercises = 0;
-    completedSessions.forEach((session: any) => {
-      if (session.exercises && Array.isArray(session.exercises)) {
-        totalExercises += session.exercises.filter((ex: any) => ex.completed).length;
-      }
-    });
+    const totalExercises = completedSessions.reduce((sum: number, session: any) => 
+      sum + (session.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0);
 
-    // Calculate weekly stats
+    // Calculate current streak
     const today = new Date();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - today.getDay());
-    weekStart.setHours(0, 0, 0, 0);
-    
-    const weeklySessions = completedSessions.filter((session: any) => {
-      const sessionDate = parseISO(session.completedAt);
-      return sessionDate >= weekStart;
-    });
+    const sortedSessions = completedSessions
+      .map((session: any) => ({
+        ...session,
+        completedDate: parseISO(session.completedAt).toDateString()
+      }))
+      .sort((a: any, b: any) => parseISO(b.completedAt).getTime() - parseISO(a.completedAt).getTime());
 
+    let currentStreak = 0;
+    let checkDate = today;
+
+    for (let i = 0; i < 30; i++) { // Check last 30 days
+      const dateString = checkDate.toDateString();
+      const hasWorkout = sortedSessions.some((session: any) => session.completedDate === dateString);
+
+      if (hasWorkout) {
+        currentStreak++;
+      } else if (i > 0) { // Allow today to not have a workout yet
+        break;
+      }
+
+      checkDate = subDays(checkDate, 1);
+    }
+
+    // Weekly stats (last 7 days)
+    const weekAgo = subDays(today, 7);
+    const weeklySessions = completedSessions.filter((session: any) => 
+      parseISO(session.completedAt) >= weekAgo
+    );
     const weeklyCalories = weeklySessions.reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
     const weeklyMinutes = weeklySessions.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
-    
-    let weeklyExercises = 0;
-    weeklySessions.forEach((session: any) => {
-      if (session.exercises && Array.isArray(session.exercises)) {
-        weeklyExercises += session.exercises.filter((ex: any) => ex.completed).length;
-      }
-    });
+    const weeklyExercises = weeklySessions.reduce((sum: number, session: any) => 
+      sum + (session.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0);
+
+    // Today's and yesterday's calories
+    const todayString = today.toDateString();
+    const yesterdayString = subDays(today, 1).toDateString();
+    const todayCalories = completedSessions
+      .filter((session: any) => parseISO(session.completedAt).toDateString() === todayString)
+      .reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
+    const yesterdayCalories = completedSessions
+      .filter((session: any) => parseISO(session.completedAt).toDateString() === yesterdayString)
+      .reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
+
+    // Additional stats
+    const lastWorkoutCalories = sortedSessions.length > 0 ? sortedSessions[0].totalCalories || 0 : 0;
+    const dailyAverage = completedSessions.length > 0 ? Math.round(totalCalories / completedSessions.length) : 0;
+    const maxCalories = Math.max(...completedSessions.map((session: any) => session.totalCalories || 0), 0);
+    const longestWorkout = Math.max(...completedSessions.map((session: any) => session.totalDuration || 0), 0);
+    const averageWorkoutDuration = completedSessions.length > 0 ? Math.round(totalMinutes / completedSessions.length) : 0;
 
     return {
       totalCalories,
       totalMinutes,
       totalExercises,
-      currentStreak: 7, // Mock data for now
+      currentStreak,
       weeklyCalories,
       weeklyMinutes,
       weeklyExercises,
-      averageWorkoutDuration: completedSessions.length > 0 ? Math.round(totalMinutes / completedSessions.length) : 0,
-      lastWorkoutCalories: completedSessions.length > 0 ? completedSessions[completedSessions.length - 1]?.totalCalories || 0 : 0,
-      yesterdayCalories: 0, // Would need date filtering
-      todayCalories: 0, // Would need date filtering
-      dailyAverage: completedSessions.length > 0 ? Math.round(totalCalories / Math.max(1, completedSessions.length)) : 0,
-      maxCalories: completedSessions.length > 0 ? Math.max(...completedSessions.map((s: any) => s.totalCalories || 0)) : 0,
-      longestWorkout: completedSessions.length > 0 ? Math.max(...completedSessions.map((s: any) => s.totalDuration || 0)) : 0
+      averageWorkoutDuration,
+      lastWorkoutCalories,
+      yesterdayCalories,
+      todayCalories,
+      dailyAverage,
+      maxCalories,
+      longestWorkout
     };
   }, [workoutSessions]);
 
-  const completedWorkouts = useMemo(() => {
-    if (!Array.isArray(workoutSessions)) return 0;
-    return workoutSessions.filter((session: any) => 
-      session.completedAt && session.totalDuration && session.totalDuration >= 10
-    ).length;
-  }, [workoutSessions]);
-
+  // Calculate weekly workout details for the expanded view
   const weeklyWorkoutDetails = useMemo(() => {
     if (!Array.isArray(workoutSessions)) return { details: {}, uniqueExercises: 0, uniqueMuscleGroups: 0 };
     
@@ -219,6 +521,8 @@ export default function Home() {
       const sessionDate = parseISO(session.completedAt);
       return sessionDate >= weekStart && sessionDate <= weekEnd;
     });
+
+
 
     // Get workout details for each day of the week (Monday to Sunday)
     const weekDays = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
@@ -279,137 +583,289 @@ export default function Home() {
   const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0;
   const todaysWorkout = hasWorkoutsAvailable ? scheduledWorkouts[0] : null;
 
+  // Debug logs
+  React.useEffect(() => {
+    console.log("Home component - scheduledWorkouts:", scheduledWorkouts);
+    console.log("Home component - hasWorkoutsAvailable:", hasWorkoutsAvailable);
+    console.log("Home component - todaysWorkout:", todaysWorkout);
+  }, [scheduledWorkouts, hasWorkoutsAvailable, todaysWorkout]);
+
+
+
   const toggleStatsCard = (cardId: string) => {
     setExpandedStatsCard(expandedStatsCard === cardId ? null : cardId);
   };
 
   return (
     <div className="px-4 py-6 space-y-6">
-      {/* Onboarding reminder */}
+      {/* Welcome Section */}
+      <div>
+        <h1 className="text-2xl font-bold">Olá, {user?.name?.split(' ')[0] || 'usuário'}!</h1>
+        <p className="text-muted-foreground">
+          Acompanhe seu progresso e veja seus treinos planejados
+        </p>
+      </div>
+
+      {/* Status Alerts */}
       {(!hasCompletedOnboarding || (user && !user.onboardingCompleted)) && (
         <OnboardingCard user={user} />
       )}
 
-      {/* Quick Stats - Only shown for users with workout history */}
-      {hasCompletedOnboarding && completedWorkouts > 0 && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            {expandedStatsCard !== 'streak' && (
-              <Card 
-                className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
-                  expandedStatsCard === 'workouts' ? 'col-span-2' : ''
-                }`}
-                onClick={() => toggleStatsCard('workouts')}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-muted-foreground">Treinos Concluídos</span>
-                    <div className="flex items-center gap-1">
-                      <FitnessIcon className="h-3 w-3" />
-                      {expandedStatsCard === 'workouts' ? (
-                        <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                      )}
+
+
+      {/* Quick Stats */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          {expandedStatsCard !== 'streak' && (
+            <Card 
+              className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
+                expandedStatsCard === 'workouts' ? 'col-span-2' : ''
+              }`}
+              onClick={() => toggleStatsCard('workouts')}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Treinos Concluídos</span>
+                  <div className="flex items-center gap-1">
+                    <FitnessIcon className="h-3 w-3" />
+                    {expandedStatsCard === 'workouts' ? (
+                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+                <span className="text-xl font-bold">{completedWorkouts}</span>
+                {workoutStats.weeklyExercises > 0 && (
+                  <Badge variant="secondary" className="mt-1 text-xs">
+                    +{Math.ceil(workoutStats.weeklyExercises / 5)} esta semana
+                  </Badge>
+                )}
+
+                {/* Expanded Content */}
+                {expandedStatsCard === 'workouts' && (
+                  <div className="mt-3 pt-3 border-t border-border space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Esta semana:</span>
+                      <span className="font-medium">{workoutStats.weeklyExercises > 0 ? Math.ceil(workoutStats.weeklyExercises / 5) : 0} treinos</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Total exercícios:</span>
+                      <span className="font-medium">{workoutStats.totalExercises}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Tempo total:</span>
+                      <span className="font-medium">{Math.floor(workoutStats.totalMinutes / 60)}h {workoutStats.totalMinutes % 60}min</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Maior sequência:</span>
+                      <span className="font-medium text-orange-600">{workoutStats.currentStreak} dias</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Média/treino:</span>
+                      <span className="font-medium">{workoutStats.averageWorkoutDuration}min</span>
                     </div>
                   </div>
-                  <span className="text-xl font-bold">{completedWorkouts}</span>
-                  {workoutStats.weeklyExercises > 0 && (
-                    <Badge variant="secondary" className="mt-1 text-xs">
-                      +{Math.ceil(workoutStats.weeklyExercises / 5)} esta semana
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {expandedStatsCard !== 'workouts' && (
+            <Card 
+              className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
+                expandedStatsCard === 'streak' ? 'col-span-2' : ''
+              }`}
+              onClick={() => toggleStatsCard('streak')}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Sequência Atual</span>
+                  <div className="flex items-center gap-1">
+                    <Flame className="h-3 w-3 text-orange-500" />
+                    {expandedStatsCard === 'streak' ? (
+                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xl font-bold">{workoutStats.currentStreak} dias</span>
+                  {workoutStats.currentStreak >= 7 && (
+                    <Badge variant="destructive" className="text-xs">
+                      Em chamas!
                     </Badge>
                   )}
+                </div>
 
-                  {/* Expanded Content */}
-                  {expandedStatsCard === 'workouts' && (
-                    <div className="mt-3 pt-3 border-t border-border space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Esta semana:</span>
-                        <span className="font-medium">{workoutStats.weeklyExercises > 0 ? Math.ceil(workoutStats.weeklyExercises / 5) : 0} treinos</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Total exercícios:</span>
-                        <span className="font-medium">{workoutStats.totalExercises}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Tempo total:</span>
-                        <span className="font-medium">{Math.floor(workoutStats.totalMinutes / 60)}h {workoutStats.totalMinutes % 60}min</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Duração média:</span>
-                        <span className="font-medium">{workoutStats.averageWorkoutDuration}min</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Treino mais longo:</span>
-                        <span className="font-medium text-green-600">{workoutStats.longestWorkout}min</span>
-                      </div>
+                {/* Expanded Content */}
+                {expandedStatsCard === 'streak' && (
+                  <div className="mt-3 pt-3 border-t border-border space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Iniciou em:</span>
+                      <span className="font-medium">05/01/2025</span>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {expandedStatsCard !== 'workouts' && (
-              <Card 
-                className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
-                  expandedStatsCard === 'streak' ? 'col-span-2' : ''
-                }`}
-                onClick={() => toggleStatsCard('streak')}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-muted-foreground">Sequência</span>
-                    <div className="flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3 text-green-500" />
-                      {expandedStatsCard === 'streak' ? (
-                        <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                      )}
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Próxima meta:</span>
+                      <span className="font-medium text-blue-600">10 dias</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Recorde pessoal:</span>
+                      <span className="font-medium text-green-600">14 dias</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Último treino:</span>
+                      <span className="font-medium">Hoje</span>
+                    </div>
+                    <div className="w-full mt-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">Progresso até 10 dias</span>
+                        <span className="font-medium">70%</span>
+                      </div>
+                      <Progress value={70} className="h-1" />
                     </div>
                   </div>
-                  <span className="text-xl font-bold">{workoutStats.currentStreak}</span>
-                  <Badge variant="secondary" className="mt-1 text-xs">
-                    dias
-                  </Badge>
-
-                  {/* Expanded Content */}
-                  {expandedStatsCard === 'streak' && (
-                    <div className="mt-3 pt-3 border-t border-border space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Iniciou em:</span>
-                        <span className="font-medium">05/01/2025</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Próxima meta:</span>
-                        <span className="font-medium text-blue-600">10 dias</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Recorde pessoal:</span>
-                        <span className="font-medium text-green-600">14 dias</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Último treino:</span>
-                        <span className="font-medium">Hoje</span>
-                      </div>
-                      <div className="w-full mt-2">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-muted-foreground">Progresso até 10 dias</span>
-                          <span className="font-medium">70%</span>
-                        </div>
-                        <Progress value={70} className="h-1" />
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
-      )}
 
-      {/* Weekly Progress - Only shown for users with workout history */}
-      {hasCompletedOnboarding && completedWorkouts > 0 && (
+
+      </div>
+
+      {/* Extended Stats */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          {expandedStatsCard !== 'time' && (
+            <Card 
+              className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
+                expandedStatsCard === 'calories' ? 'col-span-2' : ''
+              }`}
+              onClick={() => toggleStatsCard('calories')}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Calorias Queimadas</span>
+                  <div className="flex items-center gap-1">
+                    <Flame className="h-3 w-3 text-red-500" />
+                    {expandedStatsCard === 'calories' ? (
+                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+                <span className="text-xl font-bold">{workoutStats.weeklyCalories.toLocaleString()}</span>
+                {workoutStats.weeklyCalories > 0 && (
+                  <Badge variant="secondary" className="mt-1 text-xs">
+                    Esta semana
+                  </Badge>
+                )}
+
+                {/* Expanded Content */}
+                {expandedStatsCard === 'calories' && workoutStats.totalCalories > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Hoje:</span>
+                      <span className="font-medium">{workoutStats.todayCalories} kcal</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Ontem:</span>
+                      <span className="font-medium">{workoutStats.yesterdayCalories} kcal</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Média/dia:</span>
+                      <span className="font-medium">{workoutStats.dailyAverage} kcal</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Total geral:</span>
+                      <span className="font-medium text-blue-600">{workoutStats.totalCalories.toLocaleString()} kcal</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Maior queima:</span>
+                      <span className="font-medium text-orange-600">{workoutStats.maxCalories} kcal</span>
+                    </div>
+                    <div className="w-full mt-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">Meta semanal (1,500 kcal)</span>
+                        <span className="font-medium">{Math.min(100, Math.round((workoutStats.weeklyCalories / 1500) * 100))}%</span>
+                      </div>
+                      <Progress value={Math.min(100, Math.round((workoutStats.weeklyCalories / 1500) * 100))} className="h-1" />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {expandedStatsCard !== 'calories' && (
+            <Card 
+              className={`hover:shadow-md transition-all duration-200 cursor-pointer ${
+                expandedStatsCard === 'time' ? 'col-span-2' : ''
+              }`}
+              onClick={() => toggleStatsCard('time')}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Tempo Total</span>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-blue-500" />
+                    {expandedStatsCard === 'time' ? (
+                      <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+                <span className="text-xl font-bold">{Math.floor(workoutStats.weeklyMinutes / 60)}h {workoutStats.weeklyMinutes % 60}min</span>
+                {workoutStats.weeklyMinutes > 0 && (
+                  <Badge variant="secondary" className="mt-1 text-xs">
+                    Esta semana
+                  </Badge>
+                )}
+
+                {/* Expanded Content */}
+                {expandedStatsCard === 'time' && workoutStats.totalMinutes > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Esta semana:</span>
+                      <span className="font-medium">{Math.floor(workoutStats.weeklyMinutes / 60)}h {workoutStats.weeklyMinutes % 60}min</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Total geral:</span>
+                      <span className="font-medium">{Math.floor(workoutStats.totalMinutes / 60)}h {workoutStats.totalMinutes % 60}min</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Média/treino:</span>
+                      <span className="font-medium">{workoutStats.averageWorkoutDuration}min</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Maior treino:</span>
+                      <span className="font-medium text-green-600">{Math.floor(workoutStats.longestWorkout / 60)}h {workoutStats.longestWorkout % 60}min</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Meta semanal:</span>
+                      <span className="font-medium text-blue-600">300min</span>
+                    </div>
+                    <div className="w-full mt-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">Meta semanal</span>
+                        <span className="font-medium">{Math.min(100, Math.round((workoutStats.weeklyMinutes / 300) * 100))}%</span>
+                      </div>
+                      <Progress value={Math.min(100, Math.round((workoutStats.weeklyMinutes / 300) * 100))} className="h-1" />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Weekly Progress */}
+      {hasCompletedOnboarding && (
         <Card 
           className="cursor-pointer transition-all duration-200"
           onClick={() => setExpandedWeeklyProgress(!expandedWeeklyProgress)}
@@ -433,16 +889,13 @@ export default function Home() {
                 <span>Meta Semanal</span>
                 <span className="text-muted-foreground">{Object.values(weeklyWorkoutDetails.details || {}).filter((day: any) => day.hasWorkout).length}/3 treinos</span>
               </div>
-              <Progress 
-                value={Math.min(100, (Object.values(weeklyWorkoutDetails.details || {}).filter((day: any) => day.hasWorkout).length / 3) * 100)} 
-                className="h-2" 
-              />
+              <Progress value={Math.min(100, (Object.values(weeklyWorkoutDetails.details || {}).filter((day: any) => day.hasWorkout).length / 3) * 100)} className="h-2" />
             </div>
-            
-            <div className="grid grid-cols-3 gap-4 text-center">
+
+            <div className="grid grid-cols-3 gap-3 text-center">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Calorias</p>
-                <p className="text-sm font-semibold">{workoutStats.weeklyCalories.toLocaleString()}</p>
+                <p className="text-sm font-semibold">{workoutStats.weeklyCalories} kcal</p>
                 <div className="w-full bg-muted rounded-full h-1">
                   <div className="bg-red-500 h-1 rounded-full" style={{ width: `${Math.min(100, Math.round((workoutStats.weeklyCalories / 1500) * 100))}%` }}></div>
                 </div>
@@ -473,11 +926,11 @@ export default function Home() {
                     <div key={dayName} className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">{dayName}</span>
                       <div className="flex items-center gap-2">
-                        {(dayData as any).hasWorkout ? (
+                        {dayData.hasWorkout ? (
                           <>
                             <CheckCircle className="h-4 w-4 text-green-500" />
                             <span className="text-sm font-medium">
-                              {(dayData as any).name} - {(dayData as any).duration}min
+                              {dayData.name} - {dayData.duration}min
                             </span>
                           </>
                         ) : (
@@ -537,7 +990,7 @@ export default function Home() {
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  {todaysWorkout ? 'Gerar novo treino' : 'Gerar treino'}
+                  Atualizar treino
                 </>
               )}
             </Button>
@@ -642,21 +1095,16 @@ export default function Home() {
             </Card>
           ) : (
             <Card className="border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950">
-              <CardContent className="p-4 text-center">
-                <div className="space-y-3">
-                  <Sparkles className="h-8 w-8 text-gray-400 mx-auto" />
+              <CardContent className="p-4">
+                <div className="text-center space-y-3">
+                  <Clock className="h-8 w-8 text-gray-400 mx-auto" />
                   <div>
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
-                      Pronto para começar?
+                    <h3 className="font-medium text-gray-700 dark:text-gray-300">
+                      Nenhum treino encontrado
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                      Clique em "Gerar treino" para criar um treino personalizado baseado no seu perfil
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Clique em "Atualizar IA" para gerar um novo treino personalizado
                     </p>
-                    {!hasCompletedOnboarding && (
-                      <p className="text-xs text-orange-600 dark:text-orange-400 mb-3">
-                        Complete seu perfil primeiro para treinos mais personalizados
-                      </p>
-                    )}
                   </div>
                 </div>
               </CardContent>
@@ -664,6 +1112,8 @@ export default function Home() {
           )}
         </div>
       )}
+
+
     </div>
   );
 }
