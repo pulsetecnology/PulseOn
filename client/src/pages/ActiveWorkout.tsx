@@ -338,22 +338,22 @@ export default function ActiveWorkout() {
         </Card>
 
         {/* Current Exercise */}
-        <Card className="bg-gradient-to-br from-blue-600 to-purple-700 text-white border-0">
+        <Card className="bg-blue-600 dark:bg-blue-700 border-slate-200 dark:border-slate-700">
           <CardHeader className="py-3">
-            <CardTitle className="text-lg text-white">{currentExercise.exercise}</CardTitle>
-            <p className="text-sm text-blue-100">{currentExercise.muscleGroup}</p>
+            <CardTitle className="text-lg text-white dark:text-white">{currentExercise.exercise}</CardTitle>
+            <p className="text-sm text-blue-100 dark:text-blue-200">{currentExercise.muscleGroup}</p>
           </CardHeader>
           <CardContent className="space-y-3 pb-4">
-            <p className="text-sm text-blue-100">{currentExercise.instructions}</p>
+            <p className="text-sm text-blue-100 dark:text-blue-200">{currentExercise.instructions}</p>
 
             <div className="text-center mb-4">
-              <h3 className="text-xl font-semibold text-white mb-2">Série {currentSeries} de {currentExercise.series}</h3>
+              <h3 className="text-xl font-semibold text-white dark:text-white mb-2">Série {currentSeries} de {currentExercise.series}</h3>
             </div>
 
             {/* Card de controle de peso */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
               <div className="text-center mb-3">
-                <p className="text-sm text-blue-100">Peso utilizado</p>
+                <p className="text-sm text-blue-100 dark:text-blue-200">Peso utilizado</p>
               </div>
               <div className="flex items-center justify-center space-x-4">
                 <Button
@@ -365,8 +365,8 @@ export default function ActiveWorkout() {
                   <Minus className="h-4 w-4" />
                 </Button>
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-white">{currentWeight}</span>
-                  <p className="text-sm text-blue-100">kg</p>
+                  <span className="text-2xl font-bold text-white dark:text-white">{currentWeight}</span>
+                  <p className="text-sm text-blue-100 dark:text-blue-200">kg</p>
                 </div>
                 <Button
                   variant="ghost"
@@ -382,7 +382,7 @@ export default function ActiveWorkout() {
             {/* Card de nível de esforço */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
               <div className="text-center mb-3">
-                <p className="text-sm text-blue-100">Nível de esforço</p>
+                <p className="text-sm text-blue-100 dark:text-blue-200">Nível de esforço</p>
               </div>
               <div className="flex items-center justify-between mb-2 text-xs text-blue-200">
                 <span>Suave</span>
@@ -399,24 +399,24 @@ export default function ActiveWorkout() {
                 />
               </div>
               <div className="text-center">
-                <span className="text-lg font-medium text-white">Esforço: {effortLevel}/10</span>
+                <span className="text-lg font-medium text-white dark:text-white">Esforço: {effortLevel}/10</span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-center mt-4">
               <div className="bg-white/10 p-3 rounded-lg">
-                <p className="text-lg font-bold text-white">
+                <p className="text-lg font-bold text-white dark:text-white">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 
                     ? currentExercise.repetitions
                     : formatExerciseTime(currentExercise.timeExec || currentExercise.time || 30)}
                 </p>
-                <p className="text-xs text-blue-100">
+                <p className="text-xs text-blue-100 dark:text-blue-200">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 ? 'Repetições' : 'Tempo'}
                 </p>
               </div>
               <div className="bg-white/10 p-3 rounded-lg">
-                <p className="text-lg font-bold text-white">{currentExercise.calories}</p>
-                <p className="text-xs text-blue-100">Calorias</p>
+                <p className="text-lg font-bold text-white dark:text-white">{currentExercise.calories}</p>
+                <p className="text-xs text-blue-100 dark:text-blue-200">Calorias</p>
               </div>
             </div>
 

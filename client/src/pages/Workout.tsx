@@ -448,8 +448,8 @@ export default function Workout() {
 
       {/* Active Exercise Timer */}
       {activeExercise && (
-        <Card className="bg-gradient-to-br from-blue-600 to-purple-700 dark:from-blue-700 dark:to-purple-800 border-0">
-          <CardContent className="p-6 text-white">
+        <Card className="bg-blue-600 dark:bg-blue-700 border-0 border-slate-200 dark:border-slate-700">
+          <CardContent className="p-6 text-white dark:text-white">
             <div className="text-center">
               <h2 className="text-lg font-semibold mb-2">
                 {todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.exercise}
