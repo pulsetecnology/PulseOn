@@ -7,7 +7,9 @@ import { Slider } from "@/components/ui/slider";
 import { Play, Clock, Target, List, CheckCircle2, Timer, Plus, Minus, Pause, RotateCcw, ChevronRight, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface Exercise {
   id?: string;
@@ -54,9 +56,36 @@ const fetchScheduledWorkouts = async (): Promise<ScheduledWorkout[]> => {
 };
 
 export default function Workout() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
   const { data: scheduledWorkouts, isLoading, error } = useQuery({
     queryKey: ['scheduled-workouts'],
     queryFn: fetchScheduledWorkouts,
+  });
+
+  // AI workout generation mutation
+  const generateWorkoutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/ai/generate-workout", "POST");
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso!",
+        description: "Novo treino gerado com sucesso!",
+        duration: 3000,
+      });
+      // Invalidate all scheduled workouts queries
+      queryClient.invalidateQueries({ queryKey: ["scheduled-workouts"] });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao gerar novo treino. Tente novamente.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    },
   });
 
   const todaysWorkout = scheduledWorkouts?.[0]; // Get the most recent workout
@@ -317,11 +346,20 @@ export default function Workout() {
         <Card>
           <CardContent className="p-6 text-center">
             <p className="text-gray-500 mb-4">Você ainda não possui treinos programados.</p>
-            <Link href="/profile">
-              <Button>
-                Ir para Perfil e Sincronizar
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => generateWorkoutMutation.mutate()}
+              disabled={generateWorkoutMutation.isPending}
+              className="w-full"
+            >
+              {generateWorkoutMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Gerando treino...
+                </>
+              ) : (
+                "Gerar novo treino"
+              )}
+            </Button>
           </CardContent>
         </Card>
       </div>

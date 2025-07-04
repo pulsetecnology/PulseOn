@@ -1103,7 +1103,7 @@ export default function Home() {
                       Nenhum treino encontrado
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Clique em "Atualizar IA" para gerar um novo treino personalizado
+                      Clique em "Atualizar treino" para gerar seu treino personalizado
                     </p>
                   </div>
                 </div>
