@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Play, Clock, Target, List, CheckCircle2, Timer, Plus, Minus, Pause, RotateCcw, ChevronRight, Loader2, X, Flag } from "lucide-react";
+import { Play, Clock, Target, List, CheckCircle2, Timer, Plus, Minus, Pause, RotateCcw, ChevronRight, Loader2, X } from "lucide-react";
 import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -151,7 +151,6 @@ export default function Workout() {
   const [isResting, setIsResting] = useState(false);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showSetFeedback, setShowSetFeedback] = useState(false);
-  const [showEarlyFinishDialog, setShowEarlyFinishDialog] = useState(false);
   const { showWorkoutSuccess } = useGlobalNotification();
 
   // Scroll to top when component mounts
@@ -173,17 +172,9 @@ export default function Workout() {
         const completedExerciseIds = existingSession.exercises?.map((ex: any) => ex.exerciseId || ex.exerciseName) || [];
         setCompletedExercises(new Set(completedExerciseIds));
       } else {
-        // Se não existe sessão, verificar localStorage para progresso temporário
-        const progress = loadSavedProgress();
-        if (progress.completedExercises && progress.completedExercises.size > 0) {
-          const completedArray: string[] = [];
-          progress.completedExercises.forEach((item: unknown) => {
-            if (typeof item === 'string') {
-              completedArray.push(item);
-            }
-          });
-          setCompletedExercises(new Set(completedArray));
-        }
+        // Se não existe sessão, NÃO carregar de localStorage para evitar contagem incorreta
+        // Apenas inicializar como vazio
+        setCompletedExercises(new Set());
       }
     }
   }, [user?.id, todaysWorkout?.id, workoutSessions]);
@@ -270,6 +261,28 @@ export default function Workout() {
           };
           saveProgress(newSet, { [activeExercise!]: exerciseData });
           
+          // Verificar se este é o último exercício
+          const totalExercises = todaysWorkout?.exercises?.length || 0;
+          const completedCount = newSet.size;
+          
+          if (completedCount >= totalExercises) {
+            // Último exercício concluído - finalizar treino automaticamente
+            setTimeout(() => {
+              finishIndividualWorkout();
+            }, 2000); // Pequeno delay para mostrar sucesso do exercício
+          } else {
+            // Scroll para mostrar o botão de finalizar treino
+            setTimeout(() => {
+              const finishButton = document.querySelector('[data-finish-button]');
+              if (finishButton) {
+                finishButton.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'center' 
+                });
+              }
+            }, 1000);
+          }
+          
           return newSet;
         });
         setActiveExercise(null);
@@ -333,7 +346,6 @@ export default function Workout() {
       // Resetar estado
       setCompletedExercises(new Set());
       setActiveExercise(null);
-      setShowEarlyFinishDialog(false);
       
     } catch (error) {
       toast({
@@ -605,6 +617,7 @@ export default function Workout() {
                     variant="outline"
                     className={`w-full ${buttonClass} py-3 text-lg font-semibold`}
                     onClick={finishIndividualWorkout}
+                    data-finish-button
                   >
                     <CheckCircle2 className="mr-2 h-5 w-5" />
                     Finalizar Treino ({completedCount}/{totalExercises} exercícios)
@@ -852,47 +865,7 @@ export default function Workout() {
         })}
       </div>
 
-      {/* Botão flutuante para finalizar treino antecipadamente */}
-      {(() => {
-        // Verificar se há sessões concluídas para este treino
-        const hasCompletedSession = workoutSessions?.some((session: any) => 
-          session.scheduledWorkoutId === todaysWorkout?.id && 
-          (session.status === 'completed' || session.status === 'completed-partial')
-        );
-        
-        return todaysWorkout && completedExercises.size > 0 && !hasCompletedSession;
-      })() && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <AlertDialog open={showEarlyFinishDialog} onOpenChange={setShowEarlyFinishDialog}>
-            <AlertDialogTrigger asChild>
-              <Button
-                size="lg"
-                className="rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg h-14 w-14 p-0"
-              >
-                <Flag className="h-6 w-6" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Finalizar Treino Antecipadamente?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Você tem {completedExercises.size} exercício(s) concluído(s). 
-                  Deseja finalizar o treino agora? O progresso será salvo.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={finishWorkoutEarly}
-                  className="bg-red-500 hover:bg-red-600"
-                >
-                  Finalizar Treino
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
+
 
     </div>
   );
