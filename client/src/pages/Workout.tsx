@@ -277,7 +277,7 @@ export default function Workout() {
             setIsFinishingWorkout(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setTimeout(() => {
-              finishIndividualWorkout();
+              finishIndividualWorkoutWithSet(newSet);
             }, 2000); // Pequeno delay para mostrar sucesso do exercício
           } else {
             // Scroll para o topo após completar exercício
@@ -364,11 +364,14 @@ export default function Workout() {
     setShowSetFeedback(true);
   };
 
-  const finishIndividualWorkout = async () => {
+  const finishIndividualWorkoutWithSet = async (exercisesSet?: Set<string>) => {
     if (!todaysWorkout) return;
 
     // Resetar estado de finalização
     setIsFinishingWorkout(false);
+
+    // Usar o set fornecido ou o estado atual
+    const currentCompletedExercises = exercisesSet || completedExercises;
 
     const startTime = new Date();
     const endTime = new Date();
@@ -391,7 +394,7 @@ export default function Workout() {
       actualTime: exercise.time || 0,
       actualCalories: exercise.calories,
       effortLevel: 8, // Valor padrão
-      completed: completedExercises.has(exercise.id || exercise.exercise), // Marcar como completo apenas se foi feito
+      completed: currentCompletedExercises.has(exercise.id || exercise.exercise), // Marcar como completo apenas se foi feito
       notes: null
     }));
 
@@ -408,8 +411,8 @@ export default function Workout() {
       endTime: endTime.toISOString(),
       duration: durationMinutes,
       totalCalories: totalCalories,
-      exercisesCompleted: completedExercises.size,
-      status: completedExercises.size === todaysWorkout.exercises.length ? 'completed' : 'partial',
+      exercisesCompleted: currentCompletedExercises.size,
+      status: currentCompletedExercises.size === todaysWorkout.exercises.length ? 'completed' : 'partial',
       notes: null,
       exercises: completedExercisesList
     };
@@ -454,6 +457,11 @@ export default function Workout() {
       // Redirecionar para histórico
       window.location.href = '/history';
     }
+  };
+
+  // Wrapper function for backward compatibility
+  const finishIndividualWorkout = () => {
+    return finishIndividualWorkoutWithSet();
   };
 
   // Timer effect

@@ -273,7 +273,7 @@ export default function History() {
                       </p>
                     </div>
                     <Badge variant={exercise.completed ? "default" : "destructive"}>
-                      {exercise.completed ? "Concluído" : "Pulado"}
+                      {exercise.completed ? "Concluído" : "Não executado"}
                     </Badge>
                   </div>
 
