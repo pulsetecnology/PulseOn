@@ -43,17 +43,13 @@ export default function ActiveWorkout() {
   const [currentWeight, setCurrentWeight] = useState(0);
   const [effortLevel, setEffortLevel] = useState(8);
 
-  // Função para fazer scroll até o exercício ativo
-  const scrollToActiveExercise = () => {
+  // Função para fazer scroll para o topo da tela
+  const scrollToTop = () => {
     setTimeout(() => {
-      const element = document.getElementById('current-exercise-card');
-      if (element) {
-        element.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center',
-          inline: 'nearest'
-        });
-      }
+      window.scrollTo({ 
+        top: 0, 
+        behavior: 'smooth' 
+      });
     }, 100);
   };
 
@@ -164,8 +160,8 @@ export default function ActiveWorkout() {
         setCurrentExerciseIndex(prev => prev + 1);
         setCurrentSeries(1);
         startRest(currentExercise.restBetweenExercises, false);
-        // Auto-scroll para o próximo exercício
-        scrollToActiveExercise();
+        // Auto-scroll para o topo da tela
+        scrollToTop();
       } else {
         // Treino completo
         finishWorkout();
@@ -176,7 +172,7 @@ export default function ActiveWorkout() {
   // Auto-scroll quando muda de exercício
   useEffect(() => {
     if (currentExerciseIndex > 0) {
-      scrollToActiveExercise();
+      scrollToTop();
     }
   }, [currentExerciseIndex]);
 
@@ -186,8 +182,8 @@ export default function ActiveWorkout() {
       setCurrentSeries(1);
       setIsResting(false);
       setIsTimerActive(false);
-      // Auto-scroll para o próximo exercício
-      scrollToActiveExercise();
+      // Auto-scroll para o topo da tela
+      scrollToTop();
     } else {
       finishWorkout();
     }

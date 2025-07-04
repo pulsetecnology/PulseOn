@@ -233,8 +233,8 @@ export default function Workout() {
       setIsResting(false);
       setIsTimerRunning(false);
       setShowSetFeedback(false);
-      // Auto-scroll para o exercício ativo
-      scrollToActiveExercise(exerciseId);
+      // Auto-scroll para o topo da tela
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -664,7 +664,7 @@ export default function Workout() {
                     </span>
                   </div>
                   <div className="mb-1">
-                    <p className="text-xs text-muted-foreground line-clamp-2">{exercise.instructions}</p>
+                    <p className="text-xs text-muted-foreground">{exercise.instructions}</p>
                   </div>
                   <div className="flex flex-wrap gap-1 mb-1">
                     <Badge variant="outline" className="text-xs px-1 py-0 h-4">
@@ -740,10 +740,10 @@ export default function Workout() {
                     )}
 
                     {showSetFeedback && (
-                      <div className="space-y-4">
+                      <div className="space-y-2">
                         {/* Weight Input */}
-                        <div className="bg-white/20 rounded-lg p-4">
-                          <h3 className="font-semibold mb-2 text-sm">Peso utilizado</h3>
+                        <div className="bg-white/20 rounded-lg p-2">
+                          <h3 className="font-semibold mb-1 text-sm">Peso utilizado</h3>
                           {(() => {
                             const exercise = todaysWorkout?.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise);
                             const isBodyWeight = exercise?.weight === 0;
@@ -762,9 +762,9 @@ export default function Workout() {
                             }
                             
                             return (
-                              <div className="space-y-3">
+                              <div className="space-y-2">
                                 <div className="text-center">
-                                  <div className="text-xl font-bold">{weight}</div>
+                                  <div className="text-lg font-bold">{weight}</div>
                                   <div className="text-xs opacity-75">kg</div>
                                 </div>
                                 <Slider
@@ -785,9 +785,9 @@ export default function Workout() {
                         </div>
 
                         {/* Effort Level */}
-                        <div className="bg-white/20 rounded-lg p-4">
-                          <h3 className="font-semibold mb-2 text-sm">Nível de esforço</h3>
-                          <div className="space-y-2">
+                        <div className="bg-white/20 rounded-lg p-2">
+                          <h3 className="font-semibold mb-1 text-sm">Nível de esforço</h3>
+                          <div className="space-y-1">
                             <div className="flex justify-between text-xs opacity-75">
                               <span>Suave</span>
                               <span>Intenso</span>
