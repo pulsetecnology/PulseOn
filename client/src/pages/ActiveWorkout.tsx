@@ -208,6 +208,125 @@ export default function ActiveWorkout() {
     }
   };
 
+  const finishWorkoutEarly = async () => {
+    if (!workoutData) return;
+
+    // Calcular duração total em minutos
+    const endTime = new Date();
+    const durationMs = endTime.getTime() - startTime.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
+
+    // Exercícios completados até agora
+    const completedExercises = workoutData.workoutPlan.slice(0, currentExerciseIndex);
+    const remainingExercises = workoutData.workoutPlan.slice(currentExerciseIndex);
+
+    // Calcular calorias dos exercícios completados
+    const totalCalories = completedExercises.reduce((sum, exercise) => sum + (exercise.calories || 0), 0);
+
+    // Criar exercícios completados com formato adequado
+    const completedExercisesList = completedExercises.map(exercise => ({
+      exercise: exercise.exercise,
+      muscleGroup: exercise.muscleGroup,
+      type: exercise.type,
+      instructions: exercise.instructions,
+      time: exercise.time || exercise.timeExec || 0,
+      series: exercise.series,
+      repetitions: exercise.repetitions || 0,
+      restBetweenSeries: exercise.restBetweenSeries,
+      restBetweenExercises: exercise.restBetweenExercises,
+      weight: exercise.weight || 0,
+      calories: exercise.calories,
+      actualWeight: currentWeight,
+      actualTime: exercise.timeExec || exercise.time || 0,
+      actualCalories: exercise.calories,
+      effortLevel: effortLevel || 8,
+      completed: true,
+      notes: null
+    }));
+
+    // Criar objeto de sessão de treino parcial
+    const workoutSession = {
+      scheduledWorkoutId: null,
+      workoutName: `${workoutData.workoutName} (Parcial)`,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      duration: durationMinutes,
+      totalCalories: totalCalories,
+      exercisesCompleted: completedExercises.length,
+      status: 'partial',
+      notes: `Treino finalizado antecipadamente. ${remainingExercises.length} exercícios restantes disponíveis para execução individual.`,
+      exercises: completedExercisesList
+    };
+
+    try {
+      // Salvar treino parcial no histórico
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('/api/workout-sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(workoutSession),
+      });
+
+      if (response.ok) {
+        console.log('Treino parcial salvo no histórico com sucesso');
+        
+        // Criar treinos individuais para os exercícios restantes
+        if (remainingExercises.length > 0) {
+          const remainingWorkouts = remainingExercises.map(exercise => ({
+            userId: 1, // Will be set by backend
+            name: exercise.exercise,
+            exercises: [exercise],
+            totalCalories: exercise.calories,
+            totalDuration: 1,
+            status: 'pending',
+            scheduledFor: new Date().toISOString()
+          }));
+
+          // Salvar exercícios restantes como treinos individuais
+          for (const workout of remainingWorkouts) {
+            try {
+              await fetch('/api/scheduled-workouts', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(workout),
+              });
+            } catch (error) {
+              console.error('Erro ao salvar exercício individual:', error);
+            }
+          }
+        }
+      } else {
+        throw new Error('Erro ao salvar no backend');
+      }
+    } catch (error) {
+      console.error('Erro ao finalizar treino antecipadamente:', error);
+      
+      // Fallback: salvar no localStorage
+      const sessionWithId = {
+        ...workoutSession,
+        id: Date.now(),
+        userId: 1,
+        createdAt: endTime.toISOString(),
+        updatedAt: endTime.toISOString()
+      };
+
+      const existingSessions = JSON.parse(localStorage.getItem('workoutSessions') || '[]');
+      existingSessions.unshift(sessionWithId);
+      localStorage.setItem('workoutSessions', JSON.stringify(existingSessions));
+      console.log('Treino parcial salvo no localStorage como fallback');
+    }
+
+    // Limpar dados e redirecionar
+    localStorage.removeItem('activeWorkout');
+    setLocation('/history');
+  };
+
   const finishWorkout = async () => {
     if (!workoutData) return;
 
@@ -338,22 +457,22 @@ export default function ActiveWorkout() {
         </Card>
 
         {/* Current Exercise */}
-        <Card className="bg-blue-600 dark:bg-blue-700 border-slate-200 dark:border-slate-700">
+        <Card className="bg-primary dark:bg-primary border-0">
           <CardHeader className="py-3">
-            <CardTitle className="text-lg text-white dark:text-white">{currentExercise.exercise}</CardTitle>
-            <p className="text-sm text-blue-100 dark:text-blue-200">{currentExercise.muscleGroup}</p>
+            <CardTitle className="text-lg text-primary-foreground">{currentExercise.exercise}</CardTitle>
+            <p className="text-sm text-primary-foreground/80">{currentExercise.muscleGroup}</p>
           </CardHeader>
           <CardContent className="space-y-3 pb-4">
-            <p className="text-sm text-blue-100 dark:text-blue-200">{currentExercise.instructions}</p>
+            <p className="text-sm text-primary-foreground/80">{currentExercise.instructions}</p>
 
             <div className="text-center mb-4">
-              <h3 className="text-xl font-semibold text-white dark:text-white mb-2">Série {currentSeries} de {currentExercise.series}</h3>
+              <h3 className="text-xl font-semibold text-primary-foreground mb-2">Série {currentSeries} de {currentExercise.series}</h3>
             </div>
 
             {/* Card de controle de peso */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
               <div className="text-center mb-3">
-                <p className="text-sm text-blue-100 dark:text-blue-200">Peso utilizado</p>
+                <p className="text-sm text-primary-foreground/80">Peso utilizado</p>
               </div>
               <div className="flex items-center justify-center space-x-4">
                 <Button
@@ -365,8 +484,8 @@ export default function ActiveWorkout() {
                   <Minus className="h-4 w-4" />
                 </Button>
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-white dark:text-white">{currentWeight}</span>
-                  <p className="text-sm text-blue-100 dark:text-blue-200">kg</p>
+                  <span className="text-2xl font-bold text-primary-foreground">{currentWeight}</span>
+                  <p className="text-sm text-primary-foreground/80">kg</p>
                 </div>
                 <Button
                   variant="ghost"
@@ -382,7 +501,7 @@ export default function ActiveWorkout() {
             {/* Card de nível de esforço */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
               <div className="text-center mb-3">
-                <p className="text-sm text-blue-100 dark:text-blue-200">Nível de esforço</p>
+                <p className="text-sm text-primary-foreground/80">Nível de esforço</p>
               </div>
               <div className="flex items-center justify-between mb-2 text-xs text-blue-200">
                 <span>Suave</span>
@@ -399,24 +518,24 @@ export default function ActiveWorkout() {
                 />
               </div>
               <div className="text-center">
-                <span className="text-lg font-medium text-white dark:text-white">Esforço: {effortLevel}/10</span>
+                <span className="text-lg font-medium text-primary-foreground">Esforço: {effortLevel}/10</span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-center mt-4">
               <div className="bg-white/10 p-3 rounded-lg">
-                <p className="text-lg font-bold text-white dark:text-white">
+                <p className="text-lg font-bold text-primary-foreground">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 
                     ? currentExercise.repetitions
                     : formatExerciseTime(currentExercise.timeExec || currentExercise.time || 30)}
                 </p>
-                <p className="text-xs text-blue-100 dark:text-blue-200">
+                <p className="text-xs text-primary-foreground/80">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 ? 'Repetições' : 'Tempo'}
                 </p>
               </div>
               <div className="bg-white/10 p-3 rounded-lg">
-                <p className="text-lg font-bold text-white dark:text-white">{currentExercise.calories}</p>
-                <p className="text-xs text-blue-100 dark:text-blue-200">Calorias</p>
+                <p className="text-lg font-bold text-primary-foreground">{currentExercise.calories}</p>
+                <p className="text-xs text-primary-foreground/80">Calorias</p>
               </div>
             </div>
 
@@ -479,7 +598,7 @@ export default function ActiveWorkout() {
             </Button>
           )}
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <Button 
               variant="outline" 
               onClick={skipExercise}
@@ -487,6 +606,14 @@ export default function ActiveWorkout() {
             >
               <SkipForward className="h-4 w-4 mr-2" />
               Pular
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={finishWorkoutEarly}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Finalizar
             </Button>
             <Button 
               variant="destructive" 
