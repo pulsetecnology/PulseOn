@@ -1033,18 +1033,12 @@ export default function Home() {
                     <Button 
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                       onClick={() => {
-                        // Salvar dados do treino no localStorage
-                        const workoutData = {
-                          workoutName: todaysWorkout.name,
-                          workoutPlan: todaysWorkout.exercises || []
-                        };
-                        localStorage.setItem('activeWorkout', JSON.stringify(workoutData));
-                        // Redirecionar para a tela de treino ativo
-                        window.location.href = '/active-workout';
+                        // Redirecionar apenas para a tela de treinos
+                        window.location.href = '/workout';
                       }}
                     >
-                      <Play className="mr-2 h-4 w-4" />
-                      Ir para treino
+                      <Dumbbell className="mr-2 h-4 w-4" />
+                      Ir para Treino
                     </Button>
                   </div>
                   <div className="text-left">

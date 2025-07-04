@@ -412,34 +412,38 @@ export default function Workout() {
             </span>
           </div>
           <div className="space-y-3">
-            <Button 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
-              onClick={() => {
-                // Salvar dados do treino no localStorage
-                const workoutData = {
-                  workoutName: todaysWorkout.name,
-                  workoutPlan: todaysWorkout.exercises || []
-                };
-                localStorage.setItem('activeWorkout', JSON.stringify(workoutData));
-                // Redirecionar para a tela de treino ativo
-                window.location.href = '/active-workout';
-              }}
-            >
-              <Play className="mr-2 h-5 w-5" />
-              Iniciar treino completo
-            </Button>
+            {/* Botão "Iniciar treino completo" foi removido conforme solicitado */}
             
             {/* Botão Finalizar Treino - só aparece se há exercícios completados */}
-            {completedExercises.size > 0 && (
-              <Button 
-                variant="outline"
-                className="w-full border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 py-3 text-lg font-semibold"
-                onClick={finishIndividualWorkout}
-              >
-                <CheckCircle2 className="mr-2 h-5 w-5" />
-                Finalizar Treino ({completedExercises.size}/{todaysWorkout.exercises?.length} exercícios)
-              </Button>
-            )}
+            {completedExercises.size > 0 && (() => {
+              const totalExercises = todaysWorkout.exercises?.length || 1;
+              const completedCount = completedExercises.size;
+              const progress = completedCount / totalExercises;
+              
+              // Cores gradativas baseadas no progresso
+              let buttonClass = "";
+              if (progress < 0.33) {
+                // Vermelho para baixo progresso
+                buttonClass = "border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20";
+              } else if (progress < 0.66) {
+                // Amarelo para progresso médio
+                buttonClass = "border-yellow-600 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20";
+              } else {
+                // Verde para alto progresso
+                buttonClass = "border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20";
+              }
+              
+              return (
+                <Button 
+                  variant="outline"
+                  className={`w-full ${buttonClass} py-3 text-lg font-semibold`}
+                  onClick={finishIndividualWorkout}
+                >
+                  <CheckCircle2 className="mr-2 h-5 w-5" />
+                  Finalizar Treino ({completedCount}/{totalExercises} exercícios)
+                </Button>
+              );
+            })()}
           </div>
         </CardContent>
       </Card>
@@ -509,7 +513,23 @@ export default function Workout() {
               {activeExercise === exerciseId && (
                 <Card id="execution-card" className="bg-primary dark:bg-primary border-0 animate-in slide-in-from-top duration-300 mt-4">
                   <CardContent className="p-4">
-                    <div className="text-center text-primary-foreground mb-4">
+                    <div className="text-center text-primary-foreground mb-4 relative">
+                      {/* Botão de cancelar no canto superior direito */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setActiveExercise(null);
+                          setCurrentSet(1);
+                          setIsResting(false);
+                          setIsTimerRunning(false);
+                          setShowSetFeedback(false);
+                        }}
+                        className="absolute -top-2 -right-2 h-8 w-8 p-0 text-primary-foreground hover:bg-white/20"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      
                       <h3 className="text-lg font-semibold">Série {currentSet} de {exercise.series}</h3>
                       <p className="text-sm opacity-90">
                         {exercise.repetitions > 0 
