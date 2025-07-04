@@ -575,34 +575,43 @@ export default function Workout() {
             {/* Botão "Iniciar treino completo" foi removido conforme solicitado */}
             
             {/* Botão Finalizar Treino - só aparece se há exercícios completados */}
-            {completedExercises.size > 0 && (() => {
-              const totalExercises = todaysWorkout.exercises?.length || 1;
-              const completedCount = completedExercises.size;
-              const progress = completedCount / totalExercises;
-              
-              // Cores gradativas baseadas no progresso
-              let buttonClass = "";
-              if (progress < 0.33) {
-                // Vermelho para baixo progresso
-                buttonClass = "border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20";
-              } else if (progress < 0.66) {
-                // Amarelo para progresso médio
-                buttonClass = "border-yellow-600 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20";
-              } else {
-                // Verde para alto progresso
-                buttonClass = "border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20";
-              }
-              
-              return (
-                <Button 
-                  variant="outline"
-                  className={`w-full ${buttonClass} py-3 text-lg font-semibold`}
-                  onClick={finishIndividualWorkout}
-                >
-                  <CheckCircle2 className="mr-2 h-5 w-5" />
-                  Finalizar Treino ({completedCount}/{totalExercises} exercícios)
-                </Button>
+            {(() => {
+              // Verificar se há sessões concluídas para este treino
+              const hasCompletedSession = workoutSessions?.some((session: any) => 
+                session.scheduledWorkoutId === todaysWorkout?.id && 
+                (session.status === 'completed' || session.status === 'completed-partial')
               );
+
+              if (completedExercises.size > 0 && !hasCompletedSession) {
+                const totalExercises = todaysWorkout.exercises?.length || 1;
+                const completedCount = completedExercises.size;
+                const progress = completedCount / totalExercises;
+                
+                // Cores gradativas baseadas no progresso
+                let buttonClass = "";
+                if (progress < 0.33) {
+                  // Vermelho para baixo progresso
+                  buttonClass = "border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20";
+                } else if (progress < 0.66) {
+                  // Amarelo para progresso médio
+                  buttonClass = "border-yellow-600 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20";
+                } else {
+                  // Verde para alto progresso
+                  buttonClass = "border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20";
+                }
+                
+                return (
+                  <Button 
+                    variant="outline"
+                    className={`w-full ${buttonClass} py-3 text-lg font-semibold`}
+                    onClick={finishIndividualWorkout}
+                  >
+                    <CheckCircle2 className="mr-2 h-5 w-5" />
+                    Finalizar Treino ({completedCount}/{totalExercises} exercícios)
+                  </Button>
+                );
+              }
+              return null;
             })()}
           </div>
         </CardContent>
@@ -616,33 +625,33 @@ export default function Workout() {
           return (
             <div key={exerciseId}>
               <Card id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'ring-2 ring-primary' : ''}`}>
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold text-sm">{exercise.exercise}</h3>
+                <CardContent className="p-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center space-x-1">
+                      <h3 className="font-semibold text-xs">{exercise.exercise}</h3>
                       {completedExercises.has(exerciseId) && (
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <CheckCircle2 className="h-3 w-3 text-green-600" />
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground">
                       {exercise.series}x{exercise.repetitions > 0 ? exercise.repetitions : formatExerciseTime(exercise.timeExec || exercise.time || 0)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                     <span>Peso: {exercise.weight > 0 ? `${exercise.weight}kg` : 'Peso corporal'}</span>
                     <span className="flex items-center">
-                      <Clock className="mr-1 h-2 w-2" />
+                      <Clock className="mr-0.5 h-2 w-2" />
                       {exercise.restBetweenSeries}s
                     </span>
                   </div>
-                  <div className="mb-2">
-                    <p className="text-xs text-muted-foreground">{exercise.instructions}</p>
+                  <div className="mb-1">
+                    <p className="text-xs text-muted-foreground line-clamp-2">{exercise.instructions}</p>
                   </div>
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    <Badge variant="outline" className="text-xs px-1 py-0">
+                  <div className="flex flex-wrap gap-1 mb-1">
+                    <Badge variant="outline" className="text-xs px-1 py-0 h-4">
                       {exercise.muscleGroup}
                     </Badge>
-                    <Badge variant="outline" className="text-xs px-1 py-0">
+                    <Badge variant="outline" className="text-xs px-1 py-0 h-4">
                       {exercise.type}
                     </Badge>
                   </div>
@@ -844,7 +853,15 @@ export default function Workout() {
       </div>
 
       {/* Botão flutuante para finalizar treino antecipadamente */}
-      {todaysWorkout && completedExercises.size > 0 && (
+      {(() => {
+        // Verificar se há sessões concluídas para este treino
+        const hasCompletedSession = workoutSessions?.some((session: any) => 
+          session.scheduledWorkoutId === todaysWorkout?.id && 
+          (session.status === 'completed' || session.status === 'completed-partial')
+        );
+        
+        return todaysWorkout && completedExercises.size > 0 && !hasCompletedSession;
+      })() && (
         <div className="fixed bottom-6 right-6 z-50">
           <AlertDialog open={showEarlyFinishDialog} onOpenChange={setShowEarlyFinishDialog}>
             <AlertDialogTrigger asChild>
