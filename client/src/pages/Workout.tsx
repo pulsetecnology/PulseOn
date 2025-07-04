@@ -480,6 +480,53 @@ export default function Workout() {
         </Card>
       )}
 
+      {/* Timer de Descanso Integrado - Posicionado após exercício ativo */}
+      {isResting && activeExercise && (
+        <Card className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="bg-white/20 rounded-full p-2">
+                  <Timer className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">Descanso entre séries</p>
+                  <p className="text-2xl font-bold text-white">{formatTime(restTime)}</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={() => setIsTimerRunning(!isTimerRunning)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
+                  >
+                    {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  </Button>
+                  <Button 
+                    onClick={() => setRestTime(todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.restBetweenSeries || 90)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Button 
+                  onClick={startNextSet}
+                  size="sm"
+                  className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded-full"
+                >
+                  Próxima Série
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Exercise List */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Exercícios</h2>
@@ -543,52 +590,7 @@ export default function Workout() {
         })}
       </div>
 
-      {/* Timer de Descanso Integrado */}
-      {isResting && (
-        <Card className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="bg-white/20 rounded-full p-2">
-                  <Timer className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-white">Descanso entre séries</p>
-                  <p className="text-2xl font-bold text-white">{formatTime(restTime)}</p>
-                </div>
-              </div>
-              
-              <div className="flex flex-col space-y-2">
-                <div className="flex space-x-2">
-                  <Button 
-                    onClick={() => setIsTimerRunning(!isTimerRunning)}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
-                  >
-                    {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                  </Button>
-                  <Button 
-                    onClick={() => setRestTime(todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.restBetweenSeries || 90)}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Button 
-                  onClick={startNextSet}
-                  size="sm"
-                  className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded-full"
-                >
-                  Próxima Série
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
     </div>
   );
 }
