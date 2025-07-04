@@ -181,6 +181,11 @@ export default function Workout() {
         } else {
           // Se não há progresso ou é de outro treino, inicializar vazio
           setCompletedExercises(new Set());
+          // Limpar progresso antigo se for um novo treino
+          if (progress.workoutId && progress.workoutId !== todaysWorkout.id) {
+            const storageKey = getWorkoutStorageKey();
+            localStorage.removeItem(storageKey);
+          }
         }
       }
     }
@@ -613,7 +618,10 @@ export default function Workout() {
                 
                 // Cores gradativas baseadas no progresso
                 let buttonClass = "";
-                if (progress < 0.33) {
+                if (completedCount === totalExercises) {
+                  // Azul para treino completo (desabilitado)
+                  buttonClass = "border-blue-600 text-blue-600 bg-blue-50 dark:bg-blue-900/20 cursor-not-allowed";
+                } else if (progress < 0.33) {
                   // Vermelho para baixo progresso
                   buttonClass = "border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20";
                 } else if (progress < 0.66) {
@@ -630,10 +638,12 @@ export default function Workout() {
                     className={`w-full ${buttonClass} py-3 text-lg font-semibold`}
                     onClick={finishIndividualWorkout}
                     data-finish-button
-                    disabled={isFinishingWorkout}
+                    disabled={isFinishingWorkout || completedCount === totalExercises}
                   >
                     <CheckCircle2 className="mr-2 h-5 w-5" />
-                    {isFinishingWorkout ? "Finalizando treino..." : `Finalizar Treino (${completedCount}/${totalExercises} exercícios)`}
+                    {isFinishingWorkout ? "Finalizando treino..." : 
+                     completedCount === totalExercises ? "Treino Completo" : 
+                     `Finalizar Treino (${completedCount}/${totalExercises} exercícios)`}
                   </Button>
                 );
               }
