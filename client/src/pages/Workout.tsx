@@ -91,10 +91,10 @@ export default function Workout() {
     return `${timeExec}s`;
   };
 
-  // Função para fazer scroll até o exercício ativo
+  // Função para fazer scroll até o card de execução
   const scrollToActiveExercise = (exerciseId: string) => {
     setTimeout(() => {
-      const element = document.getElementById(`exercise-${exerciseId}`);
+      const element = document.getElementById('execution-card');
       if (element) {
         element.scrollIntoView({ 
           behavior: 'smooth', 
@@ -496,112 +496,206 @@ export default function Workout() {
         </Card>
       )}
 
-      {/* Timer de Descanso Integrado - Posicionado após exercício ativo */}
-      {isResting && activeExercise && (
-        <Card className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="bg-white/20 rounded-full p-2">
-                  <Timer className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-white">Descanso entre séries</p>
-                  <p className="text-2xl font-bold text-white">{formatTime(restTime)}</p>
-                </div>
-              </div>
-              
-              <div className="flex flex-col space-y-2">
-                <div className="flex space-x-2">
-                  <Button 
-                    onClick={() => setIsTimerRunning(!isTimerRunning)}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
-                  >
-                    {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                  </Button>
-                  <Button 
-                    onClick={() => setRestTime(todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.restBetweenSeries || 90)}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Button 
-                  onClick={startNextSet}
-                  size="sm"
-                  className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded-full"
-                >
-                  Próxima Série
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Exercise List */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Exercícios</h2>
         {todaysWorkout.exercises?.map((exercise, index) => {
           const exerciseId = exercise.id || exercise.exercise;
           return (
-            <Card key={exerciseId} id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'ring-2 ring-primary' : ''}`}>
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <h3 className="font-semibold text-sm">{exercise.exercise}</h3>
-                    {completedExercises.has(exerciseId) && (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    )}
+            <div key={exerciseId}>
+              <Card id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'ring-2 ring-primary' : ''}`}>
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-semibold text-sm">{exercise.exercise}</h3>
+                      {completedExercises.has(exerciseId) && (
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {exercise.series}x{exercise.repetitions > 0 ? exercise.repetitions : formatExerciseTime(exercise.timeExec || exercise.time || 0)}
+                    </span>
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {exercise.series}x{exercise.repetitions > 0 ? exercise.repetitions : formatExerciseTime(exercise.timeExec || exercise.time || 0)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                  <span>Peso: {exercise.weight > 0 ? `${exercise.weight}kg` : 'Peso corporal'}</span>
-                  <span className="flex items-center">
-                    <Clock className="mr-1 h-2 w-2" />
-                    {exercise.restBetweenSeries}s
-                  </span>
-                </div>
-                <div className="mb-2">
-                  <p className="text-xs text-muted-foreground">{exercise.instructions}</p>
-                </div>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  <Badge variant="outline" className="text-xs px-1 py-0">
-                    {exercise.muscleGroup}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs px-1 py-0">
-                    {exercise.type}
-                  </Badge>
-                </div>
-                {!completedExercises.has(exerciseId) ? (
-                  <Button 
-                    className="w-full" 
-                    variant={activeExercise === exerciseId ? "secondary" : "default"}
-                    onClick={() => startIndividualExercise(exerciseId)}
-                    disabled={activeExercise !== null && activeExercise !== exerciseId}
-                  >
-                    <Play className="mr-2 h-4 w-4" />
-                    {activeExercise === exerciseId ? "Exercício ativo" : "Iniciar este exercício"}
-                  </Button>
-                ) : (
-                  <Button 
-                    className="w-full" 
-                    variant="outline"
-                    disabled
-                  >
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Exercício concluído
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                    <span>Peso: {exercise.weight > 0 ? `${exercise.weight}kg` : 'Peso corporal'}</span>
+                    <span className="flex items-center">
+                      <Clock className="mr-1 h-2 w-2" />
+                      {exercise.restBetweenSeries}s
+                    </span>
+                  </div>
+                  <div className="mb-2">
+                    <p className="text-xs text-muted-foreground">{exercise.instructions}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    <Badge variant="outline" className="text-xs px-1 py-0">
+                      {exercise.muscleGroup}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs px-1 py-0">
+                      {exercise.type}
+                    </Badge>
+                  </div>
+                  {!completedExercises.has(exerciseId) ? (
+                    <Button 
+                      className="w-full" 
+                      variant={activeExercise === exerciseId ? "secondary" : "default"}
+                      onClick={() => startIndividualExercise(exerciseId)}
+                      disabled={activeExercise !== null && activeExercise !== exerciseId}
+                    >
+                      <Play className="mr-2 h-4 w-4" />
+                      {activeExercise === exerciseId ? "Exercício ativo" : "Iniciar este exercício"}
+                    </Button>
+                  ) : (
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      disabled
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Exercício concluído
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Card de Execução - aparece logo abaixo do exercício ativo */}
+              {activeExercise === exerciseId && (
+                <Card id="execution-card" className="bg-primary dark:bg-primary border-0 animate-in slide-in-from-top duration-300 mt-4">
+                  <CardContent className="p-4">
+                    <div className="text-center text-primary-foreground mb-4">
+                      <h3 className="text-lg font-semibold">Série {currentSet} de {exercise.series}</h3>
+                      <p className="text-sm opacity-90">
+                        {exercise.repetitions > 0 
+                          ? `${exercise.repetitions} repetições` 
+                          : `${formatExerciseTime(exercise.timeExec || exercise.time || 0)}`}
+                      </p>
+                    </div>
+
+                    {!showSetFeedback && !isResting && (
+                      <div className="text-center space-y-3">
+                        <p className="opacity-90">Execute o exercício</p>
+                        <Button 
+                          onClick={() => setShowSetFeedback(true)}
+                          className="bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
+                        >
+                          Concluir Série
+                          <CheckCircle2 className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+
+                    {showSetFeedback && (
+                      <div className="space-y-4">
+                        {/* Weight Input */}
+                        <div className="bg-white/20 rounded-lg p-4">
+                          <h3 className="font-semibold mb-2 text-sm">Peso utilizado</h3>
+                          <div className="flex items-center justify-center space-x-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setWeight(Math.max(0, weight - 2.5))}
+                              disabled={weight <= 2.5}
+                              className="bg-white/20 border-white/30 h-8 w-8"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <div className="text-center">
+                              <div className="text-xl font-bold">{weight}</div>
+                              <div className="text-xs opacity-75">kg</div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setWeight(weight + 2.5)}
+                              className="bg-white/20 border-white/30 h-8 w-8"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Effort Level */}
+                        <div className="bg-white/20 rounded-lg p-4">
+                          <h3 className="font-semibold mb-2 text-sm">Nível de esforço</h3>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-xs opacity-75">
+                              <span>Suave</span>
+                              <span>Intenso</span>
+                            </div>
+                            <Slider
+                              value={effortLevel}
+                              onValueChange={setEffortLevel}
+                              max={10}
+                              min={1}
+                              step={1}
+                              className="w-full"
+                            />
+                            <div className="text-center">
+                              <span className="text-sm font-semibold">
+                                Esforço: {effortLevel[0]}/10
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <Button 
+                          onClick={completeSet}
+                          className="w-full bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
+                        >
+                          Confirmar e prosseguir
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Timer de Descanso - aparece logo abaixo do card de execução */}
+              {isResting && activeExercise === exerciseId && (
+                <Card className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300 mt-4">
+                  <CardContent className="py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-white/20 rounded-full p-2">
+                          <Timer className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-white">Descanso entre séries</p>
+                          <p className="text-2xl font-bold text-white">{formatTime(restTime)}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex space-x-2">
+                          <Button 
+                            onClick={() => setIsTimerRunning(!isTimerRunning)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
+                          >
+                            {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                          </Button>
+                          <Button 
+                            onClick={() => setRestTime(exercise.restBetweenSeries || 90)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Button 
+                          onClick={startNextSet}
+                          size="sm"
+                          className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded-full"
+                        >
+                          Próxima Série
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           );
         })}
       </div>
