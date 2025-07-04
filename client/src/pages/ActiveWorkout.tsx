@@ -471,7 +471,8 @@ export default function ActiveWorkout() {
                 />
               </div>
               <div className="text-center">
-                <span className="text-lg font-medium text-primary-foreground">Peso: {currentWeight} kg</span>
+                <span className="text-lg font-medium text-primary-foreground">{currentWeight}</span>
+                <p className="text-xs text-primary-foreground/80 mt-1">kg</p>
               </div>
             </div>
 
