@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Play, Pause, SkipForward, CheckCircle2, Timer, Clock } from "lucide-react";
+import { Play, Pause, SkipForward, CheckCircle2, Timer, Clock, Minus, Plus } from "lucide-react";
 
 interface Exercise {
   id?: number;
@@ -40,6 +40,8 @@ export default function ActiveWorkout() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRestingBetweenSeries, setIsRestingBetweenSeries] = useState(false);
   const [exerciseIntensity, setExerciseIntensity] = useState(1); // 1-3: suave, moderado, intenso
+  const [currentWeight, setCurrentWeight] = useState(0);
+  const [effortLevel, setEffortLevel] = useState(8);
 
   useEffect(() => {
     // Simular carregamento rápido e recuperar dados
@@ -49,6 +51,10 @@ export default function ActiveWorkout() {
         if (savedWorkout) {
           const data = JSON.parse(savedWorkout);
           setWorkoutData(data);
+          // Inicializar peso baseado no exercício atual
+          if (data.workoutPlan && data.workoutPlan[0]) {
+            setCurrentWeight(data.workoutPlan[0].weight || 0);
+          }
         } else {
           // Se não há treino ativo, redirecionar para home
           setLocation('/');
@@ -66,6 +72,13 @@ export default function ActiveWorkout() {
 
     loadWorkout();
   }, [setLocation]);
+
+  // Atualizar peso quando mudar de exercício
+  useEffect(() => {
+    if (workoutData?.workoutPlan[currentExerciseIndex]) {
+      setCurrentWeight(workoutData.workoutPlan[currentExerciseIndex].weight || 0);
+    }
+  }, [currentExerciseIndex, workoutData]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -283,70 +296,88 @@ export default function ActiveWorkout() {
         </Card>
 
         {/* Current Exercise */}
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+        <Card className="bg-gradient-to-br from-blue-600 to-purple-700 text-white border-0">
           <CardHeader className="py-3">
-            <CardTitle className="text-lg text-slate-900 dark:text-white">{currentExercise.exercise}</CardTitle>
-            <p className="text-sm text-slate-600 dark:text-slate-400">{currentExercise.muscleGroup}</p>
+            <CardTitle className="text-lg text-white">{currentExercise.exercise}</CardTitle>
+            <p className="text-sm text-blue-100">{currentExercise.muscleGroup}</p>
           </CardHeader>
           <CardContent className="space-y-3 pb-4">
-            <p className="text-sm text-slate-700 dark:text-slate-300">{currentExercise.instructions}</p>
+            <p className="text-sm text-blue-100">{currentExercise.instructions}</p>
 
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg">
-                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{currentSeries}</p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">Série</p>
+            <div className="text-center mb-4">
+              <h3 className="text-xl font-semibold text-white mb-2">Série {currentSeries} de {currentExercise.series}</h3>
+            </div>
+
+            {/* Card de controle de peso */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
+              <div className="text-center mb-3">
+                <p className="text-sm text-blue-100">Peso utilizado</p>
               </div>
-              <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg">
-                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
+              <div className="flex items-center justify-center space-x-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentWeight(Math.max(0, currentWeight - 1))}
+                  className="h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/30 border-0"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <div className="text-center">
+                  <span className="text-2xl font-bold text-white">{currentWeight}</span>
+                  <p className="text-sm text-blue-100">kg</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentWeight(currentWeight + 1)}
+                  className="h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/30 border-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Card de nível de esforço */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <div className="text-center mb-3">
+                <p className="text-sm text-blue-100">Nível de esforço</p>
+              </div>
+              <div className="flex items-center justify-between mb-2 text-xs text-blue-200">
+                <span>Suave</span>
+                <span>Intenso</span>
+              </div>
+              <div className="relative mb-3">
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={effortLevel}
+                  onChange={(e) => setEffortLevel(Number(e.target.value))}
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                />
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-medium text-white">Esforço: {effortLevel}/10</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-center mt-4">
+              <div className="bg-white/10 p-3 rounded-lg">
+                <p className="text-lg font-bold text-white">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 
                     ? currentExercise.repetitions
                     : formatExerciseTime(currentExercise.timeExec || currentExercise.time || 30)}
                 </p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
+                <p className="text-xs text-blue-100">
                   {currentExercise.repetitions && currentExercise.repetitions > 0 ? 'Repetições' : 'Tempo'}
                 </p>
               </div>
-              <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-lg">
-                <p className={`font-bold text-slate-900 dark:text-slate-100 ${
-                  currentExercise.weight && currentExercise.weight > 0 ? 'text-xl' : 'text-sm'
-                }`}>
-                  {currentExercise.weight && currentExercise.weight > 0 
-                    ? `${currentExercise.weight}kg`
-                    : 'Corporal'}
-                </p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">Peso</p>
+              <div className="bg-white/10 p-3 rounded-lg">
+                <p className="text-lg font-bold text-white">{currentExercise.calories}</p>
+                <p className="text-xs text-blue-100">Calorias</p>
               </div>
             </div>
 
-            {/* Barra de Intensidade */}
-            <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-lg">
-              <p className="text-sm text-slate-700 dark:text-slate-300 mb-2">Intensidade do Exercício:</p>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-slate-600 dark:text-slate-400">Suave</span>
-                <span className="text-xs text-slate-600 dark:text-slate-400">Moderado</span>
-                <span className="text-xs text-slate-600 dark:text-slate-400">Intenso</span>
-              </div>
-              <div className="flex space-x-1">
-                {[1, 2, 3].map((level) => (
-                  <button
-                    key={level}
-                    onClick={() => setExerciseIntensity(level)}
-                    className={`flex-1 h-2 rounded-full transition-all ${
-                      exerciseIntensity >= level
-                        ? level === 1
-                          ? 'bg-green-500'
-                          : level === 2
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                        : 'bg-slate-300 dark:bg-slate-600'
-                    }`}
-                  />
-                ))}
-              </div>
-              <p className="text-center text-sm text-slate-700 dark:text-slate-200 mt-2">
-                {exerciseIntensity === 1 ? 'Suave' : exerciseIntensity === 2 ? 'Moderado' : 'Intenso'}
-              </p>
-            </div>
           </CardContent>
         </Card>
 
