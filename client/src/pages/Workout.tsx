@@ -660,7 +660,7 @@ export default function Workout() {
           const exerciseId = exercise.id || exercise.exercise;
           return (
             <div key={exerciseId}>
-              <Card id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'ring-2 ring-primary' : ''}`}>
+              <Card id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 ring-2 ring-primary' : ''}`}>
                 <CardContent className="p-2">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center space-x-1">

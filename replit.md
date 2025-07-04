@@ -105,6 +105,8 @@ The system uses **PostgreSQL** with the following main entities:
 
 ```
 Changelog:
+- July 4, 2025. Updated weight component styling to match effort level component
+- July 4, 2025. Enhanced active exercise card with blue background for better visibility
 - June 27, 2025. Initial setup
 ```
 
