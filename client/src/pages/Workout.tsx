@@ -396,36 +396,16 @@ export default function Workout() {
                 Série {currentSet} de {todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.series}
               </div>
 
-              {isResting && (
+              {!isResting && !showSetFeedback && (
                 <div className="space-y-4">
-                  <div className="text-4xl font-bold text-orange-300">
-                    {formatTime(restTime)}
-                  </div>
-                  <p className="opacity-90">Tempo de descanso</p>
-                  <div className="flex justify-center space-x-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setIsTimerRunning(!isTimerRunning)} 
-                      size="sm"
-                      className="bg-white/20 border-white/30"
-                    >
-                      {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setRestTime(todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.restBetweenSeries || 90)} 
-                      size="sm"
-                      className="bg-white/20 border-white/30"
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Timer className="h-8 w-8 mx-auto" />
+                  <p className="opacity-90">Execute o exercício</p>
                   <Button 
-                    onClick={startNextSet}
+                    onClick={() => setShowSetFeedback(true)}
                     className="bg-white text-primary hover:bg-gray-100"
                   >
-                    Começar Próxima Série
-                    <ChevronRight className="ml-2 h-4 w-4" />
+                    Concluir Série
+                    <CheckCircle2 className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               )}
@@ -574,6 +554,44 @@ export default function Workout() {
           );
         })}
       </div>
+
+      {/* Timer Flutuante de Descanso */}
+      {isResting && (
+        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
+          <div className="bg-orange-500 dark:bg-orange-600 text-white rounded-full p-4 shadow-lg min-w-[140px]">
+            <div className="text-center">
+              <Timer className="h-5 w-5 mx-auto mb-1" />
+              <p className="text-xs font-medium mb-1">Descanso</p>
+              <p className="text-xl font-bold">{formatTime(restTime)}</p>
+              <div className="flex justify-center mt-2 space-x-2">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setIsTimerRunning(!isTimerRunning)} 
+                  size="sm"
+                  className="h-6 w-6 p-0 text-white hover:bg-white/20"
+                >
+                  {isTimerRunning ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setRestTime(todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.restBetweenSeries || 90)} 
+                  size="sm"
+                  className="h-6 w-6 p-0 text-white hover:bg-white/20"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                </Button>
+              </div>
+              <Button 
+                onClick={startNextSet}
+                size="sm"
+                className="mt-2 bg-white/20 text-white hover:bg-white/30 text-xs px-2 py-1"
+              >
+                Próxima Série
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

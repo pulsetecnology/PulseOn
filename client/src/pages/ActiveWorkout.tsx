@@ -381,43 +381,37 @@ export default function ActiveWorkout() {
           </CardContent>
         </Card>
 
-        {/* Rest Timer */}
+        {/* Timer Flutuante de Descanso */}
         {isResting && (
-          <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
-            <CardContent className="text-center py-4">
-              <Timer className="h-8 w-8 mx-auto mb-2 text-orange-600 dark:text-orange-400" />
-              <p className="text-lg font-bold text-slate-900 dark:text-white">
-                {isRestingBetweenSeries ? 'Descanso entre séries' : 'Descanso entre exercícios'}
-              </p>
-              <p className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-4">{formatTime(restTime)}</p>
-
-              <div className="flex justify-center space-x-3 mb-4">
-                <Button 
-                  onClick={pauseResumeTimer}
-                  variant="outline"
-                  size="sm"
-                  className="border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-800"
-                >
-                  {isTimerActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </Button>
-                <Button 
-                  onClick={skipToNextSeries}
-                  variant="outline"
-                  size="sm"
-                  className="border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-800"
-                >
-                  <SkipForward className="h-4 w-4" />
-                </Button>
+          <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
+            <div className="bg-orange-500 dark:bg-orange-600 text-white rounded-full p-4 shadow-lg min-w-[140px]">
+              <div className="text-center">
+                <Timer className="h-5 w-5 mx-auto mb-1" />
+                <p className="text-xs font-medium mb-1">
+                  {isRestingBetweenSeries ? 'Descanso' : 'Pausa'}
+                </p>
+                <p className="text-xl font-bold">{formatTime(restTime)}</p>
+                <div className="flex justify-center mt-2 space-x-2">
+                  <Button 
+                    onClick={pauseResumeTimer}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-white hover:bg-white/20"
+                  >
+                    {isTimerActive ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                  </Button>
+                  <Button 
+                    onClick={skipToNextSeries}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-white hover:bg-white/20"
+                  >
+                    <SkipForward className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-
-              <Button 
-                onClick={skipToNextSeries}
-                className="bg-orange-600 hover:bg-orange-700 text-white"
-              >
-                Pular Descanso
-              </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Action Buttons */}

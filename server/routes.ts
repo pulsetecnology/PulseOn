@@ -792,11 +792,11 @@ ${JSON.stringify(n8nResponse, null, 2)}
       const sessionData = {
         userId: req.user!.id,
         scheduledWorkoutId: req.body.scheduledWorkoutId || null,
-        name: req.body.name || "Treino Personalizado",
-        startedAt: req.body.startedAt || new Date().toISOString(),
-        completedAt: req.body.completedAt || new Date().toISOString(),
+        name: req.body.name || req.body.workoutName || "Treino Personalizado",
+        startedAt: req.body.startedAt || req.body.startTime || new Date().toISOString(),
+        completedAt: req.body.completedAt || req.body.endTime || new Date().toISOString(),
         exercises: req.body.exercises || [],
-        totalDuration: req.body.totalDuration || 0,
+        totalDuration: req.body.totalDuration || req.body.duration || 0,
         totalCalories: req.body.totalCalories || 0,
         notes: req.body.notes || ""
       };
