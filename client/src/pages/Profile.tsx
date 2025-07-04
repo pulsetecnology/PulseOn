@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { Calendar, Activity, Target, Dumbbell, Camera, Scale, User, Settings, Check, X, AlertCircle } from "lucide-react";
+import { Calendar, Activity, Target, Dumbbell, Camera, Scale, User, Settings, Check, X, AlertCircle, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -427,6 +427,42 @@ export default function Profile() {
 
   const handleSendToN8N = () => {
     sendToN8NMutation.mutate();
+  };
+
+  // Mutação para limpar todos os dados de treinos
+  const clearWorkoutDataMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/clear-workout-data", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao limpar dados: ${response.status}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidar todas as queries relacionadas a treinos
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workout-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      showSuccess("Todos os dados de treinos foram limpos com sucesso!");
+    },
+    onError: (error: Error) => {
+      console.error('Erro ao limpar dados:', error);
+      showError("Erro ao limpar dados. Tente novamente.");
+    }
+  });
+
+  const handleClearWorkoutData = () => {
+    if (confirm("Tem certeza que deseja limpar todos os treinos executados, histórico e treino sugerido ativo? Esta ação não pode ser desfeita.")) {
+      clearWorkoutDataMutation.mutate();
+    }
   };
 
   const handleCancelEdit = () => {
@@ -1279,6 +1315,52 @@ export default function Profile() {
                   </p>
                 </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Configurações */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Configurações
+            </CardTitle>
+            <CardDescription>
+              Gerencie os dados do seu aplicativo
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-destructive/10 dark:bg-destructive/20 border border-destructive/20 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                <div className="space-y-2">
+                  <h4 className="font-medium text-destructive">Zona de Perigo</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Esta ação irá apagar permanentemente todos os seus treinos executados, 
+                    histórico de exercícios e treino sugerido ativo. Esta ação não pode ser desfeita.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleClearWorkoutData}
+                    disabled={clearWorkoutDataMutation.isPending}
+                    className="mt-2"
+                  >
+                    {clearWorkoutDataMutation.isPending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Limpando dados...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Limpar todos os dados de treinos
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

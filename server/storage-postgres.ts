@@ -44,6 +44,7 @@ export interface IStorage {
   getWorkoutSession(id: number): Promise<WorkoutSession | undefined>;
   createWorkoutSession(session: InsertWorkoutSession): Promise<WorkoutSession>;
   updateWorkoutSession(id: number, updates: Partial<InsertWorkoutSession>): Promise<WorkoutSession | undefined>;
+  deleteWorkoutSession(id: number): Promise<void>;
   completeWorkoutSession(id: number, exercises: CompletedExercise[], totalDuration: number, totalCalories: number, notes?: string): Promise<WorkoutSession | undefined>;
 
   // Statistics methods
@@ -260,6 +261,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(workoutSessions.id, id))
       .returning();
     return session || undefined;
+  }
+
+  async deleteWorkoutSession(id: number): Promise<void> {
+    await db
+      .delete(workoutSessions)
+      .where(eq(workoutSessions.id, id));
   }
 
   async completeWorkoutSession(

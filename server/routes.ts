@@ -1044,6 +1044,37 @@ ${JSON.stringify(n8nResponse, null, 2)}
     }
   );
 
+  // Clear all workout data
+  app.delete("/api/clear-workout-data", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      console.log(`Clearing all workout data for user: ${user.id}`);
+
+      // Clear scheduled workouts
+      const scheduledWorkouts = await storage.getScheduledWorkouts(user.id);
+      for (const workout of scheduledWorkouts) {
+        await storage.deleteScheduledWorkout(workout.id);
+      }
+
+      // Clear workout sessions
+      const workoutSessions = await storage.getWorkoutSessions(user.id);
+      for (const session of workoutSessions) {
+        await storage.deleteWorkoutSession(session.id);
+      }
+
+      console.log(`Cleared ${scheduledWorkouts.length} scheduled workouts and ${workoutSessions.length} workout sessions for user ${user.id}`);
+
+      res.json({
+        message: "Todos os dados de treinos foram limpos com sucesso",
+        clearedScheduledWorkouts: scheduledWorkouts.length,
+        clearedWorkoutSessions: workoutSessions.length
+      });
+    } catch (error) {
+      console.error("Error clearing workout data:", error);
+      res.status(500).json({ message: "Erro ao limpar dados de treinos" });
+    }
+  });
+
   // Serve uploaded files
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
