@@ -120,18 +120,22 @@ export default function Workout() {
     return `${timeExec}s`;
   };
 
-  // Função para fazer scroll até o card de execução
+  // Função para fazer scroll até o card ativo posicionando logo abaixo do header
   const scrollToActiveExercise = (exerciseId: string) => {
     setTimeout(() => {
-      const element = document.getElementById('execution-card');
-      if (element) {
-        element.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center',
-          inline: 'nearest'
+      const activeCard = document.getElementById(`exercise-${exerciseId}`);
+      if (activeCard) {
+        // Calcular posição do header fixo (assumindo altura de ~64px)
+        const headerHeight = 80; 
+        const elementPosition = activeCard.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - headerHeight;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
         });
       }
-    }, 100);
+    }, 200); // Pequeno delay para permitir que o card seja renderizado
   };
 
 
