@@ -494,6 +494,72 @@ export default function Home() {
     };
   }, [workoutSessions]);
 
+  // Calculate weekly workout details for the expanded view
+  const weeklyWorkoutDetails = useMemo(() => {
+    if (!Array.isArray(workoutSessions)) return {};
+    
+    const completedSessions = workoutSessions.filter((session: any) => session.completedAt);
+    const today = new Date();
+    const weekAgo = subDays(today, 7);
+    
+    const weeklySessions = completedSessions.filter((session: any) => 
+      parseISO(session.completedAt) >= weekAgo
+    );
+
+    // Get workout details for each day of the week
+    const weekDays = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+    const weeklyDetails: Record<string, { hasWorkout: boolean; duration: number; name: string }> = {};
+    
+    // Calculate total unique exercises and muscle groups
+    const allExercises = new Set<string>();
+    const allMuscleGroups = new Set<string>();
+    
+    for (let i = 0; i < 7; i++) {
+      const dayDate = subDays(today, i);
+      const dayString = dayDate.toDateString();
+      const dayName = weekDays[6 - i]; // Reverse order to start from Monday
+      
+      const dayWorkouts = weeklySessions.filter((session: any) => 
+        parseISO(session.completedAt).toDateString() === dayString
+      );
+      
+      if (dayWorkouts.length > 0) {
+        const totalMinutes = dayWorkouts.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
+        const mainMuscleGroup = dayWorkouts[0].name || 'Treino'; // Use workout name
+        
+        weeklyDetails[dayName] = {
+          hasWorkout: true,
+          duration: totalMinutes,
+          name: mainMuscleGroup
+        };
+        
+        // Add exercises and muscle groups to sets
+        dayWorkouts.forEach((session: any) => {
+          if (session.exercises && Array.isArray(session.exercises)) {
+            session.exercises.forEach((exercise: any) => {
+              if (exercise.completed) {
+                allExercises.add(exercise.exercise);
+                allMuscleGroups.add(exercise.muscleGroup);
+              }
+            });
+          }
+        });
+      } else {
+        weeklyDetails[dayName] = {
+          hasWorkout: false,
+          duration: 0,
+          name: 'Descanso'
+        };
+      }
+    }
+    
+    return {
+      details: weeklyDetails,
+      uniqueExercises: allExercises.size,
+      uniqueMuscleGroups: allMuscleGroups.size
+    };
+  }, [workoutSessions]);
+
   const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0;
   const todaysWorkout = hasWorkoutsAvailable ? scheduledWorkouts[0] : null;
 
@@ -801,9 +867,9 @@ export default function Home() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Meta Semanal</span>
-                <span className="text-muted-foreground">3/3 treinos</span>
+                <span className="text-muted-foreground">{Object.values(weeklyWorkoutDetails.details || {}).filter((day: any) => day.hasWorkout).length}/3 treinos</span>
               </div>
-              <Progress value={100} className="h-2" />
+              <Progress value={Math.min(100, (Object.values(weeklyWorkoutDetails.details || {}).filter((day: any) => day.hasWorkout).length / 3) * 100)} className="h-2" />
             </div>
 
             <div className="grid grid-cols-3 gap-3 text-center">
@@ -836,61 +902,26 @@ export default function Home() {
                 <h4 className="font-semibold text-sm">Detalhes Semanais</h4>
 
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Segunda-feira</span>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">Pernas - 45min</span>
+                  {Object.entries(weeklyWorkoutDetails.details || {}).map(([dayName, dayData]) => (
+                    <div key={dayName} className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">{dayName}</span>
+                      <div className="flex items-center gap-2">
+                        {dayData.hasWorkout ? (
+                          <>
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <span className="text-sm font-medium">
+                              {dayData.name} - {dayData.duration}min
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Descanso</span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Terça-feira</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Quarta-feira</span>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">Peito - 50min</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Quinta-feira</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Sexta-feira</span>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">Costas - 40min</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Sábado</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Domingo</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
                 <div className="bg-muted/30 p-3 rounded-lg">
@@ -898,19 +929,19 @@ export default function Home() {
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Total de calorias:</span>
-                      <span className="font-medium">1,845 kcal</span>
+                      <span className="font-medium">{workoutStats.weeklyCalories.toLocaleString()} kcal</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Tempo total:</span>
-                      <span className="font-medium">2h 15min</span>
+                      <span className="font-medium">{Math.floor(workoutStats.weeklyMinutes / 60)}h {workoutStats.weeklyMinutes % 60}min</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Exercícios únicos:</span>
-                      <span className="font-medium">15</span>
+                      <span className="font-medium">{weeklyWorkoutDetails.uniqueExercises || 0}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Grupos musculares:</span>
-                      <span className="font-medium">8</span>
+                      <span className="font-medium">{weeklyWorkoutDetails.uniqueMuscleGroups || 0}</span>
                     </div>
                   </div>
                 </div>
