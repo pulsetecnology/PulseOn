@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Play, Pause, SkipForward, CheckCircle2, Timer, Clock, Minus, Plus } from "lucide-react";
+import { Play, Pause, SkipForward, CheckCircle2, Timer, Clock } from "lucide-react";
 
 interface Exercise {
   id?: number;
@@ -455,27 +455,23 @@ export default function ActiveWorkout() {
               <div className="text-center mb-3">
                 <p className="text-sm text-primary-foreground/80">Peso utilizado</p>
               </div>
-              <div className="flex items-center justify-center space-x-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCurrentWeight(Math.max(0, currentWeight - 1))}
-                  className="h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/30 border-0"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <div className="text-center">
-                  <span className="text-2xl font-bold text-primary-foreground">{currentWeight}</span>
-                  <p className="text-sm text-primary-foreground/80">kg</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCurrentWeight(currentWeight + 1)}
-                  className="h-10 w-10 rounded-full bg-white/20 text-white hover:bg-white/30 border-0"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center justify-between mb-2 text-xs text-blue-200">
+                <span>0 kg</span>
+                <span>200 kg</span>
+              </div>
+              <div className="relative mb-3">
+                <input
+                  type="range"
+                  min="0"
+                  max="200"
+                  step="2.5"
+                  value={currentWeight}
+                  onChange={(e) => setCurrentWeight(Number(e.target.value))}
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                />
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-medium text-primary-foreground">Peso: {currentWeight} kg</span>
               </div>
             </div>
 
