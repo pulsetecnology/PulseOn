@@ -152,6 +152,7 @@ export default function Workout() {
   const [isResting, setIsResting] = useState(false);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showSetFeedback, setShowSetFeedback] = useState(false);
+  const [isFinishingWorkout, setIsFinishingWorkout] = useState(false);
   const { showWorkoutSuccess } = useGlobalNotification();
 
   // Scroll to top when component mounts
@@ -233,8 +234,8 @@ export default function Workout() {
       setIsResting(false);
       setIsTimerRunning(false);
       setShowSetFeedback(false);
-      // Auto-scroll para o topo da tela
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Auto-scroll para o exercício ativo
+      scrollToActiveExercise(exerciseId);
     }
   };
 
@@ -272,21 +273,15 @@ export default function Workout() {
           const completedCount = newSet.size;
           
           if (completedCount >= totalExercises) {
-            // Último exercício concluído - finalizar treino automaticamente
+            // Último exercício concluído - mostrar "Finalizando treino..." e scroll para o topo
+            setIsFinishingWorkout(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             setTimeout(() => {
               finishIndividualWorkout();
             }, 2000); // Pequeno delay para mostrar sucesso do exercício
           } else {
-            // Scroll para mostrar o botão de finalizar treino
-            setTimeout(() => {
-              const finishButton = document.querySelector('[data-finish-button]');
-              if (finishButton) {
-                finishButton.scrollIntoView({ 
-                  behavior: 'smooth', 
-                  block: 'center' 
-                });
-              }
-            }, 1000);
+            // Scroll para o topo após completar exercício
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
           
           return newSet;
@@ -371,6 +366,9 @@ export default function Workout() {
 
   const finishIndividualWorkout = async () => {
     if (!todaysWorkout) return;
+
+    // Resetar estado de finalização
+    setIsFinishingWorkout(false);
 
     const startTime = new Date();
     const endTime = new Date();
@@ -624,9 +622,10 @@ export default function Workout() {
                     className={`w-full ${buttonClass} py-3 text-lg font-semibold`}
                     onClick={finishIndividualWorkout}
                     data-finish-button
+                    disabled={isFinishingWorkout}
                   >
                     <CheckCircle2 className="mr-2 h-5 w-5" />
-                    Finalizar Treino ({completedCount}/{totalExercises} exercícios)
+                    {isFinishingWorkout ? "Finalizando treino..." : `Finalizar Treino (${completedCount}/${totalExercises} exercícios)`}
                   </Button>
                 );
               }
