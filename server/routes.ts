@@ -568,9 +568,11 @@ ${JSON.stringify(n8nResponse, null, 2)}
                   aiWorkoutResponse = {
                     userId: parsed.userId || user.id,
                     workoutPlan: parsed.workoutPlan,
-                    workoutName: parsed.workoutName || "Treino Personalizado"
+                    workoutName: parsed.workoutName || "Treino Personalizado",
+                    workoutObs: parsed.workoutObs
                   };
                   console.log("Valid AI workout response extracted successfully");
+                  console.log("WorkoutObs found:", parsed.workoutObs);
                 }
               } else {
                 console.log("No JSON pattern found in output");
