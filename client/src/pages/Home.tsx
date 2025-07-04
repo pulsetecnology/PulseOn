@@ -994,7 +994,7 @@ export default function Home() {
                     <Play className="mr-2 h-4 w-4" />
                     Ir para treino
                   </Button>
-                  <div className="text-right">
+                  <div className="text-left">
                     <p className="text-xs text-blue-700 dark:text-blue-300">
                       {(todaysWorkout as any).description || "Baseado no seu perfil"}
                     </p>
