@@ -64,6 +64,12 @@ export default function Workout() {
     queryFn: fetchScheduledWorkouts,
   });
 
+  // Fetch user data for body weight
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/me'],
+    queryFn: () => apiRequest('/api/auth/me'),
+  });
+
   // AI workout generation mutation
   const generateWorkoutMutation = useMutation({
     mutationFn: async () => {
@@ -145,7 +151,9 @@ export default function Workout() {
     if (exercise) {
       setActiveExercise(exerciseId);
       setCurrentSet(1);
-      setWeight(exercise.weight || 40);
+      // Se for peso corporal (weight = 0), usar peso do usuário, senão usar peso do equipamento
+      const initialWeight = exercise.weight === 0 ? (user?.weight || 70) : (exercise.weight || 40);
+      setWeight(initialWeight);
       setEffortLevel([7]);
       setRestTime(exercise.restBetweenSeries || 90);
       setIsResting(false);
@@ -556,29 +564,44 @@ export default function Workout() {
                         {/* Weight Input */}
                         <div className="bg-white/20 rounded-lg p-4">
                           <h3 className="font-semibold mb-2 text-sm">Peso utilizado</h3>
-                          <div className="flex items-center justify-center space-x-3">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setWeight(Math.max(0, weight - 2.5))}
-                              disabled={weight <= 2.5}
-                              className="bg-white/20 border-white/30 h-8 w-8"
-                            >
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <div className="text-center">
-                              <div className="text-xl font-bold">{weight}</div>
-                              <div className="text-xs opacity-75">kg</div>
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setWeight(weight + 2.5)}
-                              className="bg-white/20 border-white/30 h-8 w-8"
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          </div>
+                          {(() => {
+                            const exercise = todaysWorkout?.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise);
+                            const isBodyWeight = exercise?.weight === 0;
+                            const userWeight = user?.weight || 70; // Default 70kg if not available
+                            
+                            if (isBodyWeight) {
+                              return (
+                                <div className="text-center">
+                                  <div className="text-xl font-bold">{userWeight}</div>
+                                  <div className="text-xs opacity-75">kg (peso corporal)</div>
+                                  <div className="text-xs opacity-60 mt-1">
+                                    Peso fixo do seu perfil
+                                  </div>
+                                </div>
+                              );
+                            }
+                            
+                            return (
+                              <div className="space-y-3">
+                                <div className="text-center">
+                                  <div className="text-xl font-bold">{weight}</div>
+                                  <div className="text-xs opacity-75">kg</div>
+                                </div>
+                                <Slider
+                                  value={[weight]}
+                                  onValueChange={(value) => setWeight(value[0])}
+                                  max={200}
+                                  min={0}
+                                  step={2.5}
+                                  className="w-full"
+                                />
+                                <div className="flex justify-between text-xs opacity-75">
+                                  <span>0 kg</span>
+                                  <span>200 kg</span>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         {/* Effort Level */}
