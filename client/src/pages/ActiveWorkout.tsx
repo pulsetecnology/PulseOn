@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,20 @@ export default function ActiveWorkout() {
   const [exerciseIntensity, setExerciseIntensity] = useState(1); // 1-3: suave, moderado, intenso
   const [currentWeight, setCurrentWeight] = useState(0);
   const [effortLevel, setEffortLevel] = useState(8);
+
+  // Refs para auto-scroll
+  const executionCardRef = useRef<HTMLDivElement>(null);
+  const timerCardRef = useRef<HTMLDivElement>(null);
+
+  // Função para scroll suave para cards importantes
+  const scrollToCard = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+  };
 
   useEffect(() => {
     // Simular carregamento rápido e recuperar dados
@@ -120,6 +134,8 @@ export default function ActiveWorkout() {
     setIsResting(true);
     setIsRestingBetweenSeries(isBetweenSeries);
     setIsTimerActive(true);
+    // Auto-scroll para o card do timer
+    setTimeout(() => scrollToCard(timerCardRef), 300);
   };
 
   const pauseResumeTimer = () => {
@@ -131,6 +147,8 @@ export default function ActiveWorkout() {
     setIsRestingBetweenSeries(false);
     setIsTimerActive(false);
     setRestTime(0);
+    // Auto-scroll para o card de execução
+    setTimeout(() => scrollToCard(executionCardRef), 300);
   };
 
 
@@ -417,7 +435,7 @@ export default function ActiveWorkout() {
         </Card>
 
         {/* Current Exercise */}
-        <Card className="bg-primary dark:bg-primary border-0">
+        <Card ref={executionCardRef} className="bg-primary dark:bg-primary border-0">
           <CardHeader className="py-3">
             <CardTitle className="text-lg text-primary-foreground">{currentExercise.exercise}</CardTitle>
             <p className="text-sm text-primary-foreground/80">{currentExercise.muscleGroup}</p>
@@ -504,7 +522,7 @@ export default function ActiveWorkout() {
 
         {/* Timer de Descanso Integrado */}
         {isResting && (
-          <Card className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300">
+          <Card ref={timerCardRef} className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300">
             <CardContent className="py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">

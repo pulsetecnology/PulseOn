@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -71,6 +71,20 @@ export default function Workout() {
   const [showSetFeedback, setShowSetFeedback] = useState(false);
   const { showWorkoutSuccess } = useGlobalNotification();
 
+  // Refs para auto-scroll
+  const executionCardRef = useRef<HTMLDivElement>(null);
+  const timerCardRef = useRef<HTMLDivElement>(null);
+
+  // Função para scroll suave para cards importantes
+  const scrollToCard = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+  };
+
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -104,6 +118,8 @@ export default function Workout() {
       setIsResting(false);
       setIsTimerRunning(false);
       setShowSetFeedback(false);
+      // Auto-scroll para o card de execução
+      setTimeout(() => scrollToCard(executionCardRef), 300);
     }
   };
 
@@ -122,6 +138,8 @@ export default function Workout() {
         setIsResting(true);
         setRestTime(exercise.restBetweenSeries || 90);
         setIsTimerRunning(true);
+        // Auto-scroll para o card do timer
+        setTimeout(() => scrollToCard(timerCardRef), 300);
       } else {
         // Exercise completed
         setCompletedExercises(prev => {
@@ -140,6 +158,8 @@ export default function Workout() {
     setIsResting(false);
     setIsTimerRunning(false);
     setShowSetFeedback(true);
+    // Auto-scroll para o card de execução
+    setTimeout(() => scrollToCard(executionCardRef), 300);
   };
 
   const finishIndividualWorkout = async () => {
@@ -295,15 +315,18 @@ export default function Workout() {
         <div>
           <h1 className="text-2xl font-bold mb-2">Treinos Programados</h1>
           <p className="text-muted-foreground">
-            Nenhum treino encontrado. Sincronize com a IA para gerar treinos personalizados.
+            Gere seu primeiro treino personalizado usando nossa IA
           </p>
         </div>
         <Card>
           <CardContent className="p-6 text-center">
             <p className="text-gray-500 mb-4">Você ainda não possui treinos programados.</p>
-            <Link href="/profile">
+            <p className="text-sm text-muted-foreground mb-4">
+              Vá para a tela inicial e clique em "Gerar treino" para começar
+            </p>
+            <Link href="/">
               <Button>
-                Ir para Perfil e Sincronizar
+                Ir para Tela Inicial
               </Button>
             </Link>
           </CardContent>
@@ -388,7 +411,7 @@ export default function Workout() {
 
       {/* Active Exercise Timer */}
       {activeExercise && (
-        <Card className="bg-primary dark:bg-primary border-0">
+        <Card ref={executionCardRef} className="bg-primary dark:bg-primary border-0">
           <CardContent className="p-6 text-primary-foreground dark:text-primary-foreground">
             <div className="text-center">
               <h2 className="text-lg font-semibold mb-2">
@@ -482,7 +505,7 @@ export default function Workout() {
 
       {/* Timer de Descanso Integrado - Posicionado após exercício ativo */}
       {isResting && activeExercise && (
-        <Card className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300">
+        <Card ref={timerCardRef} className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300">
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
