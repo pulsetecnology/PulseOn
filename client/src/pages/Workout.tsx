@@ -779,10 +779,10 @@ export default function Workout() {
                             }
                             
                             return (
-                              <div className="space-y-2">
-                                <div className="text-center">
-                                  <div className="text-lg font-bold">{weight}</div>
-                                  <div className="text-xs opacity-75">kg</div>
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-xs opacity-75">
+                                  <span>0 kg</span>
+                                  <span>200 kg</span>
                                 </div>
                                 <Slider
                                   value={[weight]}
@@ -792,9 +792,10 @@ export default function Workout() {
                                   step={2.5}
                                   className="w-full"
                                 />
-                                <div className="flex justify-between text-xs opacity-75">
-                                  <span>0 kg</span>
-                                  <span>200 kg</span>
+                                <div className="text-center">
+                                  <span className="text-sm font-semibold">
+                                    {weight} kg
+                                  </span>
                                 </div>
                               </div>
                             );
