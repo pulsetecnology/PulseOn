@@ -69,9 +69,6 @@ export default function Workout() {
   const [isResting, setIsResting] = useState(false);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showSetFeedback, setShowSetFeedback] = useState(false);
-  const [timerPosition, setTimerPosition] = useState({ x: 16, y: 16 }); // top-4 right-4 equivalent
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const { showWorkoutSuccess } = useGlobalNotification();
 
   // Scroll to top when component mounts
@@ -94,64 +91,7 @@ export default function Workout() {
     return `${timeExec}s`;
   };
 
-  // Funções para arrastar o timer
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - timerPosition.x,
-      y: e.clientY - timerPosition.y
-    });
-  };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    
-    const newX = e.clientX - dragStart.x;
-    const newY = e.clientY - dragStart.y;
-    
-    // Limitar dentro da tela
-    const maxX = window.innerWidth - 140; // largura do timer
-    const maxY = window.innerHeight - 200; // altura do timer
-    
-    setTimerPosition({
-      x: Math.max(0, Math.min(newX, maxX)),
-      y: Math.max(0, Math.min(newY, maxY))
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  // Adicionar event listeners globais para mouse
-  useEffect(() => {
-    if (isDragging) {
-      const handleGlobalMouseMove = (e: MouseEvent) => {
-        const newX = e.clientX - dragStart.x;
-        const newY = e.clientY - dragStart.y;
-        
-        const maxX = window.innerWidth - 140;
-        const maxY = window.innerHeight - 200;
-        
-        setTimerPosition({
-          x: Math.max(0, Math.min(newX, maxX)),
-          y: Math.max(0, Math.min(newY, maxY))
-        });
-      };
-
-      const handleGlobalMouseUp = () => {
-        setIsDragging(false);
-      };
-
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-
-      return () => {
-        document.removeEventListener('mousemove', handleGlobalMouseMove);
-        document.removeEventListener('mouseup', handleGlobalMouseUp);
-      };
-    }
-  }, [isDragging, dragStart]);
 
   const startIndividualExercise = (exerciseId: string) => {
     const exercise = todaysWorkout?.exercises?.find(ex => (ex.id || ex.exercise) === exerciseId);
@@ -603,53 +543,51 @@ export default function Workout() {
         })}
       </div>
 
-      {/* Timer Flutuante de Descanso */}
+      {/* Timer de Descanso Integrado */}
       {isResting && (
-        <div 
-          className="fixed z-50 animate-in slide-in-from-right duration-300 cursor-move"
-          style={{ 
-            left: `${timerPosition.x}px`, 
-            top: `${timerPosition.y}px`,
-            userSelect: 'none'
-          }}
-          onMouseDown={handleMouseDown}
-        >
-          <div className="bg-orange-500 dark:bg-orange-600 text-white rounded-full p-4 shadow-lg min-w-[140px] select-none">
-            <div className="text-center">
-              <Timer className="h-5 w-5 mx-auto mb-1" />
-              <p className="text-xs font-medium mb-1">Descanso</p>
-              <p className="text-xl font-bold">{formatTime(restTime)}</p>
-              <div className="flex justify-center mt-2 space-x-2">
+        <Card className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="bg-white/20 rounded-full p-2">
+                  <Timer className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">Descanso entre séries</p>
+                  <p className="text-2xl font-bold text-white">{formatTime(restTime)}</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={() => setIsTimerRunning(!isTimerRunning)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
+                  >
+                    {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  </Button>
+                  <Button 
+                    onClick={() => setRestTime(todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.restBetweenSeries || 90)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </div>
                 <Button 
-                  variant="ghost" 
-                  onClick={() => setIsTimerRunning(!isTimerRunning)} 
+                  onClick={startNextSet}
                   size="sm"
-                  className="h-6 w-6 p-0 text-white hover:bg-white/20"
-                  onMouseDown={(e) => e.stopPropagation()}
+                  className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded-full"
                 >
-                  {isTimerRunning ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setRestTime(todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise)?.restBetweenSeries || 90)} 
-                  size="sm"
-                  className="h-6 w-6 p-0 text-white hover:bg-white/20"
-                  onMouseDown={(e) => e.stopPropagation()}
-                >
-                  <RotateCcw className="h-3 w-3" />
+                  Próxima Série
                 </Button>
               </div>
-              <Button 
-                onClick={startNextSet}
-                size="sm"
-                className="mt-2 bg-white/20 text-white hover:bg-white/30 text-xs px-2 py-1"
-                onMouseDown={(e) => e.stopPropagation()}
-              >
-                Próxima Série
-              </Button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

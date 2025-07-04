@@ -42,9 +42,6 @@ export default function ActiveWorkout() {
   const [exerciseIntensity, setExerciseIntensity] = useState(1); // 1-3: suave, moderado, intenso
   const [currentWeight, setCurrentWeight] = useState(0);
   const [effortLevel, setEffortLevel] = useState(8);
-  const [timerPosition, setTimerPosition] = useState({ x: 16, y: 16 }); // top-4 right-4 equivalent
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     // Simular carregamento rápido e recuperar dados
@@ -136,44 +133,7 @@ export default function ActiveWorkout() {
     setRestTime(0);
   };
 
-  // Funções para arrastar o timer
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - timerPosition.x,
-      y: e.clientY - timerPosition.y
-    });
-  };
 
-  // Adicionar event listeners globais para mouse
-  useEffect(() => {
-    if (isDragging) {
-      const handleGlobalMouseMove = (e: MouseEvent) => {
-        const newX = e.clientX - dragStart.x;
-        const newY = e.clientY - dragStart.y;
-        
-        const maxX = window.innerWidth - 140;
-        const maxY = window.innerHeight - 200;
-        
-        setTimerPosition({
-          x: Math.max(0, Math.min(newX, maxX)),
-          y: Math.max(0, Math.min(newY, maxY))
-        });
-      };
-
-      const handleGlobalMouseUp = () => {
-        setIsDragging(false);
-      };
-
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-
-      return () => {
-        document.removeEventListener('mousemove', handleGlobalMouseMove);
-        document.removeEventListener('mouseup', handleGlobalMouseUp);
-      };
-    }
-  }, [isDragging, dragStart]);
 
   const completeSeries = () => {
     const currentExercise = workoutData?.workoutPlan[currentExerciseIndex];
@@ -542,47 +502,44 @@ export default function ActiveWorkout() {
           </CardContent>
         </Card>
 
-        {/* Timer Flutuante de Descanso */}
+        {/* Timer de Descanso Integrado */}
         {isResting && (
-          <div 
-            className="fixed z-50 animate-in slide-in-from-right duration-300 cursor-move"
-            style={{ 
-              left: `${timerPosition.x}px`, 
-              top: `${timerPosition.y}px`,
-              userSelect: 'none'
-            }}
-            onMouseDown={handleMouseDown}
-          >
-            <div className="bg-orange-500 dark:bg-orange-600 text-white rounded-full p-4 shadow-lg min-w-[140px] select-none">
-              <div className="text-center">
-                <Timer className="h-5 w-5 mx-auto mb-1" />
-                <p className="text-xs font-medium mb-1">
-                  {isRestingBetweenSeries ? 'Descanso' : 'Pausa'}
-                </p>
-                <p className="text-xl font-bold">{formatTime(restTime)}</p>
-                <div className="flex justify-center mt-2 space-x-2">
+          <Card className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white/20 rounded-full p-2">
+                    <Timer className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      {isRestingBetweenSeries ? 'Descanso entre séries' : 'Pausa'}
+                    </p>
+                    <p className="text-2xl font-bold text-white">{formatTime(restTime)}</p>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-2">
                   <Button 
                     onClick={pauseResumeTimer}
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 text-white hover:bg-white/20"
-                    onMouseDown={(e) => e.stopPropagation()}
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
                   >
-                    {isTimerActive ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                    {isTimerActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </Button>
                   <Button 
                     onClick={skipToNextSeries}
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 text-white hover:bg-white/20"
-                    onMouseDown={(e) => e.stopPropagation()}
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
                   >
-                    <SkipForward className="h-3 w-3" />
+                    <SkipForward className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Action Buttons */}
