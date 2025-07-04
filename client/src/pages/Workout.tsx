@@ -16,6 +16,7 @@ interface Exercise {
   type: string;
   instructions: string;
   time: number;
+  timeExec?: number;
   series: number;
   repetitions: number;
   restBetweenSeries: number;
@@ -121,7 +122,11 @@ export default function Workout() {
         setIsTimerRunning(true);
       } else {
         // Exercise completed
-        setCompletedExercises(prev => new Set([...prev, activeExercise!]));
+        setCompletedExercises(prev => {
+          const newSet = new Set(prev);
+          newSet.add(activeExercise!);
+          return newSet;
+        });
         setActiveExercise(null);
         setCurrentSet(1);
         showWorkoutSuccess();
@@ -133,6 +138,95 @@ export default function Workout() {
     setIsResting(false);
     setIsTimerRunning(false);
     setShowSetFeedback(true);
+  };
+
+  const finishIndividualWorkout = async () => {
+    if (!todaysWorkout) return;
+
+    const startTime = new Date();
+    const endTime = new Date();
+    const durationMinutes = 1; // Assumir pelo menos 1 minuto
+
+    // Criar exercícios completados com formato adequado
+    const completedExercisesList = todaysWorkout.exercises.map(exercise => ({
+      exercise: exercise.exercise,
+      muscleGroup: exercise.muscleGroup,
+      type: exercise.type,
+      instructions: exercise.instructions,
+      time: exercise.time || 0,
+      series: exercise.series,
+      repetitions: exercise.repetitions || 0,
+      restBetweenSeries: exercise.restBetweenSeries,
+      restBetweenExercises: exercise.restBetweenExercises,
+      weight: exercise.weight || 0,
+      calories: exercise.calories,
+      actualWeight: exercise.weight || 0,
+      actualTime: exercise.time || 0,
+      actualCalories: exercise.calories,
+      effortLevel: 8, // Valor padrão
+      completed: completedExercises.has(exercise.id || exercise.exercise), // Marcar como completo apenas se foi feito
+      notes: null
+    }));
+
+    // Calcular calorias apenas dos exercícios completados
+    const totalCalories = completedExercisesList
+      .filter(ex => ex.completed)
+      .reduce((sum, exercise) => sum + exercise.calories, 0);
+
+    // Criar objeto de sessão de treino
+    const workoutSession = {
+      scheduledWorkoutId: todaysWorkout.id,
+      workoutName: todaysWorkout.name,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      duration: durationMinutes,
+      totalCalories: totalCalories,
+      exercisesCompleted: completedExercises.size,
+      status: completedExercises.size === todaysWorkout.exercises.length ? 'completed' : 'partial',
+      notes: null,
+      exercises: completedExercisesList
+    };
+
+    try {
+      // Salvar no backend
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('/api/workout-sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(workoutSession),
+      });
+
+      if (response.ok) {
+        console.log('Treino individual salvo no histórico com sucesso');
+        showWorkoutSuccess();
+        // Redirecionar para histórico
+        window.location.href = '/history';
+      } else {
+        throw new Error('Erro ao salvar no backend');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar treino individual no backend:', error);
+      
+      // Fallback: salvar no localStorage
+      const sessionWithId = {
+        ...workoutSession,
+        id: Date.now(),
+        userId: 1,
+        createdAt: endTime.toISOString(),
+        updatedAt: endTime.toISOString()
+      };
+
+      const existingSessions = JSON.parse(localStorage.getItem('workoutSessions') || '[]');
+      existingSessions.unshift(sessionWithId);
+      localStorage.setItem('workoutSessions', JSON.stringify(existingSessions));
+      console.log('Treino individual salvo no localStorage como fallback');
+      showWorkoutSuccess();
+      // Redirecionar para histórico
+      window.location.href = '/history';
+    }
   };
 
   // Timer effect
@@ -257,22 +351,36 @@ export default function Workout() {
               {todaysWorkout.totalCalories} kcal
             </span>
           </div>
-          <Button 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
-            onClick={() => {
-              // Salvar dados do treino no localStorage
-              const workoutData = {
-                workoutName: todaysWorkout.name,
-                workoutPlan: todaysWorkout.exercises || []
-              };
-              localStorage.setItem('activeWorkout', JSON.stringify(workoutData));
-              // Redirecionar para a tela de treino ativo
-              window.location.href = '/active-workout';
-            }}
-          >
-            <Play className="mr-2 h-5 w-5" />
-            Iniciar treino completo
-          </Button>
+          <div className="space-y-3">
+            <Button 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
+              onClick={() => {
+                // Salvar dados do treino no localStorage
+                const workoutData = {
+                  workoutName: todaysWorkout.name,
+                  workoutPlan: todaysWorkout.exercises || []
+                };
+                localStorage.setItem('activeWorkout', JSON.stringify(workoutData));
+                // Redirecionar para a tela de treino ativo
+                window.location.href = '/active-workout';
+              }}
+            >
+              <Play className="mr-2 h-5 w-5" />
+              Iniciar treino completo
+            </Button>
+            
+            {/* Botão Finalizar Treino - só aparece se há exercícios completados */}
+            {completedExercises.size > 0 && (
+              <Button 
+                variant="outline"
+                className="w-full border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 py-3 text-lg font-semibold"
+                onClick={finishIndividualWorkout}
+              >
+                <CheckCircle2 className="mr-2 h-5 w-5" />
+                Finalizar Treino ({completedExercises.size}/{todaysWorkout.exercises?.length} exercícios)
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 

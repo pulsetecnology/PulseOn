@@ -60,10 +60,8 @@ export default function ActiveWorkout() {
         return;
       }
 
-      // Pequeno delay para evitar flash de carregamento
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 300);
+      // Carregar imediatamente
+      setIsLoading(false);
     };
 
     loadWorkout();
@@ -272,11 +270,15 @@ export default function ActiveWorkout() {
         <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
           <CardHeader className="text-center py-4">
             <CardTitle className="text-xl text-slate-900 dark:text-white">{workoutData.workoutName}</CardTitle>
-            <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
+            <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400 mb-2">
               <span>Exercício {currentExerciseIndex + 1} de {workoutData.workoutPlan.length}</span>
               <span>{formatTime(elapsedTime)}</span>
             </div>
-            <Progress value={progress} className="w-full" />
+            <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400 mb-2">
+              <span>Progresso do treino</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="w-full h-2" />
           </CardHeader>
         </Card>
 
