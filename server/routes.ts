@@ -603,6 +603,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
             const scheduledWorkout = await storage.createScheduledWorkout({
               userId: user.id,
               name: aiWorkoutResponse.workoutName,
+              description: aiWorkoutResponse.workoutObs,
               exercises: aiWorkoutResponse.workoutPlan,
               totalCalories: Math.round(totalCalories),
               totalDuration: Math.round(totalDuration / 60), // Convert seconds to minutes

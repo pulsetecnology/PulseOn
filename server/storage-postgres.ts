@@ -159,6 +159,7 @@ export class DatabaseStorage implements IStorage {
       const workoutData = {
         userId: insertWorkout.userId,
         name: insertWorkout.name,
+        description: insertWorkout.description,
         exercises: insertWorkout.exercises as any,
         totalCalories: insertWorkout.totalCalories || 0,
         totalDuration: insertWorkout.totalDuration || 0,

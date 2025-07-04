@@ -47,6 +47,7 @@ export const scheduledWorkouts = pgTable("scheduled_workouts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
   name: text("name").notNull(),
+  description: text("description"), // workout observations from AI
   exercises: jsonb("exercises").$type<AIExercise[]>(),
   totalCalories: integer("total_calories"),
   totalDuration: integer("total_duration"), // in minutes

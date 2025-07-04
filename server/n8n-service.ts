@@ -6,6 +6,7 @@ export interface AIWorkoutResponse {
   userId: number;
   workoutPlan: AIExercise[];
   workoutName?: string;
+  workoutObs?: string;
 }
 
 export interface N8NWorkoutResponse {
@@ -76,7 +77,8 @@ export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIW
             return {
               userId: parsed.userId || data.userId,
               workoutPlan: parsed.workoutPlan,
-              workoutName: parsed.workoutName
+              workoutName: parsed.workoutName,
+              workoutObs: parsed.workoutObs
             };
           }
         }
