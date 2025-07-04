@@ -451,6 +451,12 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/workout-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["scheduled-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["workout-sessions"] });
+      
+      // Forçar refresh completo da página para garantir que todos os cards sejam atualizados
+      window.location.reload();
+      
       showSuccess("Todos os dados de treinos foram limpos com sucesso!");
     },
     onError: (error: Error) => {
