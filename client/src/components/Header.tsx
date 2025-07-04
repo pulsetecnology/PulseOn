@@ -84,10 +84,10 @@ export default function Header() {
           {user && (
             <Avatar className="h-8 w-8 cursor-pointer" onClick={() => setLocation("/profile")}>
               <AvatarImage 
-                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=32`} 
+                src={user.avatarUrl ? `${window.location.origin}${user.avatarUrl}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Usuario')}&background=0CE6D6&color=fff&size=32`} 
               />
               <AvatarFallback className="text-xs">
-                {user.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                {user.name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
               </AvatarFallback>
             </Avatar>
           )}

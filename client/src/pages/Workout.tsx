@@ -71,6 +71,12 @@ export default function Workout() {
     queryFn: () => apiRequest('/api/auth/me'),
   });
 
+  // Fetch workout sessions to check for completed workouts
+  const { data: workoutSessions } = useQuery({
+    queryKey: ['/api/workout-sessions'],
+    queryFn: () => apiRequest('/api/workout-sessions'),
+  });
+
   // AI workout generation mutation
   const generateWorkoutMutation = useMutation({
     mutationFn: async () => {
@@ -155,19 +161,32 @@ export default function Workout() {
 
   // Carregar progresso salvo quando user e todaysWorkout estão disponíveis
   useEffect(() => {
-    if (user?.id && todaysWorkout) {
-      const progress = loadSavedProgress();
-      if (progress.completedExercises && progress.completedExercises.size > 0) {
-        const completedArray: string[] = [];
-        progress.completedExercises.forEach((item: unknown) => {
-          if (typeof item === 'string') {
-            completedArray.push(item);
-          }
-        });
-        setCompletedExercises(new Set(completedArray));
+    if (user?.id && todaysWorkout && workoutSessions) {
+      // Primeiro, verificar se já existe uma sessão completa para este treino
+      const existingSession = workoutSessions.find((session: any) => 
+        session.scheduledWorkoutId === todaysWorkout.id && 
+        (session.status === 'completed' || session.status === 'completed-partial')
+      );
+
+      if (existingSession) {
+        // Se já existe uma sessão concluída, marcar todos os exercícios como concluídos
+        const completedExerciseIds = existingSession.exercises?.map((ex: any) => ex.exerciseId || ex.exerciseName) || [];
+        setCompletedExercises(new Set(completedExerciseIds));
+      } else {
+        // Se não existe sessão, verificar localStorage para progresso temporário
+        const progress = loadSavedProgress();
+        if (progress.completedExercises && progress.completedExercises.size > 0) {
+          const completedArray: string[] = [];
+          progress.completedExercises.forEach((item: unknown) => {
+            if (typeof item === 'string') {
+              completedArray.push(item);
+            }
+          });
+          setCompletedExercises(new Set(completedArray));
+        }
       }
     }
-  }, [user?.id, todaysWorkout?.id]);
+  }, [user?.id, todaysWorkout?.id, workoutSessions]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -306,6 +325,10 @@ export default function Workout() {
         description: `Treino finalizado com ${completedExercises.size} exercícios concluídos.`,
         duration: 3000,
       });
+
+      // Invalidar queries para atualizar dados
+      queryClient.invalidateQueries({ queryKey: ['/api/workout-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['scheduled-workouts'] });
 
       // Resetar estado
       setCompletedExercises(new Set());
@@ -821,7 +844,7 @@ export default function Workout() {
       </div>
 
       {/* Botão flutuante para finalizar treino antecipadamente */}
-      {(activeExercise || completedExercises.size > 0) && (
+      {todaysWorkout && completedExercises.size > 0 && (
         <div className="fixed bottom-6 right-6 z-50">
           <AlertDialog open={showEarlyFinishDialog} onOpenChange={setShowEarlyFinishDialog}>
             <AlertDialogTrigger asChild>
