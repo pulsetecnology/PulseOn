@@ -111,7 +111,7 @@ export default function Workout() {
 
   // Carregar progresso salvo do localStorage
   const loadSavedProgress = () => {
-    if (!user?.id) return { completedExercises: new Set(), exerciseData: {} };
+    if (!user?.id) return { completedExercises: new Set(), exerciseData: {}, workoutId: null };
     
     const storageKey = getWorkoutStorageKey();
     const saved = localStorage.getItem(storageKey);
@@ -120,11 +120,12 @@ export default function Workout() {
       const data = JSON.parse(saved);
       return {
         completedExercises: new Set(data.completedExercises || []),
-        exerciseData: data.exerciseData || {}
+        exerciseData: data.exerciseData || {},
+        workoutId: data.workoutId || null
       };
     }
     
-    return { completedExercises: new Set(), exerciseData: {} };
+    return { completedExercises: new Set(), exerciseData: {}, workoutId: null };
   };
 
   // Salvar progresso no localStorage
@@ -172,9 +173,14 @@ export default function Workout() {
         const completedExerciseIds = existingSession.exercises?.map((ex: any) => ex.exerciseId || ex.exerciseName) || [];
         setCompletedExercises(new Set(completedExerciseIds));
       } else {
-        // Se não existe sessão, NÃO carregar de localStorage para evitar contagem incorreta
-        // Apenas inicializar como vazio
-        setCompletedExercises(new Set());
+        // Se não existe sessão concluída, carregar progresso do localStorage
+        const progress = loadSavedProgress();
+        if (progress.workoutId === todaysWorkout.id && progress.completedExercises && progress.completedExercises.size > 0) {
+          setCompletedExercises(progress.completedExercises as Set<string>);
+        } else {
+          // Se não há progresso ou é de outro treino, inicializar vazio
+          setCompletedExercises(new Set());
+        }
       }
     }
   }, [user?.id, todaysWorkout?.id, workoutSessions]);
