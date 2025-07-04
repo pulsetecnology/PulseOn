@@ -42,6 +42,9 @@ export default function ActiveWorkout() {
   const [exerciseIntensity, setExerciseIntensity] = useState(1); // 1-3: suave, moderado, intenso
   const [currentWeight, setCurrentWeight] = useState(0);
   const [effortLevel, setEffortLevel] = useState(8);
+  const [timerPosition, setTimerPosition] = useState({ x: 16, y: 16 }); // top-4 right-4 equivalent
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     // Simular carregamento rápido e recuperar dados
@@ -132,6 +135,45 @@ export default function ActiveWorkout() {
     setIsTimerActive(false);
     setRestTime(0);
   };
+
+  // Funções para arrastar o timer
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - timerPosition.x,
+      y: e.clientY - timerPosition.y
+    });
+  };
+
+  // Adicionar event listeners globais para mouse
+  useEffect(() => {
+    if (isDragging) {
+      const handleGlobalMouseMove = (e: MouseEvent) => {
+        const newX = e.clientX - dragStart.x;
+        const newY = e.clientY - dragStart.y;
+        
+        const maxX = window.innerWidth - 140;
+        const maxY = window.innerHeight - 200;
+        
+        setTimerPosition({
+          x: Math.max(0, Math.min(newX, maxX)),
+          y: Math.max(0, Math.min(newY, maxY))
+        });
+      };
+
+      const handleGlobalMouseUp = () => {
+        setIsDragging(false);
+      };
+
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+
+      return () => {
+        document.removeEventListener('mousemove', handleGlobalMouseMove);
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+      };
+    }
+  }, [isDragging, dragStart]);
 
   const completeSeries = () => {
     const currentExercise = workoutData?.workoutPlan[currentExerciseIndex];
@@ -383,8 +425,16 @@ export default function ActiveWorkout() {
 
         {/* Timer Flutuante de Descanso */}
         {isResting && (
-          <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
-            <div className="bg-orange-500 dark:bg-orange-600 text-white rounded-full p-4 shadow-lg min-w-[140px]">
+          <div 
+            className="fixed z-50 animate-in slide-in-from-right duration-300 cursor-move"
+            style={{ 
+              left: `${timerPosition.x}px`, 
+              top: `${timerPosition.y}px`,
+              userSelect: 'none'
+            }}
+            onMouseDown={handleMouseDown}
+          >
+            <div className="bg-orange-500 dark:bg-orange-600 text-white rounded-full p-4 shadow-lg min-w-[140px] select-none">
               <div className="text-center">
                 <Timer className="h-5 w-5 mx-auto mb-1" />
                 <p className="text-xs font-medium mb-1">
@@ -397,6 +447,7 @@ export default function ActiveWorkout() {
                     variant="ghost"
                     size="sm"
                     className="h-6 w-6 p-0 text-white hover:bg-white/20"
+                    onMouseDown={(e) => e.stopPropagation()}
                   >
                     {isTimerActive ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
                   </Button>
@@ -405,6 +456,7 @@ export default function ActiveWorkout() {
                     variant="ghost"
                     size="sm"
                     className="h-6 w-6 p-0 text-white hover:bg-white/20"
+                    onMouseDown={(e) => e.stopPropagation()}
                   >
                     <SkipForward className="h-3 w-3" />
                   </Button>
