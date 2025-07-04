@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
-import { Play, Clock, Target, List, CheckCircle2, Timer, Plus, Minus, Pause, RotateCcw, ChevronRight, Loader2, X } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Play, Clock, Target, List, CheckCircle2, Timer, Plus, Minus, Pause, RotateCcw, ChevronRight, Loader2, X, Flag } from "lucide-react";
 import { Link } from "wouter";
 import { useGlobalNotification } from "@/components/NotificationProvider";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -95,6 +96,46 @@ export default function Workout() {
   });
 
   const todaysWorkout = scheduledWorkouts?.[0]; // Get the most recent workout
+  
+  // Função para gerar chave única do treino baseada na data
+  const getWorkoutStorageKey = () => {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    return `workout_progress_${user?.id}_${today}`;
+  };
+
+  // Carregar progresso salvo do localStorage
+  const loadSavedProgress = () => {
+    if (!user?.id) return { completedExercises: new Set(), exerciseData: {} };
+    
+    const storageKey = getWorkoutStorageKey();
+    const saved = localStorage.getItem(storageKey);
+    
+    if (saved) {
+      const data = JSON.parse(saved);
+      return {
+        completedExercises: new Set(data.completedExercises || []),
+        exerciseData: data.exerciseData || {}
+      };
+    }
+    
+    return { completedExercises: new Set(), exerciseData: {} };
+  };
+
+  // Salvar progresso no localStorage
+  const saveProgress = (completed: Set<string>, exerciseData: any) => {
+    if (!user?.id) return;
+    
+    const storageKey = getWorkoutStorageKey();
+    const dataToSave = {
+      completedExercises: Array.from(completed),
+      exerciseData,
+      lastUpdate: new Date().toISOString(),
+      workoutId: todaysWorkout?.id
+    };
+    
+    localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+  };
+
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [currentSet, setCurrentSet] = useState(1);
@@ -104,12 +145,29 @@ export default function Workout() {
   const [isResting, setIsResting] = useState(false);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showSetFeedback, setShowSetFeedback] = useState(false);
+  const [showEarlyFinishDialog, setShowEarlyFinishDialog] = useState(false);
   const { showWorkoutSuccess } = useGlobalNotification();
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  // Carregar progresso salvo quando user e todaysWorkout estão disponíveis
+  useEffect(() => {
+    if (user?.id && todaysWorkout) {
+      const progress = loadSavedProgress();
+      if (progress.completedExercises && progress.completedExercises.size > 0) {
+        const completedArray: string[] = [];
+        progress.completedExercises.forEach((item: unknown) => {
+          if (typeof item === 'string') {
+            completedArray.push(item);
+          }
+        });
+        setCompletedExercises(new Set(completedArray));
+      }
+    }
+  }, [user?.id, todaysWorkout?.id]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -184,6 +242,15 @@ export default function Workout() {
         setCompletedExercises(prev => {
           const newSet = new Set(prev);
           newSet.add(activeExercise!);
+          
+          // Salvar progresso no localStorage
+          const exerciseData = {
+            weight,
+            effortLevel: effortLevel[0],
+            completedAt: new Date().toISOString()
+          };
+          saveProgress(newSet, { [activeExercise!]: exerciseData });
+          
           return newSet;
         });
         setActiveExercise(null);
@@ -191,6 +258,68 @@ export default function Workout() {
         showWorkoutSuccess();
       }
     }, 1500);
+  };
+
+  // Função para finalizar treino antecipadamente
+  const finishWorkoutEarly = async () => {
+    if (!todaysWorkout || !user?.id) return;
+
+    try {
+      // Criar array de exercícios concluídos para salvar no banco
+      const completedExercisesList = Array.from(completedExercises).map(exerciseId => {
+        const exercise = todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === exerciseId);
+        if (!exercise) return null;
+        
+        return {
+          exerciseId: exerciseId,
+          exerciseName: exercise.exercise,
+          muscleGroup: exercise.muscleGroup,
+          sets: exercise.series,
+          reps: exercise.repetitions,
+          weight: exercise.weight || 0,
+          effortLevel: 7, // Valor padrão
+          completed: true,
+          time: exercise.timeExec || exercise.time,
+          calories: exercise.calories || 0
+        };
+      }).filter(Boolean);
+
+      if (completedExercisesList.length > 0) {
+        // Salvar sessão de treino parcial no banco
+        await apiRequest('/api/workout-sessions', 'POST', {
+          scheduledWorkoutId: todaysWorkout.id,
+          exercises: completedExercisesList,
+          status: 'completed-partial',
+          totalDuration: 0, // Pode ser calculado depois
+          totalCalories: completedExercisesList.reduce((sum, ex) => sum + (ex?.calories || 0), 0),
+          notes: 'Treino finalizado antecipadamente pelo usuário'
+        });
+      }
+
+      // Limpar progresso do localStorage
+      const storageKey = getWorkoutStorageKey();
+      localStorage.removeItem(storageKey);
+
+      // Mostrar notificação de sucesso
+      toast({
+        title: "Treino Finalizado",
+        description: `Treino finalizado com ${completedExercises.size} exercícios concluídos.`,
+        duration: 3000,
+      });
+
+      // Resetar estado
+      setCompletedExercises(new Set());
+      setActiveExercise(null);
+      setShowEarlyFinishDialog(false);
+      
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar progresso do treino.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
   };
 
   const startNextSet = () => {
@@ -691,6 +820,39 @@ export default function Workout() {
         })}
       </div>
 
+      {/* Botão flutuante para finalizar treino antecipadamente */}
+      {(activeExercise || completedExercises.size > 0) && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <AlertDialog open={showEarlyFinishDialog} onOpenChange={setShowEarlyFinishDialog}>
+            <AlertDialogTrigger asChild>
+              <Button
+                size="lg"
+                className="rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg h-14 w-14 p-0"
+              >
+                <Flag className="h-6 w-6" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Finalizar Treino Antecipadamente?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Você tem {completedExercises.size} exercício(s) concluído(s). 
+                  Deseja finalizar o treino agora? O progresso será salvo.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={finishWorkoutEarly}
+                  className="bg-red-500 hover:bg-red-600"
+                >
+                  Finalizar Treino
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
 
     </div>
   );
