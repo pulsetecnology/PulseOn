@@ -43,6 +43,20 @@ export default function ActiveWorkout() {
   const [currentWeight, setCurrentWeight] = useState(0);
   const [effortLevel, setEffortLevel] = useState(8);
 
+  // Função para fazer scroll até o exercício ativo
+  const scrollToActiveExercise = () => {
+    setTimeout(() => {
+      const element = document.getElementById('current-exercise-card');
+      if (element) {
+        element.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }, 100);
+  };
+
   useEffect(() => {
     // Simular carregamento rápido e recuperar dados
     const loadWorkout = async () => {
@@ -150,6 +164,8 @@ export default function ActiveWorkout() {
         setCurrentExerciseIndex(prev => prev + 1);
         setCurrentSeries(1);
         startRest(currentExercise.restBetweenExercises, false);
+        // Auto-scroll para o próximo exercício
+        scrollToActiveExercise();
       } else {
         // Treino completo
         finishWorkout();
@@ -157,12 +173,21 @@ export default function ActiveWorkout() {
     }
   };
 
+  // Auto-scroll quando muda de exercício
+  useEffect(() => {
+    if (currentExerciseIndex > 0) {
+      scrollToActiveExercise();
+    }
+  }, [currentExerciseIndex]);
+
   const skipExercise = () => {
     if (workoutData && currentExerciseIndex < workoutData.workoutPlan.length - 1) {
       setCurrentExerciseIndex(prev => prev + 1);
       setCurrentSeries(1);
       setIsResting(false);
       setIsTimerActive(false);
+      // Auto-scroll para o próximo exercício
+      scrollToActiveExercise();
     } else {
       finishWorkout();
     }
@@ -417,7 +442,7 @@ export default function ActiveWorkout() {
         </Card>
 
         {/* Current Exercise */}
-        <Card className="bg-primary dark:bg-primary border-0">
+        <Card id="current-exercise-card" className="bg-primary dark:bg-primary border-0">
           <CardHeader className="py-3">
             <CardTitle className="text-lg text-primary-foreground">{currentExercise.exercise}</CardTitle>
             <p className="text-sm text-primary-foreground/80">{currentExercise.muscleGroup}</p>

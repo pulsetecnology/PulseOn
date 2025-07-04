@@ -91,6 +91,20 @@ export default function Workout() {
     return `${timeExec}s`;
   };
 
+  // Função para fazer scroll até o exercício ativo
+  const scrollToActiveExercise = (exerciseId: string) => {
+    setTimeout(() => {
+      const element = document.getElementById(`exercise-${exerciseId}`);
+      if (element) {
+        element.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }, 100);
+  };
+
 
 
   const startIndividualExercise = (exerciseId: string) => {
@@ -104,6 +118,8 @@ export default function Workout() {
       setIsResting(false);
       setIsTimerRunning(false);
       setShowSetFeedback(false);
+      // Auto-scroll para o exercício ativo
+      scrollToActiveExercise(exerciseId);
     }
   };
 
@@ -533,7 +549,7 @@ export default function Workout() {
         {todaysWorkout.exercises?.map((exercise, index) => {
           const exerciseId = exercise.id || exercise.exercise;
           return (
-            <Card key={exerciseId} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'ring-2 ring-primary' : ''}`}>
+            <Card key={exerciseId} id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'ring-2 ring-primary' : ''}`}>
               <CardContent className="p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
