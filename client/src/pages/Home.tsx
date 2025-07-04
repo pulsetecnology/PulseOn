@@ -418,7 +418,9 @@ export default function Home() {
       };
     }
 
-    const completedSessions = workoutSessions.filter((session: any) => session.completedAt);
+    const completedSessions = workoutSessions.filter((session: any) => 
+      session.completedAt && session.totalDuration && session.totalDuration >= 1
+    );
     const totalCalories = completedSessions.reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
     const totalMinutes = completedSessions.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
     const totalExercises = completedSessions.reduce((sum: number, session: any) => 
@@ -496,17 +498,33 @@ export default function Home() {
 
   // Calculate weekly workout details for the expanded view
   const weeklyWorkoutDetails = useMemo(() => {
-    if (!Array.isArray(workoutSessions)) return {};
+    if (!Array.isArray(workoutSessions)) return { details: {}, uniqueExercises: 0, uniqueMuscleGroups: 0 };
     
-    const completedSessions = workoutSessions.filter((session: any) => session.completedAt);
-    const today = new Date();
-    const weekAgo = subDays(today, 7);
-    
-    const weeklySessions = completedSessions.filter((session: any) => 
-      parseISO(session.completedAt) >= weekAgo
+    const completedSessions = workoutSessions.filter((session: any) => 
+      session.completedAt && session.totalDuration && session.totalDuration >= 1
     );
+    const today = new Date();
+    
+    // Get current week's Monday
+    const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1; // Adjust Sunday to be 6 days from Monday
+    const monday = subDays(today, daysFromMonday);
+    
+    // Calculate this week's sessions (from Monday to Sunday)
+    const weekStart = new Date(monday);
+    weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(monday);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+    
+    const weeklySessions = completedSessions.filter((session: any) => {
+      const sessionDate = parseISO(session.completedAt);
+      return sessionDate >= weekStart && sessionDate <= weekEnd;
+    });
 
-    // Get workout details for each day of the week
+
+
+    // Get workout details for each day of the week (Monday to Sunday)
     const weekDays = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
     const weeklyDetails: Record<string, { hasWorkout: boolean; duration: number; name: string }> = {};
     
@@ -514,10 +532,12 @@ export default function Home() {
     const allExercises = new Set<string>();
     const allMuscleGroups = new Set<string>();
     
+    // Loop through each day of this week (Monday to Sunday)
     for (let i = 0; i < 7; i++) {
-      const dayDate = subDays(today, i);
+      const dayDate = new Date(monday);
+      dayDate.setDate(dayDate.getDate() + i);
       const dayString = dayDate.toDateString();
-      const dayName = weekDays[6 - i]; // Reverse order to start from Monday
+      const dayName = weekDays[i];
       
       const dayWorkouts = weeklySessions.filter((session: any) => 
         parseISO(session.completedAt).toDateString() === dayString
