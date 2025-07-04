@@ -62,13 +62,23 @@ const formatDate = (dateString: string): string => {
 const fitnessGoals = {
   lose_weight: "Perda de peso",
   gain_muscle: "Ganho de massa",
-  improve_conditioning: "Condicionamento geral"
+  improve_conditioning: "Condicionamento geral",
+  maintain_weight: "Manter peso",
+  increase_flexibility: "Aumentar flexibilidade",
+  stress_relief: "Alívio do estresse",
+  improve_posture: "Melhorar postura",
+  general_fitness: "Fitness geral",
+  athletic_performance: "Performance atlética",
+  injury_recovery: "Recuperação de lesão"
 };
 
 const experienceLevels = {
   beginner: "Iniciante",
   intermediate: "Intermediário", 
-  advanced: "Avançado"
+  advanced: "Avançado",
+  expert: "Expert",
+  professional: "Profissional",
+  competitive_athlete: "Atleta competitivo"
 };
 
 const lifestyleMappings = {

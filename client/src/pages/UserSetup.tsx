@@ -336,6 +336,13 @@ export default function UserSetup() {
                             <SelectItem value="lose_weight">Perder peso</SelectItem>
                             <SelectItem value="gain_muscle">Ganhar massa muscular</SelectItem>
                             <SelectItem value="improve_conditioning">Melhorar condicionamento</SelectItem>
+                            <SelectItem value="maintain_weight">Manter peso</SelectItem>
+                            <SelectItem value="increase_flexibility">Aumentar flexibilidade</SelectItem>
+                            <SelectItem value="stress_relief">Alívio do estresse</SelectItem>
+                            <SelectItem value="improve_posture">Melhorar postura</SelectItem>
+                            <SelectItem value="general_fitness">Fitness geral</SelectItem>
+                            <SelectItem value="athletic_performance">Performance atlética</SelectItem>
+                            <SelectItem value="injury_recovery">Recuperação de lesão</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -359,6 +366,9 @@ export default function UserSetup() {
                             <SelectItem value="beginner">Iniciante</SelectItem>
                             <SelectItem value="intermediate">Intermediário</SelectItem>
                             <SelectItem value="advanced">Avançado</SelectItem>
+                            <SelectItem value="expert">Expert</SelectItem>
+                            <SelectItem value="professional">Profissional</SelectItem>
+                            <SelectItem value="competitive_athlete">Atleta competitivo</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

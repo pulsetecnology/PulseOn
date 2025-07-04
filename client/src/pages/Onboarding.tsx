@@ -196,6 +196,13 @@ export default function Onboarding() {
                           { value: "lose_weight", label: "Perder peso", description: "Queimar calorias e reduzir gordura", icon: Scale },
                           { value: "gain_muscle", label: "Ganhar massa muscular", description: "Aumentar força e volume muscular", icon: Dumbbell },
                           { value: "improve_conditioning", label: "Melhorar condicionamento", description: "Aumentar resistência cardiovascular", icon: Heart },
+                          { value: "maintain_weight", label: "Manter peso", description: "Manter forma física atual e peso ideal", icon: Check },
+                          { value: "increase_flexibility", label: "Aumentar flexibilidade", description: "Melhorar mobilidade e alongamento", icon: User },
+                          { value: "stress_relief", label: "Alívio do estresse", description: "Reduzir tensão e melhorar bem-estar mental", icon: Heart },
+                          { value: "improve_posture", label: "Melhorar postura", description: "Corrigir postura e fortalecer core", icon: User },
+                          { value: "general_fitness", label: "Fitness geral", description: "Manter saúde e condição física geral", icon: Dumbbell },
+                          { value: "athletic_performance", label: "Performance atlética", description: "Melhorar desempenho esportivo", icon: Dumbbell },
+                          { value: "injury_recovery", label: "Recuperação de lesão", description: "Reabilitação e fortalecimento pós-lesão", icon: Heart },
                         ].map((goal) => {
                           const Icon = goal.icon;
                           return (
@@ -240,6 +247,9 @@ export default function Onboarding() {
                           { value: "beginner", label: "Iniciante", description: "Pouca ou nenhuma experiência" },
                           { value: "intermediate", label: "Intermediário", description: "6 meses a 2 anos de treino" },
                           { value: "advanced", label: "Avançado", description: "Mais de 2 anos de experiência" },
+                          { value: "expert", label: "Expert", description: "3-5 anos de treino consistente" },
+                          { value: "professional", label: "Profissional", description: "Personal trainer ou instrutor" },
+                          { value: "competitive_athlete", label: "Atleta competitivo", description: "Participa de competições esportivas" },
                         ].map((level) => (
                           <Button
                             key={level.value}
