@@ -105,10 +105,10 @@ export default function WorkoutHistory() {
           sets: ex.series || 1,
           reps: ex.repetitions || 0,
           weight: ex.actualWeight ? `${ex.actualWeight}kg` : (ex.weight ? `${ex.weight}kg` : "Peso Corporal"),
-          completed: ex.status === 'completed' ? true : (ex.status === 'partial' ? 'partial' : false),
-          completedSets: ex.status === 'completed' ? (ex.series || 1) : (ex.status === 'partial' ? Math.floor((ex.series || 1) / 2) : 0),
+          completed: ex.completed === true ? true : (ex.status === 'partial' ? 'partial' : false),
+          completedSets: ex.completed === true ? (ex.series || 1) : (ex.status === 'partial' ? Math.floor((ex.series || 1) / 2) : 0),
           totalSets: ex.series || 1,
-          status: ex.status || (ex.completed ? 'completed' : 'not_executed'),
+          status: ex.status || (ex.completed === true ? 'completed' : 'not_executed'),
           notes: ex.notes
         }))
       };

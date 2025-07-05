@@ -791,7 +791,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
   app.post("/api/workout-sessions", authenticateToken, async (req, res) => {
     try {
-      console.log("Received workout session data:", req.body);
+      console.log("Received workout session data:", JSON.stringify(req.body, null, 2));
 
       const sessionData = {
         userId: req.user!.id,
@@ -805,10 +805,18 @@ ${JSON.stringify(n8nResponse, null, 2)}
         notes: req.body.notes || ""
       };
 
-      console.log("Processed session data:", sessionData);
+      console.log("Processed session data:", JSON.stringify(sessionData, null, 2));
+      
+      // Log exercise statuses
+      if (sessionData.exercises.length > 0) {
+        console.log("Exercise statuses:");
+        sessionData.exercises.forEach((ex: any, index: number) => {
+          console.log(`  ${index + 1}. ${ex.exercise}: status=${ex.status}, completed=${ex.completed}`);
+        });
+      }
 
       const session = await storage.createWorkoutSession(sessionData);
-      console.log("Created session:", session);
+      console.log("Created session with ID:", session.id);
 
       res.status(201).json({
         message: "Treino salvo com sucesso!",
