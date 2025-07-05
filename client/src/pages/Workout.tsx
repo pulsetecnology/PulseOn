@@ -59,7 +59,7 @@ const fetchScheduledWorkouts = async (): Promise<ScheduledWorkout[]> => {
 export default function Workout() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   const { data: scheduledWorkouts, isLoading, error } = useQuery({
     queryKey: ['scheduled-workouts'],
     queryFn: fetchScheduledWorkouts,
@@ -102,7 +102,7 @@ export default function Workout() {
   });
 
   const todaysWorkout = scheduledWorkouts?.[0]; // Get the most recent workout
-  
+
   // Função para gerar chave única do treino baseada na data
   const getWorkoutStorageKey = () => {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
@@ -111,35 +111,37 @@ export default function Workout() {
 
   // Carregar progresso salvo do localStorage
   const loadSavedProgress = () => {
-    if (!user?.id) return { completedExercises: new Set(), exerciseData: {}, workoutId: null };
-    
+    if (!user?.id) return { completedExercises: new Set(), exerciseData: {}, workoutId: null, incompleteExercises: new Set() };
+
     const storageKey = getWorkoutStorageKey();
     const saved = localStorage.getItem(storageKey);
-    
+
     if (saved) {
       const data = JSON.parse(saved);
       return {
         completedExercises: new Set(data.completedExercises || []),
         exerciseData: data.exerciseData || {},
-        workoutId: data.workoutId || null
+        workoutId: data.workoutId || null,
+        incompleteExercises: new Set(data.incompleteExercises || [])
       };
     }
-    
-    return { completedExercises: new Set(), exerciseData: {}, workoutId: null };
+
+    return { completedExercises: new Set(), exerciseData: {}, workoutId: null, incompleteExercises: new Set() };
   };
 
   // Salvar progresso no localStorage
-  const saveProgress = (completed: Set<string>, exerciseData: any) => {
+  const saveProgress = (completed: Set<string>, exerciseData: any, incomplete: Set<string> = new Set()) => {
     if (!user?.id) return;
-    
+
     const storageKey = getWorkoutStorageKey();
     const dataToSave = {
       completedExercises: Array.from(completed),
       exerciseData,
       lastUpdate: new Date().toISOString(),
-      workoutId: todaysWorkout?.id
+      workoutId: todaysWorkout?.id,
+      incompleteExercises: Array.from(incomplete)
     };
-    
+
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
   };
 
@@ -179,9 +181,11 @@ export default function Workout() {
         const progress = loadSavedProgress();
         if (progress.workoutId === todaysWorkout.id && progress.completedExercises && progress.completedExercises.size > 0) {
           setCompletedExercises(progress.completedExercises as Set<string>);
+          setIncompleteExercises(progress.incompleteExercises as Set<string>);
         } else {
           // Se não há progresso ou é de outro treino, inicializar vazio
           setCompletedExercises(new Set());
+          setIncompleteExercises(new Set());
           // Limpar progresso antigo se for um novo treino
           if (progress.workoutId && progress.workoutId !== todaysWorkout.id) {
             const storageKey = getWorkoutStorageKey();
@@ -216,7 +220,7 @@ export default function Workout() {
         const headerHeight = 80; 
         const elementPosition = activeCard.getBoundingClientRect().top + window.pageYOffset;
         const offsetPosition = elementPosition - headerHeight;
-        
+
         window.scrollTo({
           top: offsetPosition,
           behavior: 'smooth'
@@ -265,19 +269,19 @@ export default function Workout() {
         setCompletedExercises(prev => {
           const newSet = new Set(prev);
           newSet.add(activeExercise!);
-          
+
           // Salvar progresso no localStorage
           const exerciseData = {
             weight,
             effortLevel: effortLevel[0],
             completedAt: new Date().toISOString()
           };
-          saveProgress(newSet, { [activeExercise!]: exerciseData });
-          
+          saveProgress(newSet, { [activeExercise!]: exerciseData }, incompleteExercises);
+
           // Verificar se este é o último exercício
           const totalExercises = todaysWorkout?.exercises?.length || 0;
           const completedCount = newSet.size;
-          
+
           if (completedCount >= totalExercises) {
             // Último exercício concluído - mostrar "Finalizando treino..." e scroll para o topo
             setIsFinishingWorkout(true);
@@ -289,7 +293,7 @@ export default function Workout() {
             // Scroll para o topo após completar exercício
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
-          
+
           return newSet;
         });
         setActiveExercise(null);
@@ -298,6 +302,13 @@ export default function Workout() {
       }
     }, 1500);
   };
+
+    // Função para salvar progresso do exercício (simulação)
+    const saveExerciseProgress = async (exerciseId: string, completed: boolean) => {
+      // Simulação de salvamento no backend
+      console.log(`Salvando progresso do exercício ${exerciseId}: ${completed ? 'Concluído' : 'Incompleto'}`);
+      return new Promise(resolve => setTimeout(resolve, 500)); // Simula atraso
+    };
 
   // Função para finalizar exercício individual sem completar todas as séries
   const finishExerciseIncomplete = () => {
@@ -313,6 +324,15 @@ export default function Workout() {
       return newSet;
     });
 
+    setCompletedExercises(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(activeExercise!);
+        return newSet;
+    });
+
+    // Salvar progresso no localStorage
+    saveProgress(completedExercises, {}, new Set([...incompleteExercises, activeExercise]));
+
     // Mostrar notificação
     toast({
       title: "Exercício Finalizado",
@@ -326,7 +346,7 @@ export default function Workout() {
     setIsResting(false);
     setIsTimerRunning(false);
     setShowSetFeedback(false);
-    
+
     // Scroll para o topo
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -366,7 +386,7 @@ export default function Workout() {
       const completedExercisesList = Array.from(completedExercises).map(exerciseId => {
         const exercise = todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === exerciseId);
         if (!exercise) return null;
-        
+
         return {
           exerciseId: exerciseId,
           exerciseName: exercise.exercise,
@@ -411,7 +431,7 @@ export default function Workout() {
       // Resetar estado
       setCompletedExercises(new Set());
       setActiveExercise(null);
-      
+
     } catch (error) {
       toast({
         title: "Erro",
@@ -446,7 +466,7 @@ export default function Workout() {
       const exerciseId = exercise.id || exercise.exercise;
       const isCompleted = currentCompletedExercises.has(exerciseId);
       const isIncomplete = incompleteExercises.has(exerciseId);
-      
+
       return {
         exercise: exercise.exercise,
         muscleGroup: exercise.muscleGroup,
@@ -502,16 +522,16 @@ export default function Workout() {
 
       if (response.ok) {
         console.log('Treino individual salvo no histórico com sucesso');
-        
+
         // Limpar estados
         setCompletedExercises(new Set());
         setIncompleteExercises(new Set());
         setActiveExercise(null);
-        
+
         // Limpar progresso do localStorage
         const storageKey = getWorkoutStorageKey();
         localStorage.removeItem(storageKey);
-        
+
         showWorkoutSuccess();
         // Redirecionar para histórico
         window.location.href = '/history';
@@ -520,7 +540,7 @@ export default function Workout() {
       }
     } catch (error) {
       console.error('Erro ao salvar treino individual no backend:', error);
-      
+
       // Fallback: salvar no localStorage
       const sessionWithId = {
         ...workoutSession,
@@ -534,16 +554,16 @@ export default function Workout() {
       existingSessions.unshift(sessionWithId);
       localStorage.setItem('workoutSessions', JSON.stringify(existingSessions));
       console.log('Treino individual salvo no localStorage como fallback');
-      
+
       // Limpar estados
       setCompletedExercises(new Set());
       setIncompleteExercises(new Set());
       setActiveExercise(null);
-      
+
       // Limpar progresso do localStorage
       const storageKey = getWorkoutStorageKey();
       localStorage.removeItem(storageKey);
-      
+
       showWorkoutSuccess();
       // Redirecionar para histórico
       window.location.href = '/history';
@@ -688,7 +708,7 @@ export default function Workout() {
           </div>
           <div className="space-y-3">
             {/* Botão "Iniciar treino completo" foi removido conforme solicitado */}
-            
+
             {/* Botão Finalizar Treino - só aparece se há exercícios completados */}
             {(() => {
               // Verificar se há sessões concluídas para este treino
@@ -701,7 +721,7 @@ export default function Workout() {
                 const totalExercises = todaysWorkout.exercises?.length || 1;
                 const completedCount = completedExercises.size;
                 const progress = completedCount / totalExercises;
-                
+
                 // Cores gradativas baseadas no progresso
                 let buttonClass = "";
                 if (completedCount === totalExercises) {
@@ -717,7 +737,7 @@ export default function Workout() {
                   // Verde para alto progresso
                   buttonClass = "border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20";
                 }
-                
+
                 return (
                   <Button 
                     variant="outline"
@@ -835,7 +855,7 @@ export default function Workout() {
                       >
                         <X className="h-4 w-4" />
                       </Button>
-                      
+
                       <h3 className="text-lg font-semibold">Série {currentSet} de {exercise.series}</h3>
                       <p className="text-sm opacity-90">
                         {exercise.repetitions > 0 
@@ -876,7 +896,7 @@ export default function Workout() {
                             const exercise = todaysWorkout?.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise);
                             const isBodyWeight = exercise?.weight === 0;
                             const userWeight = user?.weight || 70; // Default 70kg if not available
-                            
+
                             if (isBodyWeight) {
                               return (
                                 <div className="text-center">
@@ -888,7 +908,7 @@ export default function Workout() {
                                 </div>
                               );
                             }
-                            
+
                             return (
                               <div className="space-y-1">
                                 <div className="flex justify-between text-xs opacity-75">
@@ -972,7 +992,7 @@ export default function Workout() {
                           <p className="text-2xl font-bold text-white">{formatTime(restTime)}</p>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-col space-y-2">
                         <div className="flex space-x-2">
                           <Button 

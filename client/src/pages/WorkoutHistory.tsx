@@ -105,9 +105,11 @@ export default function WorkoutHistory() {
           sets: ex.series || 1,
           reps: ex.repetitions || 0,
           weight: ex.actualWeight ? `${ex.actualWeight}kg` : (ex.weight ? `${ex.weight}kg` : "Peso Corporal"),
-          completed: ex.completed,
-          completedSets: ex.completed ? (ex.series || 1) : 0,
-          totalSets: ex.series || 1
+          completed: ex.status === 'completed' ? true : (ex.status === 'partial' ? 'partial' : false),
+          completedSets: ex.status === 'completed' ? (ex.series || 1) : (ex.status === 'partial' ? Math.floor((ex.series || 1) / 2) : 0),
+          totalSets: ex.series || 1,
+          status: ex.status || (ex.completed ? 'completed' : 'not_executed'),
+          notes: ex.notes
         }))
       };
     })
@@ -272,11 +274,24 @@ export default function WorkoutHistory() {
                         <div key={idx} className="flex items-center justify-between py-2">
                           <div className="flex items-center gap-3">
                             {getCompletionIcon(exercise.completed)}
-                            <div>
+                            <div className="flex-1">
                               <p className="text-white font-medium">{exercise.name}</p>
                               <p className="text-xs text-slate-400">
                                 {exercise.completedSets}/{exercise.totalSets} séries • {exercise.reps} reps • {exercise.weight}
                               </p>
+                              {exercise.notes && (
+                                <p className="text-xs text-slate-500 italic mt-1">{exercise.notes}</p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <Badge className={
+                                exercise.status === 'completed' ? 'bg-green-100 text-green-800 text-xs' :
+                                exercise.status === 'partial' ? 'bg-yellow-100 text-yellow-800 text-xs' :
+                                'bg-red-100 text-red-800 text-xs'
+                              }>
+                                {exercise.status === 'completed' ? 'Completo' :
+                                 exercise.status === 'partial' ? 'Parcial' : 'Não executado'}
+                              </Badge>
                             </div>
                           </div>
                         </div>
