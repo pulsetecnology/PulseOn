@@ -298,6 +298,79 @@ export default function Workout() {
     }, 1500);
   };
 
+  // Função para finalizar exercício individual sem completar todas as séries
+  const finishExerciseIncomplete = async () => {
+    if (!activeExercise || !todaysWorkout || !user?.id) return;
+
+    try {
+      const exercise = todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise);
+      if (!exercise) return;
+
+      // Criar dados do exercício incompleto
+      const incompleteExerciseData = {
+        exercise: exercise.exercise,
+        muscleGroup: exercise.muscleGroup,
+        type: exercise.type,
+        instructions: exercise.instructions,
+        time: exercise.time || 0,
+        series: currentSet - 1, // Séries realmente completadas
+        repetitions: exercise.repetitions || 0,
+        restBetweenSeries: exercise.restBetweenSeries,
+        restBetweenExercises: exercise.restBetweenExercises,
+        weight: weight,
+        calories: Math.round(exercise.calories * ((currentSet - 1) / exercise.series)), // Calorias proporcionais
+        actualWeight: weight,
+        actualTime: exercise.time || 0,
+        actualCalories: Math.round(exercise.calories * ((currentSet - 1) / exercise.series)),
+        effortLevel: effortLevel[0] || 7,
+        completed: false, // Marcado como incompleto
+        notes: `Exercício finalizado antecipadamente após ${currentSet - 1} de ${exercise.series} séries`
+      };
+
+      // Salvar exercício incompleto no histórico
+      await apiRequest('/api/workout-sessions', 'POST', {
+        scheduledWorkoutId: todaysWorkout.id,
+        workoutName: `${exercise.exercise} (Incompleto)`,
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
+        duration: 1,
+        totalCalories: incompleteExerciseData.actualCalories,
+        exercisesCompleted: 0,
+        status: 'incomplete',
+        notes: `Exercício ${exercise.exercise} finalizado antecipadamente após ${currentSet - 1} de ${exercise.series} séries`,
+        exercises: [incompleteExerciseData]
+      });
+
+      // Mostrar notificação
+      toast({
+        title: "Exercício Finalizado",
+        description: `${exercise.exercise} salvo como incompleto no histórico (${currentSet - 1}/${exercise.series} séries)`,
+        duration: 3000,
+      });
+
+      // Invalidar queries para atualizar dados
+      queryClient.invalidateQueries({ queryKey: ['/api/workout-sessions'] });
+
+      // Resetar estado do exercício
+      setActiveExercise(null);
+      setCurrentSet(1);
+      setIsResting(false);
+      setIsTimerRunning(false);
+      setShowSetFeedback(false);
+      
+      // Scroll para o topo
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar exercício incompleto.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
+
   // Função para finalizar treino antecipadamente
   const finishWorkoutEarly = async () => {
     if (!todaysWorkout || !user?.id) return;
@@ -746,13 +819,23 @@ export default function Workout() {
                     {!showSetFeedback && !isResting && (
                       <div className="text-center space-y-3">
                         <p className="opacity-90">Execute o exercício</p>
-                        <Button 
-                          onClick={() => setShowSetFeedback(true)}
-                          className="bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
-                        >
-                          Concluir Série
-                          <CheckCircle2 className="ml-2 h-4 w-4" />
-                        </Button>
+                        <div className="space-y-2">
+                          <Button 
+                            onClick={() => setShowSetFeedback(true)}
+                            className="w-full bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
+                          >
+                            Concluir Série
+                            <CheckCircle2 className="ml-2 h-4 w-4" />
+                          </Button>
+                          <Button 
+                            onClick={finishExerciseIncomplete}
+                            variant="outline"
+                            size="sm"
+                            className="w-full bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-950 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900"
+                          >
+                            Finalizar incompleto
+                          </Button>
+                        </div>
                       </div>
                     )}
 
@@ -826,12 +909,21 @@ export default function Workout() {
                           </div>
                         </div>
 
-                        <Button 
-                          onClick={completeSet}
-                          className="w-full bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
-                        >
-                          Confirmar e prosseguir
-                        </Button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button 
+                            onClick={completeSet}
+                            className="bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
+                          >
+                            Confirmar e prosseguir
+                          </Button>
+                          <Button 
+                            onClick={finishExerciseIncomplete}
+                            variant="outline"
+                            className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-950 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900"
+                          >
+                            Finalizar incompleto
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -872,13 +964,23 @@ export default function Workout() {
                             <RotateCcw className="h-4 w-4" />
                           </Button>
                         </div>
-                        <Button 
-                          onClick={startNextSet}
-                          size="sm"
-                          className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded-full"
-                        >
-                          Próxima Série
-                        </Button>
+                        <div className="space-y-1">
+                          <Button 
+                            onClick={startNextSet}
+                            size="sm"
+                            className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded-full w-full"
+                          >
+                            Próxima Série
+                          </Button>
+                          <Button 
+                            onClick={finishExerciseIncomplete}
+                            size="sm"
+                            variant="outline"
+                            className="bg-red-500/20 text-white border-red-300/50 hover:bg-red-500/30 text-xs px-2 py-1 rounded-full w-full"
+                          >
+                            Finalizar
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
