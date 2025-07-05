@@ -541,16 +541,7 @@ export default function ActiveWorkout() {
               <h3 className="text-xl font-semibold text-primary-foreground mb-2">Série {currentSeries} de {currentExercise.series}</h3>
             </div>
             
-            {/* Botão para finalizar exercício como incompleto - TESTE */}
-            <div className="mb-4">
-              <button 
-                onClick={finishExerciseIncomplete}
-                className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg border-2 border-white"
-                style={{ fontSize: '16px', minHeight: '50px' }}
-              >
-                🚨 NÃO CONSIGO CONTINUAR 🚨
-              </button>
-            </div>
+
 
             {/* Card de controle de peso */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
@@ -659,17 +650,7 @@ export default function ActiveWorkout() {
                 </div>
               </div>
               
-              {/* Botão para finalizar exercício como incompleto durante descanso */}
-              <div className="mt-3">
-                <Button 
-                  onClick={finishExerciseIncomplete}
-                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold"
-                  size="sm"
-                >
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  Não Consigo Continuar
-                </Button>
-              </div>
+
             </CardContent>
           </Card>
         )}
@@ -687,15 +668,16 @@ export default function ActiveWorkout() {
             </Button>
           )}
 
-          {/* Botão para finalizar exercício como incompleto */}
-          <Button 
-            onClick={finishExerciseIncomplete}
-            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold"
-            size="lg"
-          >
-            <AlertCircle className="h-5 w-5 mr-2" />
-            Não Consigo Continuar
-          </Button>
+          {/* Botão SIMPLES para finalizar exercício como incompleto */}
+          <div className="w-full">
+            <button 
+              onClick={finishExerciseIncomplete}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-lg text-lg"
+              style={{ border: 'none', outline: 'none' }}
+            >
+              ⚠️ Não Consigo Continuar Este Exercício
+            </button>
+          </div>
 
           <div className="grid grid-cols-3 gap-2">
             <Button 
