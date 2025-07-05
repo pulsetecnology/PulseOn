@@ -539,6 +539,18 @@ export default function ActiveWorkout() {
 
             <div className="text-center mb-4">
               <h3 className="text-xl font-semibold text-primary-foreground mb-2">Série {currentSeries} de {currentExercise.series}</h3>
+              
+              {/* Botão para finalizar exercício como incompleto - diretamente no card */}
+              {!isResting && (
+                <Button 
+                  onClick={finishExerciseIncomplete}
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold mt-3"
+                  size="sm"
+                >
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Não Consigo Continuar Este Exercício
+                </Button>
+              )}
             </div>
 
             {/* Card de controle de peso */}
@@ -646,6 +658,18 @@ export default function ActiveWorkout() {
                     <SkipForward className="h-4 w-4" />
                   </Button>
                 </div>
+              </div>
+              
+              {/* Botão para finalizar exercício como incompleto durante descanso */}
+              <div className="mt-3">
+                <Button 
+                  onClick={finishExerciseIncomplete}
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold"
+                  size="sm"
+                >
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Não Consigo Continuar Este Exercício
+                </Button>
               </div>
             </CardContent>
           </Card>
