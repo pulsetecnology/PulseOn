@@ -283,18 +283,13 @@ export default function History() {
               return (
                 <Card key={index} className={getBorderColor()}>
                   <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="font-semibold text-slate-900 dark:text-white">
-                          {exercise.exercise}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {exercise.muscleGroup}
-                        </p>
-                      </div>
-                      <Badge variant={getBadgeVariant()}>
-                        {getStatusText()}
-                      </Badge>
+                    <div className="mb-2">
+                      <h4 className="font-semibold text-slate-900 dark:text-white">
+                        {exercise.exercise}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {exercise.muscleGroup}
+                      </p>
                     </div>
 
                     {(exercise.completed || exercise.status === 'incomplete') && (
@@ -338,6 +333,13 @@ export default function History() {
                         </p>
                       </div>
                     )}
+
+                    {/* Status badge no canto inferior esquerdo */}
+                    <div className="flex justify-start mt-3">
+                      <Badge variant={getBadgeVariant()}>
+                        {getStatusText()}
+                      </Badge>
+                    </div>
                   </CardContent>
                 </Card>
               );

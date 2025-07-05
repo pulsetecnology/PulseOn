@@ -105,6 +105,10 @@ The system uses **PostgreSQL** with the following main entities:
 
 ```
 Changelog:
+- July 5, 2025. Added "Não Consigo Continuar" button to mark exercises as incomplete during execution
+- July 5, 2025. Exercises can now have three statuses: completed, incomplete, not-started
+- July 5, 2025. History displays exercise status badges at bottom left of cards
+- July 5, 2025. Incomplete exercises show notes about completed series and don't count calories
 - July 4, 2025. Updated weight component styling to match effort level component
 - July 4, 2025. Enhanced active exercise card with blue background for better visibility
 - June 27, 2025. Initial setup

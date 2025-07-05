@@ -668,11 +668,11 @@ export default function ActiveWorkout() {
           {!isResting && (
             <Button 
               onClick={finishExerciseIncomplete}
-              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold"
               size="lg"
             >
               <AlertCircle className="h-5 w-5 mr-2" />
-              Finalizar Exercício Incompleto
+              Não Consigo Continuar
             </Button>
           )}
 
