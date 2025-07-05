@@ -705,13 +705,24 @@ export default function Workout() {
           const exerciseId = exercise.id || exercise.exercise;
           return (
             <div key={exerciseId}>
-              <Card id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 ring-2 ring-primary' : ''}`}>
+              <Card id={`exercise-${exerciseId}`} className={`${
+                completedExercises.has(exerciseId) 
+                  ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' 
+                  : incompleteExercises.has(exerciseId)
+                  ? 'bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800'
+                  : ''
+              } ${activeExercise === exerciseId ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 ring-2 ring-primary' : ''}`}>
                 <CardContent className="p-2">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center space-x-1">
                       <h3 className="font-semibold text-xs">{exercise.exercise}</h3>
                       {completedExercises.has(exerciseId) && (
                         <CheckCircle2 className="h-3 w-3 text-green-600" />
+                      )}
+                      {incompleteExercises.has(exerciseId) && !completedExercises.has(exerciseId) && (
+                        <div className="h-3 w-3 rounded-full bg-orange-500 flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">!</span>
+                        </div>
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground">
@@ -736,7 +747,45 @@ export default function Workout() {
                       {exercise.type}
                     </Badge>
                   </div>
-                  {!completedExercises.has(exerciseId) ? (
+                  {completedExercises.has(exerciseId) ? (
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      disabled
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Exercício concluído
+                    </Button>
+                  ) : incompleteExercises.has(exerciseId) ? (
+                    <Button 
+                      className="w-full border-orange-500 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-950" 
+                      variant="outline"
+                      onClick={() => {
+                        // Remover da lista de incompletos e permitir retomar
+                        setIncompleteExercises(prev => {
+                          const newSet = new Set(prev);
+                          newSet.delete(exerciseId);
+                          return newSet;
+                        });
+                        
+                        // Salvar progresso sem este exercício na lista de incompletos
+                        const currentIncompleteArray: string[] = [];
+                        incompleteExercises.forEach(item => {
+                          if (item !== exerciseId) {
+                            currentIncompleteArray.push(item);
+                          }
+                        });
+                        saveProgress(completedExercises, {}, currentIncompleteArray);
+                        
+                        // Iniciar o exercício
+                        startIndividualExercise(exerciseId);
+                      }}
+                      disabled={activeExercise !== null && activeExercise !== exerciseId}
+                    >
+                      <RotateCcw className="mr-2 h-4 w-4" />
+                      {activeExercise === exerciseId ? "Exercício ativo" : "Retomar exercício"}
+                    </Button>
+                  ) : (
                     <Button 
                       className="w-full" 
                       variant={activeExercise === exerciseId ? "secondary" : "default"}
@@ -745,15 +794,6 @@ export default function Workout() {
                     >
                       <Play className="mr-2 h-4 w-4" />
                       {activeExercise === exerciseId ? "Exercício ativo" : "Iniciar este exercício"}
-                    </Button>
-                  ) : (
-                    <Button 
-                      className="w-full" 
-                      variant="outline"
-                      disabled
-                    >
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Exercício concluído
                     </Button>
                   )}
                 </CardContent>
