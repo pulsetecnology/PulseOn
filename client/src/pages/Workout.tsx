@@ -144,6 +144,7 @@ export default function Workout() {
   };
 
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
+  const [incompleteExercises, setIncompleteExercises] = useState<Set<string>>(new Set());
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [currentSet, setCurrentSet] = useState(1);
   const [weight, setWeight] = useState(40);
@@ -299,76 +300,61 @@ export default function Workout() {
   };
 
   // Função para finalizar exercício individual sem completar todas as séries
-  const finishExerciseIncomplete = async () => {
-    if (!activeExercise || !todaysWorkout || !user?.id) return;
+  const finishExerciseIncomplete = () => {
+    if (!activeExercise || !todaysWorkout) return;
 
-    try {
-      const exercise = todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise);
-      if (!exercise) return;
+    const exercise = todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise);
+    if (!exercise) return;
 
-      // Criar dados do exercício incompleto
-      const incompleteExerciseData = {
-        exercise: exercise.exercise,
-        muscleGroup: exercise.muscleGroup,
-        type: exercise.type,
-        instructions: exercise.instructions,
-        time: exercise.time || 0,
-        series: currentSet - 1, // Séries realmente completadas
-        repetitions: exercise.repetitions || 0,
-        restBetweenSeries: exercise.restBetweenSeries,
-        restBetweenExercises: exercise.restBetweenExercises,
-        weight: weight,
-        calories: Math.round(exercise.calories * ((currentSet - 1) / exercise.series)), // Calorias proporcionais
-        actualWeight: weight,
-        actualTime: exercise.time || 0,
-        actualCalories: Math.round(exercise.calories * ((currentSet - 1) / exercise.series)),
-        effortLevel: effortLevel[0] || 7,
-        completed: false, // Marcado como incompleto
-        notes: `Exercício finalizado antecipadamente após ${currentSet - 1} de ${exercise.series} séries`
-      };
+    // Marcar exercício como incompleto
+    setIncompleteExercises(prev => {
+      const newSet = new Set(prev);
+      newSet.add(activeExercise);
+      return newSet;
+    });
 
-      // Salvar exercício incompleto no histórico
-      await apiRequest('/api/workout-sessions', 'POST', {
-        scheduledWorkoutId: todaysWorkout.id,
-        workoutName: `${exercise.exercise} (Incompleto)`,
-        startTime: new Date().toISOString(),
-        endTime: new Date().toISOString(),
-        duration: 1,
-        totalCalories: incompleteExerciseData.actualCalories,
-        exercisesCompleted: 0,
-        status: 'incomplete',
-        notes: `Exercício ${exercise.exercise} finalizado antecipadamente após ${currentSet - 1} de ${exercise.series} séries`,
-        exercises: [incompleteExerciseData]
-      });
+    // Mostrar notificação
+    toast({
+      title: "Exercício Finalizado",
+      description: `${exercise.exercise} marcado como incompleto (${currentSet - 1}/${exercise.series} séries). Será salvo quando finalizar o treino.`,
+      duration: 3000,
+    });
 
-      // Mostrar notificação
-      toast({
-        title: "Exercício Finalizado",
-        description: `${exercise.exercise} salvo como incompleto no histórico (${currentSet - 1}/${exercise.series} séries)`,
-        duration: 3000,
-      });
+    // Resetar estado do exercício
+    setActiveExercise(null);
+    setCurrentSet(1);
+    setIsResting(false);
+    setIsTimerRunning(false);
+    setShowSetFeedback(false);
+    
+    // Scroll para o topo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-      // Invalidar queries para atualizar dados
-      queryClient.invalidateQueries({ queryKey: ['/api/workout-sessions'] });
+  // Função para retomar exercício incompleto
+  const resumeIncompleteExercise = (exerciseId: string) => {
+    // Remover da lista de incompletos
+    setIncompleteExercises(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(exerciseId);
+      return newSet;
+    });
 
-      // Resetar estado do exercício
-      setActiveExercise(null);
-      setCurrentSet(1);
-      setIsResting(false);
-      setIsTimerRunning(false);
-      setShowSetFeedback(false);
-      
-      // Scroll para o topo
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Iniciar o exercício novamente
+    setActiveExercise(exerciseId);
+    setCurrentSet(1);
+    setIsResting(false);
+    setIsTimerRunning(false);
+    setShowSetFeedback(false);
 
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao salvar exercício incompleto.",
-        variant: "destructive",
-        duration: 3000,
-      });
-    }
+    // Scroll para o exercício
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    toast({
+      title: "Exercício Retomado",
+      description: "Você pode continuar o exercício de onde parou.",
+      duration: 2000,
+    });
   };
 
   // Função para finalizar treino antecipadamente
@@ -455,31 +441,37 @@ export default function Workout() {
     const endTime = new Date();
     const durationMinutes = 1; // Assumir pelo menos 1 minuto
 
-    // Criar exercícios completados com formato adequado
-    const completedExercisesList = todaysWorkout.exercises.map(exercise => ({
-      exercise: exercise.exercise,
-      muscleGroup: exercise.muscleGroup,
-      type: exercise.type,
-      instructions: exercise.instructions,
-      time: exercise.time || 0,
-      series: exercise.series,
-      repetitions: exercise.repetitions || 0,
-      restBetweenSeries: exercise.restBetweenSeries,
-      restBetweenExercises: exercise.restBetweenExercises,
-      weight: exercise.weight || 0,
-      calories: exercise.calories,
-      actualWeight: exercise.weight || 0,
-      actualTime: exercise.time || 0,
-      actualCalories: exercise.calories,
-      effortLevel: 8, // Valor padrão
-      completed: currentCompletedExercises.has(exercise.id || exercise.exercise), // Marcar como completo apenas se foi feito
-      notes: null
-    }));
+    // Criar exercícios completados com formato adequado, incluindo incompletos
+    const completedExercisesList = todaysWorkout.exercises.map(exercise => {
+      const exerciseId = exercise.id || exercise.exercise;
+      const isCompleted = currentCompletedExercises.has(exerciseId);
+      const isIncomplete = incompleteExercises.has(exerciseId);
+      
+      return {
+        exercise: exercise.exercise,
+        muscleGroup: exercise.muscleGroup,
+        type: exercise.type,
+        instructions: exercise.instructions,
+        time: exercise.time || 0,
+        series: isIncomplete ? Math.floor(exercise.series / 2) : exercise.series, // Para incompletos, assumir metade das séries
+        repetitions: exercise.repetitions || 0,
+        restBetweenSeries: exercise.restBetweenSeries,
+        restBetweenExercises: exercise.restBetweenExercises,
+        weight: exercise.weight || 0,
+        calories: isIncomplete ? Math.floor(exercise.calories / 2) : exercise.calories, // Para incompletos, metade das calorias
+        actualWeight: exercise.weight || 0,
+        actualTime: exercise.time || 0,
+        actualCalories: isIncomplete ? Math.floor(exercise.calories / 2) : exercise.calories,
+        effortLevel: 8, // Valor padrão
+        completed: isCompleted, // Marcar como completo apenas se foi totalmente feito
+        notes: isIncomplete ? "Exercício finalizado antes de completar todas as séries" : null
+      };
+    });
 
-    // Calcular calorias apenas dos exercícios completados
+    // Calcular calorias de exercícios completados e incompletos
     const totalCalories = completedExercisesList
-      .filter(ex => ex.completed)
-      .reduce((sum, exercise) => sum + exercise.calories, 0);
+      .filter(ex => ex.completed || incompleteExercises.has(ex.exercise))
+      .reduce((sum, exercise) => sum + exercise.actualCalories, 0);
 
     // Criar objeto de sessão de treino
     const workoutSession = {
@@ -490,7 +482,8 @@ export default function Workout() {
       duration: durationMinutes,
       totalCalories: totalCalories,
       exercisesCompleted: currentCompletedExercises.size,
-      status: currentCompletedExercises.size === todaysWorkout.exercises.length ? 'completed' : 'partial',
+      status: currentCompletedExercises.size === todaysWorkout.exercises.length ? 'completed' : 
+              incompleteExercises.size > 0 ? 'partial-incomplete' : 'partial',
       notes: null,
       exercises: completedExercisesList
     };
@@ -509,6 +502,16 @@ export default function Workout() {
 
       if (response.ok) {
         console.log('Treino individual salvo no histórico com sucesso');
+        
+        // Limpar estados
+        setCompletedExercises(new Set());
+        setIncompleteExercises(new Set());
+        setActiveExercise(null);
+        
+        // Limpar progresso do localStorage
+        const storageKey = getWorkoutStorageKey();
+        localStorage.removeItem(storageKey);
+        
         showWorkoutSuccess();
         // Redirecionar para histórico
         window.location.href = '/history';
@@ -531,6 +534,16 @@ export default function Workout() {
       existingSessions.unshift(sessionWithId);
       localStorage.setItem('workoutSessions', JSON.stringify(existingSessions));
       console.log('Treino individual salvo no localStorage como fallback');
+      
+      // Limpar estados
+      setCompletedExercises(new Set());
+      setIncompleteExercises(new Set());
+      setActiveExercise(null);
+      
+      // Limpar progresso do localStorage
+      const storageKey = getWorkoutStorageKey();
+      localStorage.removeItem(storageKey);
+      
       showWorkoutSuccess();
       // Redirecionar para histórico
       window.location.href = '/history';
@@ -733,13 +746,19 @@ export default function Workout() {
           const exerciseId = exercise.id || exercise.exercise;
           return (
             <div key={exerciseId}>
-              <Card id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 ring-2 ring-primary' : ''}`}>
+              <Card id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${incompleteExercises.has(exerciseId) ? 'bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800' : ''} ${activeExercise === exerciseId ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 ring-2 ring-primary' : ''}`}>
                 <CardContent className="p-2">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center space-x-1">
                       <h3 className="font-semibold text-xs">{exercise.exercise}</h3>
                       {completedExercises.has(exerciseId) && (
                         <CheckCircle2 className="h-3 w-3 text-green-600" />
+                      )}
+                      {incompleteExercises.has(exerciseId) && (
+                        <div className="flex items-center space-x-1">
+                          <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs text-orange-600 font-medium">Incompleto</span>
+                        </div>
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground">
@@ -764,7 +783,25 @@ export default function Workout() {
                       {exercise.type}
                     </Badge>
                   </div>
-                  {!completedExercises.has(exerciseId) ? (
+                  {completedExercises.has(exerciseId) ? (
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      disabled
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Exercício concluído
+                    </Button>
+                  ) : incompleteExercises.has(exerciseId) ? (
+                    <Button 
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white" 
+                      onClick={() => resumeIncompleteExercise(exerciseId)}
+                      disabled={activeExercise !== null && activeExercise !== exerciseId}
+                    >
+                      <Play className="mr-2 h-4 w-4" />
+                      Retomar exercício
+                    </Button>
+                  ) : (
                     <Button 
                       className="w-full" 
                       variant={activeExercise === exerciseId ? "secondary" : "default"}
@@ -773,15 +810,6 @@ export default function Workout() {
                     >
                       <Play className="mr-2 h-4 w-4" />
                       {activeExercise === exerciseId ? "Exercício ativo" : "Iniciar este exercício"}
-                    </Button>
-                  ) : (
-                    <Button 
-                      className="w-full" 
-                      variant="outline"
-                      disabled
-                    >
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Exercício concluído
                     </Button>
                   )}
                 </CardContent>
@@ -833,7 +861,7 @@ export default function Workout() {
                             size="sm"
                             className="w-full bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-950 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900"
                           >
-                            Finalizar incompleto
+                            Finalizar exercício
                           </Button>
                         </div>
                       </div>
@@ -921,7 +949,7 @@ export default function Workout() {
                             variant="outline"
                             className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-950 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900"
                           >
-                            Finalizar incompleto
+                            Finalizar exercício
                           </Button>
                         </div>
                       </div>
@@ -978,7 +1006,7 @@ export default function Workout() {
                             variant="outline"
                             className="bg-red-500/20 text-white border-red-300/50 hover:bg-red-500/30 text-xs px-2 py-1 rounded-full w-full"
                           >
-                            Finalizar
+                            Finalizar exercício
                           </Button>
                         </div>
                       </div>
