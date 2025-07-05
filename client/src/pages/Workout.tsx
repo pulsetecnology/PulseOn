@@ -894,7 +894,7 @@ export default function Workout() {
                           onClick={() => {
                             if (!activeExercise) return;
                             
-                            // Marcar exercício como incompleto
+                            // Marcar exercício como incompleto (diferente de não executado)
                             setIncompleteExercises(prev => {
                               const newSet = new Set(prev);
                               newSet.add(activeExercise);
@@ -913,10 +913,14 @@ export default function Workout() {
                             setIsResting(false);
                             setIsTimerRunning(false);
                             setShowSetFeedback(false);
+                            
+                            // Scroll para o topo para ver o próximo exercício
+                            scrollToActiveExercise('top');
                           }}
-                          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+                          variant="outline"
+                          className="w-full border-orange-500 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-950"
                         >
-                          ⚠️ Não Consigo Continuar Este Exercício
+                          Não Consigo Continuar
                         </Button>
                       </div>
                     )}

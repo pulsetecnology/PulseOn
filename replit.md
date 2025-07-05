@@ -105,7 +105,8 @@ The system uses **PostgreSQL** with the following main entities:
 
 ```
 Changelog:
-- July 5, 2025. Added "Não Consigo Continuar" button to mark exercises as incomplete during execution
+- July 5, 2025. Implemented "Não Consigo Continuar" button in individual exercise execution screen (Workout.tsx)
+- July 5, 2025. Button correctly marks exercises as "incomplete" status during execution
 - July 5, 2025. Exercises can now have three statuses: completed, incomplete, not-started
 - July 5, 2025. History displays exercise status badges at bottom left of cards
 - July 5, 2025. Incomplete exercises show notes about completed series and don't count calories
