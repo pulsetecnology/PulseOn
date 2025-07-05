@@ -262,8 +262,8 @@ export default function History() {
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Exercícios</h3>
             {selectedWorkout.exercises.map((exercise, index) => (
               <Card key={index} className={exercise.completed ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'}>
-                <CardContent className="p-4 relative">
-                  <div className="mb-2">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
                     <div>
                       <h4 className="font-semibold text-slate-900 dark:text-white">
                         {exercise.exercise}
@@ -272,6 +272,9 @@ export default function History() {
                         {exercise.muscleGroup}
                       </p>
                     </div>
+                    <Badge variant={exercise.completed ? "default" : "destructive"}>
+                      {exercise.completed ? "Concluído" : "Não executado"}
+                    </Badge>
                   </div>
 
                   {exercise.completed && (
@@ -306,13 +309,6 @@ export default function History() {
                       </div>
                     </div>
                   )}
-                  
-                  {/* Status badge no canto inferior direito */}
-                  <div className="absolute bottom-3 right-3">
-                    <Badge variant={exercise.completed ? "default" : "destructive"} className="text-xs">
-                      {exercise.completed ? "Concluído" : "Incompleto"}
-                    </Badge>
-                  </div>
                 </CardContent>
               </Card>
             ))}

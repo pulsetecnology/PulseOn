@@ -59,7 +59,7 @@ const fetchScheduledWorkouts = async (): Promise<ScheduledWorkout[]> => {
 export default function Workout() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
+  
   const { data: scheduledWorkouts, isLoading, error } = useQuery({
     queryKey: ['scheduled-workouts'],
     queryFn: fetchScheduledWorkouts,
@@ -102,7 +102,7 @@ export default function Workout() {
   });
 
   const todaysWorkout = scheduledWorkouts?.[0]; // Get the most recent workout
-
+  
   // Função para gerar chave única do treino baseada na data
   const getWorkoutStorageKey = () => {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
@@ -111,43 +111,39 @@ export default function Workout() {
 
   // Carregar progresso salvo do localStorage
   const loadSavedProgress = () => {
-    if (!user?.id) return { completedExercises: new Set(), exerciseData: {}, workoutId: null, incompleteExercises: new Set() };
-
+    if (!user?.id) return { completedExercises: new Set(), exerciseData: {}, workoutId: null };
+    
     const storageKey = getWorkoutStorageKey();
     const saved = localStorage.getItem(storageKey);
-
+    
     if (saved) {
       const data = JSON.parse(saved);
       return {
         completedExercises: new Set(data.completedExercises || []),
         exerciseData: data.exerciseData || {},
-        workoutId: data.workoutId || null,
-        incompleteExercises: new Set(data.incompleteExercises || [])
+        workoutId: data.workoutId || null
       };
     }
-
-    return { completedExercises: new Set(), exerciseData: {}, workoutId: null, incompleteExercises: new Set() };
+    
+    return { completedExercises: new Set(), exerciseData: {}, workoutId: null };
   };
 
   // Salvar progresso no localStorage
-  const saveProgress = (completed: Set<string>, exerciseData: any, incomplete: Set<string> = new Set()) => {
-    if (!user?.id || !todaysWorkout?.id) return;
-
+  const saveProgress = (completed: Set<string>, exerciseData: any) => {
+    if (!user?.id) return;
+    
     const storageKey = getWorkoutStorageKey();
     const dataToSave = {
       completedExercises: Array.from(completed),
       exerciseData,
       lastUpdate: new Date().toISOString(),
-      workoutId: todaysWorkout.id,
-      incompleteExercises: Array.from(incomplete)
+      workoutId: todaysWorkout?.id
     };
-
-    console.log('Salvando progresso:', dataToSave);
+    
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
   };
 
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
-  const [incompleteExercises, setIncompleteExercises] = useState<Set<string>>(new Set());
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [currentSet, setCurrentSet] = useState(1);
   const [weight, setWeight] = useState(40);
@@ -177,27 +173,14 @@ export default function Workout() {
         // Se já existe uma sessão concluída, marcar todos os exercícios como concluídos
         const completedExerciseIds = existingSession.exercises?.map((ex: any) => ex.exerciseId || ex.exerciseName) || [];
         setCompletedExercises(new Set(completedExerciseIds));
-        console.log('Carregando exercícios concluídos da sessão existente:', completedExerciseIds);
       } else {
         // Se não existe sessão concluída, carregar progresso do localStorage
         const progress = loadSavedProgress();
-        console.log('Progresso carregado do localStorage:', progress);
-
-        if (progress.workoutId === todaysWorkout.id) {
-          if (progress.completedExercises && progress.completedExercises.size > 0) {
-            setCompletedExercises(progress.completedExercises as Set<string>);
-            console.log('Exercícios concluídos restaurados:', Array.from(progress.completedExercises));
-          }
-          if (progress.incompleteExercises && progress.incompleteExercises.size > 0) {
-            setIncompleteExercises(progress.incompleteExercises as Set<string>);
-            console.log('Exercícios incompletos restaurados:', Array.from(progress.incompleteExercises));
-          }
+        if (progress.workoutId === todaysWorkout.id && progress.completedExercises && progress.completedExercises.size > 0) {
+          setCompletedExercises(progress.completedExercises as Set<string>);
         } else {
           // Se não há progresso ou é de outro treino, inicializar vazio
           setCompletedExercises(new Set());
-          setIncompleteExercises(new Set());
-          console.log('Progresso limpo - novo treino ou sem progresso');
-
           // Limpar progresso antigo se for um novo treino
           if (progress.workoutId && progress.workoutId !== todaysWorkout.id) {
             const storageKey = getWorkoutStorageKey();
@@ -207,14 +190,6 @@ export default function Workout() {
       }
     }
   }, [user?.id, todaysWorkout?.id, workoutSessions]);
-
-  // Salvar progresso automaticamente quando houver mudanças
-  useEffect(() => {
-    if (user?.id && todaysWorkout?.id && (completedExercises.size > 0 || incompleteExercises.size > 0)) {
-      const exerciseData = {};
-      saveProgress(completedExercises, exerciseData, incompleteExercises);
-    }
-  }, [completedExercises, incompleteExercises, user?.id, todaysWorkout?.id]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -240,7 +215,7 @@ export default function Workout() {
         const headerHeight = 80; 
         const elementPosition = activeCard.getBoundingClientRect().top + window.pageYOffset;
         const offsetPosition = elementPosition - headerHeight;
-
+        
         window.scrollTo({
           top: offsetPosition,
           behavior: 'smooth'
@@ -289,19 +264,19 @@ export default function Workout() {
         setCompletedExercises(prev => {
           const newSet = new Set(prev);
           newSet.add(activeExercise!);
-
+          
           // Salvar progresso no localStorage
           const exerciseData = {
             weight,
             effortLevel: effortLevel[0],
             completedAt: new Date().toISOString()
           };
-          saveProgress(newSet, { [activeExercise!]: exerciseData }, incompleteExercises);
-
+          saveProgress(newSet, { [activeExercise!]: exerciseData });
+          
           // Verificar se este é o último exercício
           const totalExercises = todaysWorkout?.exercises?.length || 0;
           const completedCount = newSet.size;
-
+          
           if (completedCount >= totalExercises) {
             // Último exercício concluído - mostrar "Finalizando treino..." e scroll para o topo
             setIsFinishingWorkout(true);
@@ -313,7 +288,7 @@ export default function Workout() {
             // Scroll para o topo após completar exercício
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
-
+          
           return newSet;
         });
         setActiveExercise(null);
@@ -321,84 +296,6 @@ export default function Workout() {
         showWorkoutSuccess();
       }
     }, 1500);
-  };
-
-    // Função para salvar progresso do exercício (simulação)
-    const saveExerciseProgress = async (exerciseId: string, completed: boolean) => {
-      // Simulação de salvamento no backend
-      console.log(`Salvando progresso do exercício ${exerciseId}: ${completed ? 'Concluído' : 'Incompleto'}`);
-      return new Promise(resolve => setTimeout(resolve, 500)); // Simula atraso
-    };
-
-  // Função para finalizar exercício individual sem completar todas as séries
-  const finishExerciseIncomplete = () => {
-    if (!activeExercise || !todaysWorkout) return;
-
-    const exercise = todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise);
-    if (!exercise) return;
-
-    // Atualizar estados primeiro
-    setIncompleteExercises(prev => {
-      const newSet = new Set(prev);
-      newSet.add(activeExercise);
-
-      // Salvar progresso imediatamente após atualizar o estado
-      setTimeout(() => {
-        setCompletedExercises(current => {
-          const updatedCompleted = new Set(current);
-          updatedCompleted.delete(activeExercise!);
-
-          // Salvar com os novos estados
-          saveProgress(updatedCompleted, {}, newSet);
-          return updatedCompleted;
-        });
-      }, 0);
-
-      return newSet;
-    });
-
-    // Mostrar notificação
-    toast({
-      title: "Exercício Finalizado",
-      description: `${exercise.exercise} marcado como incompleto (${currentSet - 1}/${exercise.series} séries). Será salvo quando finalizar o treino.`,
-      duration: 3000,
-    });
-
-    // Resetar estado do exercício
-    setActiveExercise(null);
-    setCurrentSet(1);
-    setIsResting(false);
-    setIsTimerRunning(false);
-    setShowSetFeedback(false);
-
-    // Scroll para o topo
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Função para retomar exercício incompleto
-  const resumeIncompleteExercise = (exerciseId: string) => {
-    // Remover da lista de incompletos
-    setIncompleteExercises(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(exerciseId);
-      return newSet;
-    });
-
-    // Iniciar o exercício novamente
-    setActiveExercise(exerciseId);
-    setCurrentSet(1);
-    setIsResting(false);
-    setIsTimerRunning(false);
-    setShowSetFeedback(false);
-
-    // Scroll para o exercício
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    toast({
-      title: "Exercício Retomado",
-      description: "Você pode continuar o exercício de onde parou.",
-      duration: 2000,
-    });
   };
 
   // Função para finalizar treino antecipadamente
@@ -410,7 +307,7 @@ export default function Workout() {
       const completedExercisesList = Array.from(completedExercises).map(exerciseId => {
         const exercise = todaysWorkout.exercises?.find(ex => (ex.id || ex.exercise) === exerciseId);
         if (!exercise) return null;
-
+        
         return {
           exerciseId: exerciseId,
           exerciseName: exercise.exercise,
@@ -455,7 +352,7 @@ export default function Workout() {
       // Resetar estado
       setCompletedExercises(new Set());
       setActiveExercise(null);
-
+      
     } catch (error) {
       toast({
         title: "Erro",
@@ -485,46 +382,31 @@ export default function Workout() {
     const endTime = new Date();
     const durationMinutes = 1; // Assumir pelo menos 1 minuto
 
-    // Criar exercícios completados com formato adequado, incluindo incompletos
-    const completedExercisesList = todaysWorkout.exercises.map(exercise => {
-      const exerciseId = exercise.id || exercise.exercise;
-      const isCompleted = currentCompletedExercises.has(exerciseId);
-      const isIncomplete = incompleteExercises.has(exerciseId);
+    // Criar exercícios completados com formato adequado
+    const completedExercisesList = todaysWorkout.exercises.map(exercise => ({
+      exercise: exercise.exercise,
+      muscleGroup: exercise.muscleGroup,
+      type: exercise.type,
+      instructions: exercise.instructions,
+      time: exercise.time || 0,
+      series: exercise.series,
+      repetitions: exercise.repetitions || 0,
+      restBetweenSeries: exercise.restBetweenSeries,
+      restBetweenExercises: exercise.restBetweenExercises,
+      weight: exercise.weight || 0,
+      calories: exercise.calories,
+      actualWeight: exercise.weight || 0,
+      actualTime: exercise.time || 0,
+      actualCalories: exercise.calories,
+      effortLevel: 8, // Valor padrão
+      completed: currentCompletedExercises.has(exercise.id || exercise.exercise), // Marcar como completo apenas se foi feito
+      notes: null
+    }));
 
-      // Determinar status baseado na execução
-      let status = 'not_executed';
-      if (isCompleted) {
-        status = 'completed';
-      } else if (isIncomplete) {
-        status = 'partial';
-      }
-
-      return {
-        exercise: exercise.exercise,
-        muscleGroup: exercise.muscleGroup,
-        type: exercise.type,
-        instructions: exercise.instructions,
-        time: exercise.time || 0,
-        series: isIncomplete ? Math.floor(exercise.series / 2) : exercise.series,
-        repetitions: exercise.repetitions || 0,
-        restBetweenSeries: exercise.restBetweenSeries,
-        restBetweenExercises: exercise.restBetweenExercises,
-        weight: exercise.weight || 0,
-        calories: isIncomplete ? Math.floor(exercise.calories / 2) : exercise.calories,
-        actualWeight: exercise.weight || 0,
-        actualTime: exercise.time || 0,
-        actualCalories: isIncomplete ? Math.floor(exercise.calories / 2) : exercise.calories,
-        effortLevel: 8,
-        completed: isCompleted,
-        status: status, // Adicionar status explícito
-        notes: isIncomplete ? "Exercício finalizado antes de completar todas as séries" : null
-      };
-    });
-
-    // Calcular calorias de exercícios completados e incompletos
+    // Calcular calorias apenas dos exercícios completados
     const totalCalories = completedExercisesList
-      .filter(ex => ex.completed || incompleteExercises.has(ex.exercise))
-      .reduce((sum, exercise) => sum + exercise.actualCalories, 0);
+      .filter(ex => ex.completed)
+      .reduce((sum, exercise) => sum + exercise.calories, 0);
 
     // Criar objeto de sessão de treino
     const workoutSession = {
@@ -535,8 +417,7 @@ export default function Workout() {
       duration: durationMinutes,
       totalCalories: totalCalories,
       exercisesCompleted: currentCompletedExercises.size,
-      status: currentCompletedExercises.size === todaysWorkout.exercises.length ? 'completed' : 
-              incompleteExercises.size > 0 ? 'partial-incomplete' : 'partial',
+      status: currentCompletedExercises.size === todaysWorkout.exercises.length ? 'completed' : 'partial',
       notes: null,
       exercises: completedExercisesList
     };
@@ -555,16 +436,6 @@ export default function Workout() {
 
       if (response.ok) {
         console.log('Treino individual salvo no histórico com sucesso');
-
-        // Limpar estados
-        setCompletedExercises(new Set());
-        setIncompleteExercises(new Set());
-        setActiveExercise(null);
-
-        // Limpar progresso do localStorage
-        const storageKey = getWorkoutStorageKey();
-        localStorage.removeItem(storageKey);
-
         showWorkoutSuccess();
         // Redirecionar para histórico
         window.location.href = '/history';
@@ -573,7 +444,7 @@ export default function Workout() {
       }
     } catch (error) {
       console.error('Erro ao salvar treino individual no backend:', error);
-
+      
       // Fallback: salvar no localStorage
       const sessionWithId = {
         ...workoutSession,
@@ -587,16 +458,6 @@ export default function Workout() {
       existingSessions.unshift(sessionWithId);
       localStorage.setItem('workoutSessions', JSON.stringify(existingSessions));
       console.log('Treino individual salvo no localStorage como fallback');
-
-      // Limpar estados
-      setCompletedExercises(new Set());
-      setIncompleteExercises(new Set());
-      setActiveExercise(null);
-
-      // Limpar progresso do localStorage
-      const storageKey = getWorkoutStorageKey();
-      localStorage.removeItem(storageKey);
-
       showWorkoutSuccess();
       // Redirecionar para histórico
       window.location.href = '/history';
@@ -741,7 +602,7 @@ export default function Workout() {
           </div>
           <div className="space-y-3">
             {/* Botão "Iniciar treino completo" foi removido conforme solicitado */}
-
+            
             {/* Botão Finalizar Treino - só aparece se há exercícios completados */}
             {(() => {
               // Verificar se há sessões concluídas para este treino
@@ -754,7 +615,7 @@ export default function Workout() {
                 const totalExercises = todaysWorkout.exercises?.length || 1;
                 const completedCount = completedExercises.size;
                 const progress = completedCount / totalExercises;
-
+                
                 // Cores gradativas baseadas no progresso
                 let buttonClass = "";
                 if (completedCount === totalExercises) {
@@ -770,7 +631,7 @@ export default function Workout() {
                   // Verde para alto progresso
                   buttonClass = "border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20";
                 }
-
+                
                 return (
                   <Button 
                     variant="outline"
@@ -799,19 +660,13 @@ export default function Workout() {
           const exerciseId = exercise.id || exercise.exercise;
           return (
             <div key={exerciseId}>
-              <Card id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${incompleteExercises.has(exerciseId) ? 'bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800' : ''} ${activeExercise === exerciseId ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 ring-2 ring-primary' : ''}`}>
+              <Card id={`exercise-${exerciseId}`} className={`${completedExercises.has(exerciseId) ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : ''} ${activeExercise === exerciseId ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 ring-2 ring-primary' : ''}`}>
                 <CardContent className="p-2">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center space-x-1">
                       <h3 className="font-semibold text-xs">{exercise.exercise}</h3>
                       {completedExercises.has(exerciseId) && (
                         <CheckCircle2 className="h-3 w-3 text-green-600" />
-                      )}
-                      {incompleteExercises.has(exerciseId) && (
-                        <div className="flex items-center space-x-1">
-                          <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse"></div>
-                          <span className="text-xs text-orange-600 font-medium">Incompleto</span>
-                        </div>
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground">
@@ -836,25 +691,7 @@ export default function Workout() {
                       {exercise.type}
                     </Badge>
                   </div>
-                  {completedExercises.has(exerciseId) ? (
-                    <Button 
-                      className="w-full" 
-                      variant="outline"
-                      disabled
-                    >
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Exercício concluído
-                    </Button>
-                  ) : incompleteExercises.has(exerciseId) ? (
-                    <Button 
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white" 
-                      onClick={() => resumeIncompleteExercise(exerciseId)}
-                      disabled={activeExercise !== null && activeExercise !== exerciseId}
-                    >
-                      <Play className="mr-2 h-4 w-4" />
-                      Retomar exercício
-                    </Button>
-                  ) : (
+                  {!completedExercises.has(exerciseId) ? (
                     <Button 
                       className="w-full" 
                       variant={activeExercise === exerciseId ? "secondary" : "default"}
@@ -863,6 +700,15 @@ export default function Workout() {
                     >
                       <Play className="mr-2 h-4 w-4" />
                       {activeExercise === exerciseId ? "Exercício ativo" : "Iniciar este exercício"}
+                    </Button>
+                  ) : (
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      disabled
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Exercício concluído
                     </Button>
                   )}
                 </CardContent>
@@ -888,7 +734,7 @@ export default function Workout() {
                       >
                         <X className="h-4 w-4" />
                       </Button>
-
+                      
                       <h3 className="text-lg font-semibold">Série {currentSet} de {exercise.series}</h3>
                       <p className="text-sm opacity-90">
                         {exercise.repetitions > 0 
@@ -900,23 +746,13 @@ export default function Workout() {
                     {!showSetFeedback && !isResting && (
                       <div className="text-center space-y-3">
                         <p className="opacity-90">Execute o exercício</p>
-                        <div className="space-y-2">
-                          <Button 
-                            onClick={() => setShowSetFeedback(true)}
-                            className="w-full bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
-                          >
-                            Concluir Série
-                            <CheckCircle2 className="ml-2 h-4 w-4" />
-                          </Button>
-                          <Button 
-                            onClick={finishExerciseIncomplete}
-                            variant="outline"
-                            size="sm"
-                            className="w-full bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-950 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900"
-                          >
-                            Finalizar exercício
-                          </Button>
-                        </div>
+                        <Button 
+                          onClick={() => setShowSetFeedback(true)}
+                          className="bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
+                        >
+                          Concluir Série
+                          <CheckCircle2 className="ml-2 h-4 w-4" />
+                        </Button>
                       </div>
                     )}
 
@@ -929,7 +765,7 @@ export default function Workout() {
                             const exercise = todaysWorkout?.exercises?.find(ex => (ex.id || ex.exercise) === activeExercise);
                             const isBodyWeight = exercise?.weight === 0;
                             const userWeight = user?.weight || 70; // Default 70kg if not available
-
+                            
                             if (isBodyWeight) {
                               return (
                                 <div className="text-center">
@@ -941,7 +777,7 @@ export default function Workout() {
                                 </div>
                               );
                             }
-
+                            
                             return (
                               <div className="space-y-1">
                                 <div className="flex justify-between text-xs opacity-75">
@@ -990,21 +826,12 @@ export default function Workout() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={completeSet}
-                            className="bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
-                          >
-                            Confirmar e prosseguir
-                          </Button>
-                          <Button 
-                            onClick={finishExerciseIncomplete}
-                            variant="outline"
-                            className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 dark:bg-red-950 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900"
-                          >
-                            Finalizar exercício
-                          </Button>
-                        </div>
+                        <Button 
+                          onClick={completeSet}
+                          className="w-full bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
+                        >
+                          Confirmar e prosseguir
+                        </Button>
                       </div>
                     )}
                   </CardContent>
@@ -1025,7 +852,7 @@ export default function Workout() {
                           <p className="text-2xl font-bold text-white">{formatTime(restTime)}</p>
                         </div>
                       </div>
-
+                      
                       <div className="flex flex-col space-y-2">
                         <div className="flex space-x-2">
                           <Button 
@@ -1045,23 +872,13 @@ export default function Workout() {
                             <RotateCcw className="h-4 w-4" />
                           </Button>
                         </div>
-                        <div className="space-y-1">
-                          <Button 
-                            onClick={startNextSet}
-                            size="sm"
-                            className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded-full w-full"
-                          >
-                            Próxima Série
-                          </Button>
-                          <Button 
-                            onClick={finishExerciseIncomplete}
-                            size="sm"
-                            variant="outline"
-                            className="bg-red-500/20 text-white border-red-300/50 hover:bg-red-500/30 text-xs px-2 py-1 rounded-full w-full"
-                          >
-                            Finalizar exercício
-                          </Button>
-                        </div>
+                        <Button 
+                          onClick={startNextSet}
+                          size="sm"
+                          className="bg-white/20 text-white hover:bg-white/30 text-xs px-3 py-1 rounded-full"
+                        >
+                          Próxima Série
+                        </Button>
                       </div>
                     </div>
                   </CardContent>

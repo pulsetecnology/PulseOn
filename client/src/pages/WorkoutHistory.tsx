@@ -40,11 +40,11 @@ const fetchWorkoutSessions = async (): Promise<WorkoutSession[]> => {
       'Authorization': `Bearer ${token}`,
     },
   });
-
+  
   if (!response.ok) {
     throw new Error('Erro ao carregar histórico de treinos');
   }
-
+  
   return response.json();
 };
 
@@ -56,18 +56,18 @@ const fetchUserStats = async () => {
       'Authorization': `Bearer ${token}`,
     },
   });
-
+  
   if (!response.ok) {
     throw new Error('Erro ao carregar estatísticas');
   }
-
+  
   return response.json();
 };
 
 export default function WorkoutHistory() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [expandedWorkouts, setExpandedWorkouts] = useState<Set<number>>(new Set());
-
+  
   const { data: workoutSessions = [], isLoading: sessionsLoading } = useQuery({
     queryKey: ['workout-sessions'],
     queryFn: fetchWorkoutSessions,
@@ -80,7 +80,7 @@ export default function WorkoutHistory() {
       const completedAt = parseISO(session.completedAt!);
       const completedExercises = session.exercises.filter(ex => ex.completed);
       const totalExercises = session.exercises.length;
-
+      
       // Calculate relative date
       const now = new Date();
       const diffDays = Math.floor((now.getTime() - completedAt.getTime()) / (1000 * 60 * 60 * 24));
@@ -91,7 +91,7 @@ export default function WorkoutHistory() {
       else dateText = format(completedAt, "dd/MM/yyyy", { locale: ptBR });
 
       const completionRate = totalExercises > 0 ? Math.round((completedExercises.length / totalExercises) * 100) : 0;
-
+      
       return {
         id: session.id,
         name: session.name,
@@ -105,11 +105,9 @@ export default function WorkoutHistory() {
           sets: ex.series || 1,
           reps: ex.repetitions || 0,
           weight: ex.actualWeight ? `${ex.actualWeight}kg` : (ex.weight ? `${ex.weight}kg` : "Peso Corporal"),
-          completed: ex.completed === true ? true : (ex.status === 'partial' ? 'partial' : false),
-          completedSets: ex.completed === true ? (ex.series || 1) : (ex.status === 'partial' ? Math.floor((ex.series || 1) / 2) : 0),
-          totalSets: ex.series || 1,
-          status: ex.status || (ex.completed === true ? 'completed' : 'not_executed'),
-          notes: ex.notes
+          completed: ex.completed,
+          completedSets: ex.completed ? (ex.series || 1) : 0,
+          totalSets: ex.series || 1
         }))
       };
     })
@@ -215,7 +213,7 @@ export default function WorkoutHistory() {
         {/* Workout History */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold text-white">Treinos Recentes</h2>
-
+          
           {workoutHistory.length === 0 ? (
             <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-6 text-center">
@@ -274,24 +272,11 @@ export default function WorkoutHistory() {
                         <div key={idx} className="flex items-center justify-between py-2">
                           <div className="flex items-center gap-3">
                             {getCompletionIcon(exercise.completed)}
-                            <div className="flex-1">
+                            <div>
                               <p className="text-white font-medium">{exercise.name}</p>
                               <p className="text-xs text-slate-400">
                                 {exercise.completedSets}/{exercise.totalSets} séries • {exercise.reps} reps • {exercise.weight}
                               </p>
-                              {exercise.notes && (
-                                <p className="text-xs text-slate-500 italic mt-1">{exercise.notes}</p>
-                              )}
-                            </div>
-                            <div className="text-right">
-                              <Badge className={
-                                exercise.status === 'completed' ? 'bg-green-100 text-green-800 text-xs' :
-                                exercise.status === 'partial' ? 'bg-yellow-100 text-yellow-800 text-xs' :
-                                'bg-red-100 text-red-800 text-xs'
-                              }>
-                                {exercise.status === 'completed' ? 'Completo' :
-                                 exercise.status === 'partial' ? 'Parcial' : 'Não executado'}
-                              </Badge>
                             </div>
                           </div>
                         </div>
