@@ -540,17 +540,15 @@ export default function ActiveWorkout() {
             <div className="text-center mb-4">
               <h3 className="text-xl font-semibold text-primary-foreground mb-2">Série {currentSeries} de {currentExercise.series}</h3>
               
-              {/* Botão para finalizar exercício como incompleto - diretamente no card */}
-              {!isResting && (
-                <Button 
-                  onClick={finishExerciseIncomplete}
-                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold mt-3"
-                  size="sm"
-                >
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  Não Consigo Continuar Este Exercício
-                </Button>
-              )}
+              {/* Botão para finalizar exercício como incompleto - sempre visível */}
+              <Button 
+                onClick={finishExerciseIncomplete}
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold mt-3"
+                size="sm"
+              >
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Não Consigo Continuar
+              </Button>
             </div>
 
             {/* Card de controle de peso */}
@@ -668,7 +666,7 @@ export default function ActiveWorkout() {
                   size="sm"
                 >
                   <AlertCircle className="h-4 w-4 mr-2" />
-                  Não Consigo Continuar Este Exercício
+                  Não Consigo Continuar
                 </Button>
               </div>
             </CardContent>
@@ -689,16 +687,14 @@ export default function ActiveWorkout() {
           )}
 
           {/* Botão para finalizar exercício como incompleto */}
-          {!isResting && (
-            <Button 
-              onClick={finishExerciseIncomplete}
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold"
-              size="lg"
-            >
-              <AlertCircle className="h-5 w-5 mr-2" />
-              Não Consigo Continuar
-            </Button>
-          )}
+          <Button 
+            onClick={finishExerciseIncomplete}
+            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold"
+            size="lg"
+          >
+            <AlertCircle className="h-5 w-5 mr-2" />
+            Não Consigo Continuar
+          </Button>
 
           <div className="grid grid-cols-3 gap-2">
             <Button 
