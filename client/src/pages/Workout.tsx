@@ -884,9 +884,39 @@ export default function Workout() {
 
                         <Button 
                           onClick={completeSet}
-                          className="w-full bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary"
+                          className="w-full bg-white text-primary hover:bg-gray-100 dark:bg-white dark:text-primary mb-3"
                         >
                           Confirmar e prosseguir
+                        </Button>
+
+                        {/* Botão para marcar exercício como incompleto */}
+                        <Button 
+                          onClick={() => {
+                            if (!activeExercise) return;
+                            
+                            // Marcar exercício como incompleto
+                            setIncompleteExercises(prev => {
+                              const newSet = new Set(prev);
+                              newSet.add(activeExercise);
+                              return newSet;
+                            });
+                            
+                            // Salvar progresso
+                            const currentIncompleteArray: string[] = [];
+                            incompleteExercises.forEach(item => currentIncompleteArray.push(item));
+                            currentIncompleteArray.push(activeExercise);
+                            saveProgress(completedExercises, {}, currentIncompleteArray);
+                            
+                            // Resetar estado do exercício
+                            setActiveExercise(null);
+                            setCurrentSet(1);
+                            setIsResting(false);
+                            setIsTimerRunning(false);
+                            setShowSetFeedback(false);
+                          }}
+                          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+                        >
+                          ⚠️ Não Consigo Continuar Este Exercício
                         </Button>
                       </div>
                     )}

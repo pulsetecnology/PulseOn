@@ -541,25 +541,7 @@ export default function ActiveWorkout() {
               <h3 className="text-xl font-semibold text-primary-foreground mb-2">Série {currentSeries} de {currentExercise.series}</h3>
             </div>
             
-            {/* BOTÃO MUITO VISÍVEL PARA TESTE */}
-            <div className="mb-4" style={{ backgroundColor: 'red', padding: '10px', border: '3px solid yellow' }}>
-              <button 
-                onClick={finishExerciseIncomplete}
-                style={{
-                  width: '100%',
-                  backgroundColor: 'red',
-                  color: 'white',
-                  fontSize: '20px',
-                  fontWeight: 'bold',
-                  padding: '15px',
-                  border: '3px solid white',
-                  borderRadius: '10px',
-                  cursor: 'pointer'
-                }}
-              >
-                🚨 EMERGÊNCIA - NÃO CONSIGO CONTINUAR 🚨
-              </button>
-            </div>
+
 
 
             {/* Card de controle de peso */}
@@ -687,16 +669,7 @@ export default function ActiveWorkout() {
             </Button>
           )}
 
-          {/* Botão SIMPLES para finalizar exercício como incompleto */}
-          <div className="w-full">
-            <button 
-              onClick={finishExerciseIncomplete}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-lg text-lg"
-              style={{ border: 'none', outline: 'none' }}
-            >
-              ⚠️ Não Consigo Continuar Este Exercício
-            </button>
-          </div>
+
 
           <div className="grid grid-cols-3 gap-2">
             <Button 
