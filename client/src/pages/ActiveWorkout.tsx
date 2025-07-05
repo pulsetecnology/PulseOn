@@ -539,16 +539,17 @@ export default function ActiveWorkout() {
 
             <div className="text-center mb-4">
               <h3 className="text-xl font-semibold text-primary-foreground mb-2">Série {currentSeries} de {currentExercise.series}</h3>
-              
-              {/* Botão para finalizar exercício como incompleto - sempre visível */}
-              <Button 
+            </div>
+            
+            {/* Botão para finalizar exercício como incompleto - TESTE */}
+            <div className="mb-4">
+              <button 
                 onClick={finishExerciseIncomplete}
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold mt-3"
-                size="sm"
+                className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg border-2 border-white"
+                style={{ fontSize: '16px', minHeight: '50px' }}
               >
-                <AlertCircle className="h-4 w-4 mr-2" />
-                Não Consigo Continuar
-              </Button>
+                🚨 NÃO CONSIGO CONTINUAR 🚨
+              </button>
             </div>
 
             {/* Card de controle de peso */}
