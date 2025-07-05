@@ -541,6 +541,25 @@ export default function ActiveWorkout() {
               <h3 className="text-xl font-semibold text-primary-foreground mb-2">Série {currentSeries} de {currentExercise.series}</h3>
             </div>
             
+            {/* BOTÃO MUITO VISÍVEL PARA TESTE */}
+            <div className="mb-4" style={{ backgroundColor: 'red', padding: '10px', border: '3px solid yellow' }}>
+              <button 
+                onClick={finishExerciseIncomplete}
+                style={{
+                  width: '100%',
+                  backgroundColor: 'red',
+                  color: 'white',
+                  fontSize: '20px',
+                  fontWeight: 'bold',
+                  padding: '15px',
+                  border: '3px solid white',
+                  borderRadius: '10px',
+                  cursor: 'pointer'
+                }}
+              >
+                🚨 EMERGÊNCIA - NÃO CONSIGO CONTINUAR 🚨
+              </button>
+            </div>
 
 
             {/* Card de controle de peso */}
