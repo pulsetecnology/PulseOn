@@ -24,6 +24,7 @@ interface CompletedExercise {
   actualCalories?: number;
   effortLevel: number;
   completed: boolean;
+  status?: "completed" | "incomplete" | "not-started";
   notes?: string;
 }
 
@@ -260,58 +261,87 @@ export default function History() {
           {/* Exercises List */}
           <div className="space-y-3">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Exercícios</h3>
-            {selectedWorkout.exercises.map((exercise, index) => (
-              <Card key={index} className={exercise.completed ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'}>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h4 className="font-semibold text-slate-900 dark:text-white">
-                        {exercise.exercise}
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {exercise.muscleGroup}
-                      </p>
-                    </div>
-                    <Badge variant={exercise.completed ? "default" : "destructive"}>
-                      {exercise.completed ? "Concluído" : "Não executado"}
-                    </Badge>
-                  </div>
+            {selectedWorkout.exercises.map((exercise, index) => {
+              const getBorderColor = () => {
+                if (exercise.status === 'completed' || exercise.completed) return 'border-green-200 dark:border-green-800';
+                if (exercise.status === 'incomplete') return 'border-yellow-200 dark:border-yellow-800';
+                return 'border-red-200 dark:border-red-800';
+              };
 
-                  {exercise.completed && (
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+              const getBadgeVariant = () => {
+                if (exercise.status === 'completed' || exercise.completed) return "default";
+                if (exercise.status === 'incomplete') return "secondary";
+                return "destructive";
+              };
+
+              const getStatusText = () => {
+                if (exercise.status === 'completed' || exercise.completed) return "Concluído";
+                if (exercise.status === 'incomplete') return "Incompleto";
+                return "Não executado";
+              };
+
+              return (
+                <Card key={index} className={getBorderColor()}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-2">
                       <div>
-                        <span className="text-muted-foreground">Séries:</span>
-                        <span className="ml-1 font-medium">{exercise.series}</span>
+                        <h4 className="font-semibold text-slate-900 dark:text-white">
+                          {exercise.exercise}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {exercise.muscleGroup}
+                        </p>
                       </div>
-                      {exercise.repetitions && exercise.repetitions > 0 && (
-                        <div>
-                          <span className="text-muted-foreground">Reps:</span>
-                          <span className="ml-1 font-medium">{exercise.repetitions}</span>
-                        </div>
-                      )}
-                      {exercise.actualTime && exercise.actualTime > 0 && (
-                        <div>
-                          <span className="text-muted-foreground">Tempo:</span>
-                          <span className="ml-1 font-medium">{formatExerciseTime(exercise.actualTime)}</span>
-                        </div>
-                      )}
-                      <div>
-                        <span className="text-muted-foreground">Peso:</span>
-                        <span className="ml-1 font-medium">
-                          {exercise.actualWeight && exercise.actualWeight > 0 
-                            ? `${exercise.actualWeight}kg` 
-                            : 'Peso corporal'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Esforço:</span>
-                        <span className="ml-1 font-medium">{exercise.effortLevel}/10</span>
-                      </div>
+                      <Badge variant={getBadgeVariant()}>
+                        {getStatusText()}
+                      </Badge>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+
+                    {(exercise.completed || exercise.status === 'incomplete') && (
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Séries:</span>
+                          <span className="ml-1 font-medium">{exercise.series}</span>
+                        </div>
+                        {exercise.repetitions && exercise.repetitions > 0 && (
+                          <div>
+                            <span className="text-muted-foreground">Reps:</span>
+                            <span className="ml-1 font-medium">{exercise.repetitions}</span>
+                          </div>
+                        )}
+                        {exercise.actualTime && exercise.actualTime > 0 && (
+                          <div>
+                            <span className="text-muted-foreground">Tempo:</span>
+                            <span className="ml-1 font-medium">{formatExerciseTime(exercise.actualTime)}</span>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-muted-foreground">Peso:</span>
+                          <span className="ml-1 font-medium">
+                            {exercise.actualWeight && exercise.actualWeight > 0 
+                              ? `${exercise.actualWeight}kg` 
+                              : 'Peso corporal'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Esforço:</span>
+                          <span className="ml-1 font-medium">{exercise.effortLevel}/10</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mostrar notas se existirem */}
+                    {exercise.notes && (
+                      <div className="mt-3 p-2 bg-slate-50 dark:bg-slate-800 rounded">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          <span className="font-medium">Observações:</span> {exercise.notes}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </div>

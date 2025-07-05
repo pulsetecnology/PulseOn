@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Play, Pause, SkipForward, CheckCircle2, Timer, Clock } from "lucide-react";
+import { Play, Pause, SkipForward, CheckCircle2, Timer, Clock, AlertCircle } from "lucide-react";
 
 interface Exercise {
   id?: number;
@@ -189,6 +189,37 @@ export default function ActiveWorkout() {
     }
   };
 
+  const finishExerciseIncomplete = () => {
+    const currentExercise = workoutData?.workoutPlan[currentExerciseIndex];
+    if (!currentExercise) return;
+
+    // Adicionar exercício à lista de incompletos no localStorage
+    const incompleteExercises = JSON.parse(localStorage.getItem('incompleteExercises') || '[]');
+    const exerciseData = {
+      ...currentExercise,
+      actualWeight: currentWeight,
+      effortLevel: effortLevel,
+      status: 'incomplete',
+      completedSeries: currentSeries - 1, // Séries que foram feitas antes de parar
+      totalSeries: currentExercise.series,
+      timestamp: new Date().toISOString()
+    };
+    
+    incompleteExercises.push(exerciseData);
+    localStorage.setItem('incompleteExercises', JSON.stringify(incompleteExercises));
+
+    // Passar para o próximo exercício
+    if (currentExerciseIndex < workoutData.workoutPlan.length - 1) {
+      setCurrentExerciseIndex(prev => prev + 1);
+      setCurrentSeries(1);
+      setIsResting(false);
+      setIsTimerActive(false);
+      scrollToTop();
+    } else {
+      finishWorkout();
+    }
+  };
+
   const finishWorkoutEarly = async () => {
     if (!workoutData) return;
 
@@ -316,29 +347,88 @@ export default function ActiveWorkout() {
     const durationMs = endTime.getTime() - startTime.getTime();
     const durationMinutes = Math.round(durationMs / (1000 * 60));
 
-    // Calcular calorias totais
-    const totalCalories = workoutData.workoutPlan.reduce((sum, exercise) => sum + (exercise.calories || 0), 0);
+    // Recuperar exercícios incompletos do localStorage
+    const incompleteExercises = JSON.parse(localStorage.getItem('incompleteExercises') || '[]');
+    
+    // Calcular calorias totais (apenas dos completados)
+    const completedExercisesCalories = workoutData.workoutPlan
+      .slice(0, currentExerciseIndex)
+      .reduce((sum, exercise) => sum + (exercise.calories || 0), 0);
 
-    // Criar exercícios completados com formato adequado
-    const completedExercises = workoutData.workoutPlan.map(exercise => ({
-      exercise: exercise.exercise,
-      muscleGroup: exercise.muscleGroup,
-      type: exercise.type,
-      instructions: exercise.instructions,
-      time: exercise.time || exercise.timeExec || 0,
-      series: exercise.series,
-      repetitions: exercise.repetitions || 0,
-      restBetweenSeries: exercise.restBetweenSeries,
-      restBetweenExercises: exercise.restBetweenExercises,
-      weight: exercise.weight || 0,
-      calories: exercise.calories,
-      actualWeight: exercise.weight || 0,
-      actualTime: exercise.timeExec || exercise.time || 0,
-      actualCalories: exercise.calories,
-      effortLevel: exerciseIntensity || 8, // Usar intensidade atual ou padrão
-      completed: true, // Assumir que todos foram completados
-      notes: null
-    }));
+    // Criar exercícios com status adequado
+    const allExercises = workoutData.workoutPlan.map((exercise, index) => {
+      // Verificar se o exercício está na lista de incompletos
+      const incompleteExercise = incompleteExercises.find(
+        (inc: any) => inc.exercise === exercise.exercise && inc.timestamp
+      );
+
+      if (incompleteExercise) {
+        return {
+          exercise: exercise.exercise,
+          muscleGroup: exercise.muscleGroup,
+          type: exercise.type,
+          instructions: exercise.instructions,
+          time: exercise.time || exercise.timeExec || 0,
+          series: exercise.series,
+          repetitions: exercise.repetitions || 0,
+          restBetweenSeries: exercise.restBetweenSeries,
+          restBetweenExercises: exercise.restBetweenExercises,
+          weight: exercise.weight || 0,
+          calories: exercise.calories,
+          actualWeight: incompleteExercise.actualWeight || exercise.weight || 0,
+          actualTime: exercise.timeExec || exercise.time || 0,
+          actualCalories: 0, // Não contar calorias de exercícios incompletos
+          effortLevel: incompleteExercise.effortLevel || 8,
+          completed: false,
+          status: 'incomplete',
+          notes: `Exercício finalizado como incompleto. ${incompleteExercise.completedSeries || 0} de ${exercise.series} séries completadas.`
+        };
+      } else if (index < currentExerciseIndex) {
+        // Exercício completado
+        return {
+          exercise: exercise.exercise,
+          muscleGroup: exercise.muscleGroup,
+          type: exercise.type,
+          instructions: exercise.instructions,
+          time: exercise.time || exercise.timeExec || 0,
+          series: exercise.series,
+          repetitions: exercise.repetitions || 0,
+          restBetweenSeries: exercise.restBetweenSeries,
+          restBetweenExercises: exercise.restBetweenExercises,
+          weight: exercise.weight || 0,
+          calories: exercise.calories,
+          actualWeight: exercise.weight || 0,
+          actualTime: exercise.timeExec || exercise.time || 0,
+          actualCalories: exercise.calories,
+          effortLevel: exerciseIntensity || 8,
+          completed: true,
+          status: 'completed',
+          notes: null
+        };
+      } else {
+        // Exercício não iniciado
+        return {
+          exercise: exercise.exercise,
+          muscleGroup: exercise.muscleGroup,
+          type: exercise.type,
+          instructions: exercise.instructions,
+          time: exercise.time || exercise.timeExec || 0,
+          series: exercise.series,
+          repetitions: exercise.repetitions || 0,
+          restBetweenSeries: exercise.restBetweenSeries,
+          restBetweenExercises: exercise.restBetweenExercises,
+          weight: exercise.weight || 0,
+          calories: exercise.calories,
+          actualWeight: 0,
+          actualTime: 0,
+          actualCalories: 0,
+          effortLevel: 0,
+          completed: false,
+          status: 'not-started',
+          notes: null
+        };
+      }
+    });
 
     // Criar objeto de sessão de treino
     const workoutSession = {
@@ -347,11 +437,11 @@ export default function ActiveWorkout() {
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
       duration: durationMinutes,
-      totalCalories: totalCalories,
-      exercisesCompleted: workoutData.workoutPlan.length,
+      totalCalories: completedExercisesCalories,
+      exercisesCompleted: allExercises.filter(ex => ex.completed).length,
       status: 'completed',
       notes: null,
-      exercises: completedExercises
+      exercises: allExercises
     };
 
     try {
@@ -389,8 +479,9 @@ export default function ActiveWorkout() {
       console.log('Treino salvo no localStorage como fallback');
     }
 
-    // Limpar treino ativo
+    // Limpar dados temporários
     localStorage.removeItem('activeWorkout');
+    localStorage.removeItem('incompleteExercises');
 
     // Redirecionar para home
     setLocation('/');
@@ -570,6 +661,18 @@ export default function ActiveWorkout() {
             >
               <CheckCircle2 className="h-5 w-5 mr-2" />
               Concluir Série
+            </Button>
+          )}
+
+          {/* Botão para finalizar exercício como incompleto */}
+          {!isResting && (
+            <Button 
+              onClick={finishExerciseIncomplete}
+              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+              size="lg"
+            >
+              <AlertCircle className="h-5 w-5 mr-2" />
+              Finalizar Exercício Incompleto
             </Button>
           )}
 

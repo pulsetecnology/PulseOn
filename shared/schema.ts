@@ -93,6 +93,7 @@ export interface CompletedExercise extends AIExercise {
   actualCalories?: number;
   effortLevel: number; // 1-10 scale
   completed: boolean;
+  status?: "completed" | "incomplete" | "not-started"; // Status para diferenciar exercícios incompletos
   notes?: string;
 }
 
