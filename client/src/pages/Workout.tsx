@@ -182,7 +182,7 @@ export default function Workout() {
         // Se não existe sessão concluída, carregar progresso do localStorage
         const progress = loadSavedProgress();
         console.log('Progresso carregado do localStorage:', progress);
-        
+
         if (progress.workoutId === todaysWorkout.id) {
           if (progress.completedExercises && progress.completedExercises.size > 0) {
             setCompletedExercises(progress.completedExercises as Set<string>);
@@ -197,7 +197,7 @@ export default function Workout() {
           setCompletedExercises(new Set());
           setIncompleteExercises(new Set());
           console.log('Progresso limpo - novo treino ou sem progresso');
-          
+
           // Limpar progresso antigo se for um novo treino
           if (progress.workoutId && progress.workoutId !== todaysWorkout.id) {
             const storageKey = getWorkoutStorageKey();
@@ -341,19 +341,19 @@ export default function Workout() {
     setIncompleteExercises(prev => {
       const newSet = new Set(prev);
       newSet.add(activeExercise);
-      
+
       // Salvar progresso imediatamente após atualizar o estado
       setTimeout(() => {
         setCompletedExercises(current => {
           const updatedCompleted = new Set(current);
           updatedCompleted.delete(activeExercise!);
-          
+
           // Salvar com os novos estados
           saveProgress(updatedCompleted, {}, newSet);
           return updatedCompleted;
         });
       }, 0);
-      
+
       return newSet;
     });
 

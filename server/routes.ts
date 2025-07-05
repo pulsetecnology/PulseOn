@@ -789,33 +789,45 @@ ${JSON.stringify(n8nResponse, null, 2)}
     }
   });
 
+  // Create workout session
   app.post("/api/workout-sessions", authenticateToken, async (req, res) => {
     try {
-      console.log("Received workout session data:", JSON.stringify(req.body, null, 2));
+      const { scheduledWorkoutId, name, exercises, totalDuration, totalCalories, notes } = req.body;
+      const userId = req.user!.id;
 
-      const sessionData = {
-        userId: req.user!.id,
-        scheduledWorkoutId: req.body.scheduledWorkoutId || null,
-        name: req.body.name || req.body.workoutName || "Treino Personalizado",
-        startedAt: req.body.startedAt || req.body.startTime || new Date().toISOString(),
-        completedAt: req.body.completedAt || req.body.endTime || new Date().toISOString(),
-        exercises: req.body.exercises || [],
-        totalDuration: req.body.totalDuration || req.body.duration || 0,
-        totalCalories: req.body.totalCalories || 0,
-        notes: req.body.notes || ""
-      };
+      console.log("Creating workout session with data:", {
+        userId,
+        scheduledWorkoutId,
+        name,
+        exercises: exercises?.length || 0,
+        totalDuration,
+        totalCalories
+      });
 
-      console.log("Processed session data:", JSON.stringify(sessionData, null, 2));
-      
-      // Log exercise statuses
-      if (sessionData.exercises.length > 0) {
-        console.log("Exercise statuses:");
-        sessionData.exercises.forEach((ex: any, index: number) => {
-          console.log(`  ${index + 1}. ${ex.exercise}: status=${ex.status}, completed=${ex.completed}`);
-        });
-      }
+      // Garantir que cada exercício tenha o status correto
+      const processedExercises = exercises.map((exercise: any) => ({
+        ...exercise,
+        status: exercise.completed ? 'completed' : 
+                exercise.status === 'partial' ? 'partial' : 'not_executed',
+        completed: exercise.completed || false,
+        actualWeight: exercise.actualWeight || exercise.weight,
+        actualTime: exercise.actualTime || exercise.time,
+        actualCalories: exercise.actualCalories || exercise.calories,
+        effortLevel: exercise.effortLevel || 8,
+        notes: exercise.notes || null
+      }));
 
-      const session = await storage.createWorkoutSession(sessionData);
+      const session = await storage.createWorkoutSession({
+        userId,
+        scheduledWorkoutId,
+        name,
+        exercises: processedExercises,
+        totalDuration,
+        totalCalories,
+        notes: notes || ""
+      });
+
+      console.log("Workout session created successfully:", session);
       console.log("Created session with ID:", session.id);
 
       res.status(201).json({
@@ -824,13 +836,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
       });
     } catch (error) {
       console.error("Error creating workout session:", error);
-      if (error instanceof z.ZodError) {
-        console.error("Validation errors:", error.errors);
-        return res
-          .status(400)
-          .json({ message: "Dados inválidos", errors: error.errors });
-      }
-      res.status(500).json({ message: "Erro interno do servidor" });
+      res.status(500).json({ message: "Erro ao salvar treino" });
     }
   });
 

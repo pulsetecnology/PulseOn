@@ -40,11 +40,11 @@ const fetchWorkoutSessions = async (): Promise<WorkoutSession[]> => {
       'Authorization': `Bearer ${token}`,
     },
   });
-  
+
   if (!response.ok) {
     throw new Error('Erro ao carregar histórico de treinos');
   }
-  
+
   return response.json();
 };
 
@@ -56,18 +56,18 @@ const fetchUserStats = async () => {
       'Authorization': `Bearer ${token}`,
     },
   });
-  
+
   if (!response.ok) {
     throw new Error('Erro ao carregar estatísticas');
   }
-  
+
   return response.json();
 };
 
 export default function WorkoutHistory() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [expandedWorkouts, setExpandedWorkouts] = useState<Set<number>>(new Set());
-  
+
   const { data: workoutSessions = [], isLoading: sessionsLoading } = useQuery({
     queryKey: ['workout-sessions'],
     queryFn: fetchWorkoutSessions,
@@ -80,7 +80,7 @@ export default function WorkoutHistory() {
       const completedAt = parseISO(session.completedAt!);
       const completedExercises = session.exercises.filter(ex => ex.completed);
       const totalExercises = session.exercises.length;
-      
+
       // Calculate relative date
       const now = new Date();
       const diffDays = Math.floor((now.getTime() - completedAt.getTime()) / (1000 * 60 * 60 * 24));
@@ -91,7 +91,7 @@ export default function WorkoutHistory() {
       else dateText = format(completedAt, "dd/MM/yyyy", { locale: ptBR });
 
       const completionRate = totalExercises > 0 ? Math.round((completedExercises.length / totalExercises) * 100) : 0;
-      
+
       return {
         id: session.id,
         name: session.name,
@@ -215,7 +215,7 @@ export default function WorkoutHistory() {
         {/* Workout History */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold text-white">Treinos Recentes</h2>
-          
+
           {workoutHistory.length === 0 ? (
             <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-6 text-center">
