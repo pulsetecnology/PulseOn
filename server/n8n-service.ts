@@ -99,7 +99,7 @@ export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIW
 }
 
 function generatePersonalizedFallback(data: N8NWorkoutRequest): AIWorkoutResponse {
-  const { fitnessGoal, experienceLevel } = data;
+  const { fitnessGoal, experienceLevel, phone } = data;
   
   // Generate realistic fallback workout based on the actual JSON format
   const fallbackExercises: AIExercise[] = [

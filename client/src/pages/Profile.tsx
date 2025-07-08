@@ -15,6 +15,7 @@ interface UserData {
   id: number;
   email: string;
   name: string;
+  phone?: string;
   birthDate?: string;
   weight?: number;
   height?: number;
@@ -654,6 +655,20 @@ export default function Profile() {
               <div className="space-y-2">
                 <Label>Email</Label>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Telefone</Label>
+                {editingCard === 'personal' ? (
+                  <Input
+                    type="tel"
+                    placeholder="(11) 99999-9999"
+                    value={formData.phone || ""}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">{user.phone || "Não informado"}</p>
+                )}
               </div>
 
               <div className="space-y-2">

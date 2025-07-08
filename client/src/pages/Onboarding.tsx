@@ -30,6 +30,7 @@ export default function Onboarding() {
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
+      phone: "",
       birthDate: "",
       weight: 30,
       height: 120,
@@ -474,6 +475,24 @@ export default function Onboarding() {
                   Dados pessoais
                 </h2>
                 <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone (opcional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="tel"
+                            placeholder="(11) 99999-9999"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="birthDate"

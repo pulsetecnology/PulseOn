@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name"),
+  phone: text("phone"),
   birthDate: text("birth_date"),
   age: integer("age"),
   weight: integer("weight"), // in kg
@@ -101,6 +102,7 @@ export const insertUserSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   name: z.string().min(1, "Nome é obrigatório"),
+  phone: z.string().optional(),
   birthDate: z.string().optional(),
   age: z.number().optional(),
   weight: z.number().optional(),
@@ -162,6 +164,7 @@ export const loginSchema = z.object({
 });
 
 export const onboardingSchema = z.object({
+  phone: z.string().optional(),
   birthDate: z.string().min(1, "Data de nascimento é obrigatória"),
   weight: z.number().min(30).max(300),
   height: z.number().min(120).max(250),
@@ -203,6 +206,7 @@ export const onboardingSchema = z.object({
 
 export const profileUpdateSchema = z.object({
   name: z.string().optional(),
+  phone: z.string().optional(),
   birthDate: z.string().optional(),
   age: z.number().optional(),
   weight: z.number().optional(),
@@ -251,6 +255,7 @@ export const n8nWorkoutRequestSchema = z.object({
   age: z.number(),
   weight: z.number(),
   height: z.number(),
+  phone: z.string().optional(),
   fitnessGoal: z.string(),
   experienceLevel: z.string(),
   weeklyFrequency: z.number(),

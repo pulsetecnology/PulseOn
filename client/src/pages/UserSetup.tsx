@@ -21,6 +21,7 @@ const userSetupSchema = z.object({
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   confirmPassword: z.string().min(6, "Confirmação de senha é obrigatória"),
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  phone: z.string().optional(),
   birthDate: z.string().min(1, "Data de nascimento é obrigatória"),
   weight: z.number().min(30, "Peso deve ser maior que 30kg").max(300, "Peso inválido"),
   height: z.number().min(100, "Altura deve ser maior que 100cm").max(250, "Altura inválida"),
@@ -48,6 +49,7 @@ export default function UserSetup() {
       password: "",
       confirmPassword: "",
       name: "",
+      phone: "",
       birthDate: "",
       weight: 70,
       height: 170,
@@ -173,6 +175,25 @@ export default function UserSetup() {
                           <Input 
                             {...field} 
                             placeholder="Seu nome"
+                            className="bg-slate-700 border-slate-600 text-white"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone (opcional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="tel"
+                            placeholder="(11) 99999-9999"
                             className="bg-slate-700 border-slate-600 text-white"
                           />
                         </FormControl>
