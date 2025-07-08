@@ -469,6 +469,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Call N8N service for AI workout generation
         try {
           console.log("Calling N8N for AI workout generation...");
+          console.log("N8N URL:", process.env.N8N_WEBHOOK_URL);
+          console.log("Request payload:", JSON.stringify(aiRequestData, null, 2));
 
           const response = await fetch(
             process.env.N8N_WEBHOOK_URL || "https://example.com/webhook/default",
