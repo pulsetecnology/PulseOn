@@ -7,7 +7,6 @@ channel = "stable-24_05"
 packages = ["openssh"]
 
 [env]
-N8N_WEBHOOK_URL = "https://primary-production-3b832.up.railway.app/webhook/onboarding-recebido"
 
 [deployment]
 deploymentTarget = "autoscale"
