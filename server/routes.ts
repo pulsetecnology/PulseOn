@@ -26,7 +26,7 @@ import {
 import { authenticateToken } from "./middleware";
 import { requestWorkoutFromAI } from "./n8n-service";
 import { Request, Response } from "express";
-import { db } from "./database";
+import { db } from "./db";
 import { eq } from "drizzle-orm";
 
 import multer from "multer";
@@ -201,6 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         token,
       });
     } catch (error) {
+      console.error("Login error:", error);
       if (error instanceof z.ZodError) {
         return res
           .status(400)
