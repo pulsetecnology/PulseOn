@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import {
@@ -467,8 +468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("Calling N8N for AI workout generation...");
 
           const response = await fetch(
-            process.env.N8N_WEBHOOK_URL ||
-              "https://n8n-pulseon-railway.up.railway.app/webhook/pulseon-workout",
+            process.env.N8N_WEBHOOK_URL || "https://example.com/webhook/default",
             {
               method: "POST",
               headers: {
@@ -537,56 +537,92 @@ ${JSON.stringify(n8nResponse, null, 2)}
             });
           }
 
-          // Fallback: Create workout locally if N8N didn't save it
-          const aiWorkoutResponse = {
-            userId: user.id,
-            workoutPlan: n8nResponse.workoutPlan || [],
-          };
+          // Process N8N response - try to extract workout data from output field
+          let aiWorkoutResponse: any = null;
 
-          if (!aiWorkoutResponse.workoutPlan.length) {
-            throw new Error("No workout plan received from N8N");
+          // First, check if N8N returned data directly
+          if (n8nResponse.workoutPlan && Array.isArray(n8nResponse.workoutPlan)) {
+            aiWorkoutResponse = {
+              userId: user.id,
+              workoutPlan: n8nResponse.workoutPlan,
+              workoutName: n8nResponse.workoutName || "Treino Personalizado"
+            };
+          }
+          // If not found directly, try to parse from output field
+          else if (n8nResponse.output) {
+            try {
+              console.log("Parsing N8N output...");
+
+              // Extract JSON from the output string (it may be wrapped in ```json)
+              const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/);
+              if (jsonMatch) {
+                console.log("JSON match found, parsing...");
+                const parsed = JSON.parse(jsonMatch[1]);
+                console.log("Parsed JSON successfully:", {
+                  hasWorkoutPlan: !!parsed.workoutPlan,
+                  exerciseCount: parsed.workoutPlan?.length || 0,
+                  workoutName: parsed.workoutName,
+                  workoutObs: parsed.workoutObs
+                });
+
+                if (parsed.workoutPlan && Array.isArray(parsed.workoutPlan) && parsed.workoutPlan.length > 0) {
+                  aiWorkoutResponse = {
+                    userId: parsed.userId || user.id,
+                    workoutPlan: parsed.workoutPlan,
+                    workoutName: parsed.workoutName || "Treino Personalizado",
+                    workoutObs: parsed.workoutObs
+                  };
+                  console.log("Valid AI workout response extracted successfully");
+                  console.log("WorkoutObs found:", parsed.workoutObs);
+                }
+              } else {
+                console.log("No JSON pattern found in output");
+              }
+            } catch (parseError) {
+              console.error("Error parsing N8N output:", parseError);
+              console.error("Raw output snippet:", n8nResponse.output?.substring(0, 200));
+            }
           }
 
-          // Calculate total duration and calories from the workout plan
-          const totalDuration = aiWorkoutResponse.workoutPlan.reduce(
-            (sum: number, exercise: any) => {
-              return (
-                sum +
-                (exercise.time > 0
-                  ? exercise.time
-                  : (exercise.series * exercise.repetitions * 0.5) / 60)
-              );
-            },
-            0,
-          );
+          // If we successfully extracted workout data, create the scheduled workout
+          if (aiWorkoutResponse && aiWorkoutResponse.workoutPlan && aiWorkoutResponse.workoutPlan.length > 0) {
+            console.log("Creating scheduled workout with", aiWorkoutResponse.workoutPlan.length, "exercises");
 
-          const totalCalories = aiWorkoutResponse.workoutPlan.reduce(
-            (sum: number, exercise: any) => sum + exercise.calories,
-            0,
-          );
+            // Calculate total duration and calories from the workout plan
+            const totalDuration = aiWorkoutResponse.workoutPlan.reduce(
+              (sum: number, exercise: any) => {
+                const exerciseTime = exercise.time || exercise.timeExec || 0;
+                return sum + exerciseTime;
+              },
+              0,
+            );
 
-          // Generate workout name
-          const workoutName = `Treino IA - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+            const totalCalories = aiWorkoutResponse.workoutPlan.reduce(
+              (sum: number, exercise: any) => sum + (exercise.calories || 0),
+              0,
+            );
 
-          // Save scheduled workout to database as fallback
-          const scheduledWorkout = await storage.createScheduledWorkout({
-            userId: user.id,
-            name: workoutName,
-            exercises: aiWorkoutResponse.workoutPlan,
-            totalCalories: Math.round(totalCalories),
-            totalDuration: Math.round(totalDuration),
-            status: "pending",
-          });
+            // Create scheduled workout from AI response
+            const scheduledWorkout = await storage.createScheduledWorkout({
+              userId: user.id,
+              name: aiWorkoutResponse.workoutName,
+              description: aiWorkoutResponse.workoutObs,
+              exercises: aiWorkoutResponse.workoutPlan,
+              totalCalories: Math.round(totalCalories),
+              totalDuration: Math.round(totalDuration / 60), // Convert seconds to minutes
+              status: "pending",
+            });
 
-          console.log(
-            "Fallback: AI workout saved to local database:",
-            scheduledWorkout.id,
-          );
+            console.log("AI workout saved to database successfully:", scheduledWorkout.id);
 
-          return res.status(201).json({
-            message: "Treino gerado pela IA com sucesso!",
-            workout: scheduledWorkout,
-          });
+            return res.status(201).json({
+              message: "Treino gerado pela IA com sucesso!",
+              workout: scheduledWorkout,
+            });
+          }
+
+          console.log("No valid workout data found in N8N response, using fallback");
+          // Continue to fallback below
         } catch (n8nError) {
           console.error("N8N service error:", n8nError);
 
@@ -654,7 +690,16 @@ ${JSON.stringify(n8nResponse, null, 2)}
     async (req: Request, res: Response) => {
       try {
         const user = req.user!;
+        console.log("Fetching scheduled workouts for user:", user.id);
         const workouts = await storage.getScheduledWorkouts(user.id);
+        console.log("Found", workouts.length, "scheduled workouts for user", user.id);
+        if (workouts.length > 0) {
+          console.log("First workout:", {
+            id: workouts[0].id,
+            name: workouts[0].name,
+            exerciseCount: workouts[0].exercises?.length || 0
+          });
+        }
         res.json(workouts);
       } catch (error) {
         console.error("Error fetching scheduled workouts:", error);
@@ -746,21 +791,25 @@ ${JSON.stringify(n8nResponse, null, 2)}
 
   app.post("/api/workout-sessions", authenticateToken, async (req, res) => {
     try {
-      // Validate and sanitize the session data
+      console.log("Received workout session data:", req.body);
+
       const sessionData = {
         userId: req.user!.id,
-        workoutId: req.body.workoutId || null,
-        startedAt: req.body.startedAt || new Date().toISOString(),
-        completedAt: req.body.completedAt || null,
+        scheduledWorkoutId: req.body.scheduledWorkoutId || null,
+        name: req.body.name || req.body.workoutName || "Treino Personalizado",
+        startedAt: req.body.startedAt || req.body.startTime || new Date().toISOString(),
+        completedAt: req.body.completedAt || req.body.endTime || new Date().toISOString(),
         exercises: req.body.exercises || [],
-        totalDuration: req.body.totalDuration || 0,
+        totalDuration: req.body.totalDuration || req.body.duration || 0,
         totalCalories: req.body.totalCalories || 0,
-        notes: req.body.notes || null
+        notes: req.body.notes || ""
       };
-      
-      console.log("Creating workout session with sanitized data:", sessionData);
-      
+
+      console.log("Processed session data:", sessionData);
+
       const session = await storage.createWorkoutSession(sessionData);
+      console.log("Created session:", session);
+
       res.status(201).json({
         message: "Treino salvo com sucesso!",
         session
@@ -768,6 +817,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
     } catch (error) {
       console.error("Error creating workout session:", error);
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         return res
           .status(400)
           .json({ message: "Dados inválidos", errors: error.errors });
@@ -810,7 +860,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
         totalCalories,
         notes
       );
-      
+
       if (!session) {
         return res.status(404).json({ message: "Sessão de treino não encontrada" });
       }
@@ -921,19 +971,19 @@ ${JSON.stringify(n8nResponse, null, 2)}
     "/api/profile/photo",
     authenticateToken,
     upload.single("photo"),
+    handleMulterError,
     async (req: Request, res: Response) => {
       try {
-        const userId = req.user!.id;
-
         if (!req.file) {
           return res.status(400).json({ message: "Nenhum arquivo enviado" });
         }
 
-        const photoUrl = `/api/uploads/${req.file.filename}`;
+        const user = req.user!;
+        const photoUrl = `/uploads/${req.file.filename}`;
 
-        // Update user's profile photo in database using storage
-        const updatedUser = await storage.updateUser(userId, {
-          avatarUrl: photoUrl,
+        // Update user profile with photo URL
+        const updatedUser = await storage.updateUser(user.id, {
+          profilePhoto: photoUrl,
         });
 
         if (!updatedUser) {
@@ -946,310 +996,91 @@ ${JSON.stringify(n8nResponse, null, 2)}
           user: sanitizeUser(updatedUser),
         });
       } catch (error) {
-        console.error("Error uploading photo:", error);
-        res.status(500).json({ message: "Erro interno do servidor" });
+        console.error("Error uploading profile photo:", error);
+        res.status(500).json({ message: "Erro ao fazer upload da foto" });
       }
-    },
+    }
   );
 
-  // Upload avatar
+  // Upload avatar (same as profile photo but with different field name)
   app.post(
     "/api/profile/avatar",
     authenticateToken,
     upload.single("avatar"),
+    handleMulterError,
     async (req: Request, res: Response) => {
       try {
-        const userId = req.user!.id;
+        console.log("Avatar upload endpoint hit");
+        console.log("File received:", req.file?.filename);
+        console.log("User:", req.user?.id);
 
         if (!req.file) {
-          console.error("No file uploaded in avatar request");
           return res.status(400).json({ message: "Nenhum arquivo enviado" });
         }
 
-        console.log("Avatar upload - File received:", req.file.filename);
-        const avatarUrl = `/api/uploads/${req.file.filename}`;
+        const user = req.user!;
+        const avatarUrl = `/uploads/${req.file.filename}`;
 
-        // Update user's avatar in database using storage
-        const updatedUser = await storage.updateUser(userId, { avatarUrl });
+        // Update user profile with avatar URL
+        const updatedUser = await storage.updateUser(user.id, {
+          avatarUrl: avatarUrl,
+        });
 
         if (!updatedUser) {
-          console.error("User not found when updating avatar for userId:", userId);
           return res.status(404).json({ message: "Usuário não encontrado" });
         }
 
-        console.log("Avatar updated successfully for user:", userId);
+        console.log("Avatar updated successfully for user:", user.id);
+
         res.json({
           message: "Avatar atualizado com sucesso",
           avatarUrl,
           user: sanitizeUser(updatedUser),
         });
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error uploading avatar:", error);
-        console.error("Error stack:", error.stack);
-        res.status(500).json({ 
-          message: "Erro ao fazer upload do avatar",
-          error: error.message 
-        });
+        res.status(500).json({ message: "Erro ao fazer upload do avatar" });
       }
-    },
+    }
   );
 
-  // Serve uploaded files
-  app.get("/api/uploads/:filename", (req: Request, res: Response) => {
-    const filename = req.params.filename;
-    const filepath = path.join(process.cwd(), "uploads", filename);
+  // Clear all workout data
+  app.delete("/api/clear-workout-data", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      console.log(`Clearing all workout data for user: ${user.id}`);
 
-    if (fs.existsSync(filepath)) {
-      res.sendFile(filepath);
-    } else {
-      res.status(404).json({ message: "Arquivo não encontrado" });
+      // First get the counts for response
+      const scheduledWorkouts = await storage.getScheduledWorkouts(user.id);
+      const workoutSessions = await storage.getWorkoutSessions(user.id);
+
+      console.log(`Found ${scheduledWorkouts.length} scheduled workouts and ${workoutSessions.length} workout sessions to delete`);
+
+      // Clear workout sessions FIRST (due to foreign key constraint)
+      for (const session of workoutSessions) {
+        await storage.deleteWorkoutSession(session.id);
+      }
+
+      // Then clear scheduled workouts
+      for (const workout of scheduledWorkouts) {
+        await storage.deleteScheduledWorkout(workout.id);
+      }
+
+      console.log(`Successfully cleared ${scheduledWorkouts.length} scheduled workouts and ${workoutSessions.length} workout sessions for user ${user.id}`);
+
+      res.json({
+        message: "Todos os dados de treinos foram limpos com sucesso",
+        clearedScheduledWorkouts: scheduledWorkouts.length,
+        clearedWorkoutSessions: workoutSessions.length
+      });
+    } catch (error) {
+      console.error("Error clearing workout data:", error);
+      res.status(500).json({ message: "Erro ao limpar dados de treinos" });
     }
   });
 
-  // Sync user data with N8N
-  app.post(
-    "/api/n8n/sync-user-data",
-    authenticateToken,
-    async (req: Request, res: Response) => {
-      try {
-        const userId = req.user!.id;
-        const user = await storage.getUser(userId);
-
-        if (!user) {
-          return res.status(404).json({ message: "Usuário não encontrado" });
-        }
-
-        // Remove sensitive data
-        const { password, ...userData } = user;
-
-        // Calculate age if birthDate exists
-        let age = null;
-        if (userData.birthDate) {
-          const today = new Date();
-          const birthDate = new Date(userData.birthDate);
-          age = today.getFullYear() - birthDate.getFullYear();
-          const monthDiff = today.getMonth() - birthDate.getMonth();
-          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-          }
-        }
-
-        // Prepare sync data for N8N
-        const syncData = {
-          userId: userData.id,
-          timestamp: new Date().toISOString(),
-          personalInfo: {
-            name: userData.name,
-            email: userData.email,
-            birthDate: userData.birthDate,
-            age: age,
-            weight: userData.weight,
-            height: userData.height,
-            gender: userData.gender
-          },
-          fitnessProfile: {
-            fitnessGoal: userData.fitnessGoal,
-            experienceLevel: userData.experienceLevel,
-            weeklyFrequency: userData.weeklyFrequency,
-            customEquipment: userData.availableEquipment,
-            physicalRestrictions: userData.physicalRestrictions,
-            preferredWorkoutTime: userData.preferredWorkoutTime,
-            availableDaysPerWeek: userData.availableDaysPerWeek,
-            averageWorkoutDuration: userData.averageWorkoutDuration,
-            preferredLocation: userData.preferredLocation
-          },
-          lifestyle: {
-            smokingStatus: userData.smokingStatus,
-            alcoholConsumption: userData.alcoholConsumption,
-            dietType: userData.dietType,
-            sleepHours: userData.sleepHours,
-            stressLevel: userData.stressLevel
-          },
-          metadata: {
-            onboardingCompleted: userData.onboardingCompleted,
-            lastUpdated: new Date().toISOString()
-          },
-          validationField: "test-connection-railway-n8n"
-        };
-
-        // Save sync data to file for debugging
-        const timestamp = new Date().toLocaleString("pt-BR");
-        const logContent = `AI Response Log - PulseOn (Sync Data)
-=========================
-
-Data da última atualização: ${timestamp}
-
-Sync Request Data:
-${JSON.stringify(syncData, null, 2)}
-
-N8N Sync Response:
-[Pending response]
-
-=========================
-`;
-
-        try {
-          fs.writeFileSync(
-            path.join(process.cwd(), "ai-response.txt"),
-            logContent,
-            "utf8",
-          );
-          console.log("Sync data saved to ai-response.txt");
-        } catch (fileError) {
-          console.error("Error saving sync data to file:", fileError);
-        }
-
-        // Call N8N webhook for AI workout generation
-        try {
-          console.log("Calling N8N for AI workout generation...");
-          
-          const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || "https://pulseon-n8n-automacao.up.railway.app/webhook/pulseon-workout";
-          
-          const response = await fetch(n8nWebhookUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(syncData),
-            signal: AbortSignal.timeout(30000),
-          });
-
-          if (!response.ok) {
-            throw new Error(`N8N API error: ${response.status}`);
-          }
-
-          const n8nResponse = await response.json();
-          console.log("N8N Response:", JSON.stringify(n8nResponse, null, 2));
-
-          // Check if we have a savedWorkout in the response
-          if (n8nResponse.savedWorkout) {
-            console.log("Found savedWorkout in N8N response, using it directly");
-            
-            res.json({
-              message: "Treino gerado com sucesso pela IA!",
-              workout: n8nResponse.savedWorkout,
-              syncData: syncData
-            });
-          } else if (n8nResponse.output) {
-            // Try to parse workout from output
-            try {
-              const jsonMatch = n8nResponse.output.match(/```json\n([\s\S]*?)\n```/) || n8nResponse.output.match(/({[\s\S]*})/);
-              if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[1]);
-                if (parsed.workoutPlan) {
-                  // Generate workout name
-                  const workoutName = `Treino IA - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
-                  
-                  // Calculate total duration and calories
-                  const totalDuration = parsed.workoutPlan.reduce((sum: number, exercise: any) => {
-                    return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5) / 60);
-                  }, 0);
-
-                  const totalCalories = parsed.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
-
-                  // Save scheduled workout to database
-                  const scheduledWorkout = await storage.createScheduledWorkout({
-                    userId: user.id,
-                    name: workoutName,
-                    exercises: parsed.workoutPlan,
-                    totalCalories: Math.round(totalCalories),
-                    totalDuration: Math.round(totalDuration),
-                    status: "pending",
-                  });
-
-                  res.json({
-                    message: "Treino gerado com sucesso pela IA!",
-                    workout: scheduledWorkout,
-                    syncData: syncData
-                  });
-                  return;
-                }
-              }
-            } catch (parseError) {
-              console.error("Error parsing N8N output:", parseError);
-            }
-          }
-
-          throw new Error("No valid workout data found in N8N response");
-
-        } catch (n8nError) {
-          console.error("N8N API error:", n8nError);
-          
-          // Generate fallback workout
-          const fallbackWorkout = {
-            userId: user.id,
-            workoutPlan: [
-              {
-                exercise: "Agachamento com peso corporal",
-                muscleGroup: "Pernas",
-                type: "strength",
-                instructions: "Mantenha os pés paralelos, desça até formar 90° nos joelhos e volte à posição inicial",
-                time: 0,
-                series: 3,
-                repetitions: 15,
-                restBetweenSeries: 60,
-                restBetweenExercises: 90,
-                weight: 0,
-                calories: 45
-              },
-              {
-                exercise: "Flexão de braço",
-                muscleGroup: "Peito",
-                type: "strength", 
-                instructions: "Mantenha o corpo alinhado, desça o peito próximo ao chão e empurre de volta",
-                time: 0,
-                series: 3,
-                repetitions: 10,
-                restBetweenSeries: 60,
-                restBetweenExercises: 90,
-                weight: 0,
-                calories: 35
-              },
-              {
-                exercise: "Prancha",
-                muscleGroup: "Core",
-                type: "isometric",
-                instructions: "Mantenha o corpo reto apoiado nos antebraços e pontas dos pés",
-                time: 30,
-                series: 3,
-                repetitions: 1,
-                restBetweenSeries: 60,
-                restBetweenExercises: 90,
-                weight: 0,
-                calories: 25
-              }
-            ]
-          };
-
-          const totalDuration = fallbackWorkout.workoutPlan.reduce((sum: number, exercise: any) => {
-            return sum + (exercise.time > 0 ? exercise.time : (exercise.series * exercise.repetitions * 0.5) / 60);
-          }, 0);
-
-          const totalCalories = fallbackWorkout.workoutPlan.reduce((sum: number, exercise: any) => sum + exercise.calories, 0);
-
-          const workoutName = `Treino Offline - ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
-
-          const scheduledWorkout = await storage.createScheduledWorkout({
-            userId: user.id,
-            name: workoutName,
-            exercises: fallbackWorkout.workoutPlan,
-            totalCalories: Math.round(totalCalories),
-            totalDuration: Math.round(totalDuration),
-            status: "pending",
-          });
-
-          res.json({
-            message: "Treino gerado com sucesso (modo offline)!",
-            workout: scheduledWorkout,
-            syncData: syncData
-          });
-        }
-      } catch (error) {
-        console.error("Sync user data error:", error);
-        res.status(500).json({ message: "Erro interno do servidor" });
-      }
-    },
-  );
+  // Serve uploaded files
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   const httpServer = createServer(app);
   return httpServer;

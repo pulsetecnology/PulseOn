@@ -1,287 +1,114 @@
-import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Minus, Pause, Play, RotateCcw, ChevronRight, CheckCircle2, SkipForward, AlertCircle, Timer } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { useGlobalNotification } from "@/components/NotificationProvider";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Play, Pause, SkipForward, CheckCircle2, Timer, Clock, AlertCircle } from "lucide-react";
 
 interface Exercise {
-  id?: string;
+  id?: number;
   exercise: string;
   muscleGroup: string;
   type: string;
   instructions: string;
-  time: number;
   series: number;
-  repetitions: number;
+  repetitions?: number;
+  timeExec?: number;
+  time?: number;
   restBetweenSeries: number;
   restBetweenExercises: number;
-  weight: number;
+  weight?: number;
   calories: number;
 }
 
-interface ScheduledWorkout {
-  id: number;
-  userId: number;
-  name: string;
-  exercises: Exercise[];
-  totalCalories: number;
-  totalDuration: number;
-  status: string;
-  createdAt: string;
-  scheduledFor?: string;
+interface WorkoutData {
+  workoutName: string;
+  workoutPlan: Exercise[];
 }
 
-// Fetch scheduled workouts
-const fetchScheduledWorkouts = async (): Promise<ScheduledWorkout[]> => {
-  const token = localStorage.getItem('authToken');
-  const response = await fetch('/api/scheduled-workouts', {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Erro ao carregar treinos programados');
-  }
-
-  return response.json();
-};
-
 export default function ActiveWorkout() {
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-  const [currentSet, setCurrentSet] = useState(1);
-  const [weight, setWeight] = useState(40);
-  const [effortLevel, setEffortLevel] = useState([7]);
-  const [restTime, setRestTime] = useState(90);
-  const [isResting, setIsResting] = useState(false);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [showSetFeedback, setShowSetFeedback] = useState(false);
-  const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
-  const [completedSets, setCompletedSets] = useState<Array<{exerciseIndex: number, set: number, weight: number, effort: number}>>([]);
-  const [workoutTimer, setWorkoutTimer] = useState(0);
-  const { showSuccess, showWarning, showWorkoutSuccess, showWorkoutError, showWorkoutWarning } = useGlobalNotification();
   const [, setLocation] = useLocation();
+  const [workoutData, setWorkoutData] = useState<WorkoutData | null>(null);
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [currentSeries, setCurrentSeries] = useState(1);
+  const [isResting, setIsResting] = useState(false);
+  const [restTime, setRestTime] = useState(0);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [startTime] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRestingBetweenSeries, setIsRestingBetweenSeries] = useState(false);
+  const [exerciseIntensity, setExerciseIntensity] = useState(1); // 1-3: suave, moderado, intenso
+  const [currentWeight, setCurrentWeight] = useState(0);
+  const [effortLevel, setEffortLevel] = useState(8);
 
-  const { data: scheduledWorkouts, isLoading, error } = useQuery({
-    queryKey: ["scheduled-workouts"],
-    queryFn: fetchScheduledWorkouts,
-  });
-
-  const todaysWorkout = scheduledWorkouts?.[0];
-  const exercises = todaysWorkout?.exercises || [];
-  const totalExercises = exercises.length;
-  const progressPercentage = totalExercises > 0 ? ((currentExerciseIndex + 1) / totalExercises) * 100 : 0;
-  
-  // Safely get current exercise
-  const currentExercise = exercises.length > 0 ? exercises[currentExerciseIndex] : null;
-
-  // Initialize weight when workout loads
-  useEffect(() => {
-    if (currentExercise && exercises.length > 0) {
-      setWeight(currentExercise.weight || 40);
-      setRestTime(currentExercise.restBetweenSeries || 90);
-    }
-  }, [currentExercise, currentExerciseIndex, exercises.length]);
-
-  // Workout timer effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setWorkoutTimer(prev => prev + 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleFinishWorkout = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      
-      // Calculate total duration (in minutes)
-      const totalDuration = Math.floor(workoutTimer / 60);
-      
-      // Calculate total calories
-      const totalCalories = exercises.reduce((sum, exercise) => sum + (exercise.calories || 0), 0);
-      
-      // Prepare completed exercises data
-      const completedExercises = exercises.map(exercise => {
-        const exerciseCompletedSets = completedSets.filter(set => 
-          exercises[set.exerciseIndex]?.exercise === exercise.exercise
-        );
-        
-        return {
-          exercise: exercise.exercise,
-          muscleGroup: exercise.muscleGroup,
-          type: exercise.type,
-          instructions: exercise.instructions,
-          time: exercise.time,
-          series: exercise.series,
-          repetitions: exercise.repetitions,
-          restBetweenSeries: exercise.restBetweenSeries,
-          restBetweenExercises: exercise.restBetweenExercises,
-          weight: exercise.weight,
-          calories: exercise.calories,
-          actualWeight: exerciseCompletedSets.length > 0 ? exerciseCompletedSets[exerciseCompletedSets.length - 1].weight : exercise.weight,
-          actualTime: exercise.time,
-          actualCalories: exercise.calories,
-          effortLevel: exerciseCompletedSets.length > 0 ? exerciseCompletedSets[exerciseCompletedSets.length - 1].effort : 5,
-          completed: exerciseCompletedSets.length > 0,
-          notes: ""
-        };
+  // Função para fazer scroll para o topo da tela
+  const scrollToTop = () => {
+    setTimeout(() => {
+      window.scrollTo({ 
+        top: 0, 
+        behavior: 'smooth' 
       });
-
-      // Create workout session
-      const workoutSessionData = {
-        scheduledWorkoutId: todaysWorkout?.id,
-        name: todaysWorkout?.name || "Treino Personalizado",
-        startedAt: new Date(Date.now() - workoutTimer * 1000).toISOString(),
-        completedAt: new Date().toISOString(),
-        exercises: completedExercises,
-        totalDuration,
-        totalCalories,
-        notes: ""
-      };
-
-      const response = await fetch('/api/workout-sessions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(workoutSessionData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao salvar treino');
-      }
-
-      const savedSession = await response.json();
-      console.log('Workout session saved:', savedSession);
-
-      showWorkoutSuccess();
-      setLocation("/history");
-    } catch (error) {
-      console.error('Error saving workout session:', error);
-      // Still redirect even if save fails
-      setLocation("/workout");
-    }
+    }, 100);
   };
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando treino...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">Erro ao carregar treino: {error.message}</p>
-          <Button onClick={() => window.location.reload()}>
-            Tentar novamente
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // No workout state
-  if (!todaysWorkout || exercises.length === 0) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-500 mb-4">Nenhum treino encontrado.</p>
-          <Button onClick={() => setLocation("/workout")}>
-            Voltar para Treinos
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   useEffect(() => {
-    if (isTimerRunning && restTime > 0) {
-      const timer = setTimeout(() => setRestTime(restTime - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-    if (restTime === 0 && isTimerRunning) {
-      setIsTimerRunning(false);
-      setIsResting(false);
-      showWorkoutSuccess();
-    }
-  }, [isTimerRunning, restTime, showSuccess]);
+    // Simular carregamento rápido e recuperar dados
+    const loadWorkout = async () => {
+      try {
+        const savedWorkout = localStorage.getItem('activeWorkout');
+        if (savedWorkout) {
+          const data = JSON.parse(savedWorkout);
+          setWorkoutData(data);
+          // Inicializar peso baseado no exercício atual
+          if (data.workoutPlan && data.workoutPlan[0]) {
+            setCurrentWeight(data.workoutPlan[0].weight || 0);
+          }
+        } else {
+          // Se não há treino ativo, redirecionar para home
+          setLocation('/');
+          return;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar treino:', error);
+        setLocation('/');
+        return;
+      }
 
-  const completeSet = () => {
-    const newCompletedSet = {
-      exerciseIndex: currentExerciseIndex,
-      set: currentSet,
-      weight: weight,
-      effort: effortLevel[0]
+      // Carregar imediatamente
+      setIsLoading(false);
     };
 
-    setCompletedSets([...completedSets, newCompletedSet]);
-    setShowSetFeedback(true);
+    loadWorkout();
+  }, [setLocation]);
 
-    // Show workout progress notification
-    showWorkoutSuccess();
-
-    setTimeout(() => {
-      setShowSetFeedback(false);
-
-      if (currentSet < currentExercise.series) {
-        setCurrentSet(currentSet + 1);
-        setIsResting(true);
-        setRestTime(currentExercise.restBetweenSeries);
-        setIsTimerRunning(true);
-        // Show set completion notification
-        showWorkoutSuccess();
-      } else {
-        // Move to next exercise or complete workout
-        if (currentExerciseIndex < exercises.length - 1) {
-          setCurrentExerciseIndex(currentExerciseIndex + 1);
-          setCurrentSet(1);
-          setWeight(exercises[currentExerciseIndex + 1].weight || 40);
-          setEffortLevel([7]);
-          showWorkoutSuccess();
-        } else {
-          setIsWorkoutComplete(true);
-          showWorkoutSuccess();
-        }
-      }
-    }, 2000);
-  };
-
-  const skipExercise = () => {
-    if (currentExerciseIndex < totalExercises - 1) {
-      setCurrentExerciseIndex(currentExerciseIndex + 1);
-      setCurrentSet(1);
-      setWeight(exercises[currentExerciseIndex + 1].weight || 40);
-      setEffortLevel([7]);
-      setShowSetFeedback(false);
-      showWorkoutWarning();
-    } else {
-      setIsWorkoutComplete(true);
+  // Atualizar peso quando mudar de exercício
+  useEffect(() => {
+    if (workoutData?.workoutPlan[currentExerciseIndex]) {
+      setCurrentWeight(workoutData.workoutPlan[currentExerciseIndex].weight || 0);
     }
-  };
+  }, [currentExerciseIndex, workoutData]);
 
-  const startNextSet = () => {
-    setIsResting(false);
-    setIsTimerRunning(false);
-    setShowSetFeedback(true);
-  };
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isTimerActive) {
+      interval = setInterval(() => {
+        if (isResting && restTime > 0) {
+          setRestTime(prev => prev - 1);
+        } else if (isResting && restTime === 0) {
+          // Tempo de descanso acabou
+          setIsResting(false);
+          setIsTimerActive(false);
+        } else {
+          setElapsedTime(prev => prev + 1);
+        }
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isTimerActive, isResting, restTime]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -289,254 +116,589 @@ export default function ActiveWorkout() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (isWorkoutComplete) {
+  const formatExerciseTime = (timeExec: number) => {
+    if (timeExec >= 60) {
+      const minutes = Math.floor(timeExec / 60);
+      const seconds = timeExec % 60;
+      return seconds > 0 ? `${minutes}min ${seconds}s` : `${minutes}min`;
+    }
+    return `${timeExec}s`;
+  };
+
+  const startRest = (duration: number, isBetweenSeries: boolean = false) => {
+    setRestTime(duration);
+    setIsResting(true);
+    setIsRestingBetweenSeries(isBetweenSeries);
+    setIsTimerActive(true);
+  };
+
+  const pauseResumeTimer = () => {
+    setIsTimerActive(!isTimerActive);
+  };
+
+  const skipToNextSeries = () => {
+    setIsResting(false);
+    setIsRestingBetweenSeries(false);
+    setIsTimerActive(false);
+    setRestTime(0);
+  };
+
+
+
+  const completeSeries = () => {
+    const currentExercise = workoutData?.workoutPlan[currentExerciseIndex];
+    if (!currentExercise) return;
+
+    if (currentSeries < currentExercise.series) {
+      // Próxima série - descanso entre séries
+      setCurrentSeries(prev => prev + 1);
+      startRest(currentExercise.restBetweenSeries, true);
+    } else {
+      // Exercício completo
+      if (currentExerciseIndex < workoutData.workoutPlan.length - 1) {
+        // Próximo exercício - descanso entre exercícios
+        setCurrentExerciseIndex(prev => prev + 1);
+        setCurrentSeries(1);
+        startRest(currentExercise.restBetweenExercises, false);
+        // Auto-scroll para o topo da tela
+        scrollToTop();
+      } else {
+        // Treino completo
+        finishWorkout();
+      }
+    }
+  };
+
+  // Auto-scroll quando muda de exercício
+  useEffect(() => {
+    if (currentExerciseIndex > 0) {
+      scrollToTop();
+    }
+  }, [currentExerciseIndex]);
+
+  const skipExercise = () => {
+    if (workoutData && currentExerciseIndex < workoutData.workoutPlan.length - 1) {
+      setCurrentExerciseIndex(prev => prev + 1);
+      setCurrentSeries(1);
+      setIsResting(false);
+      setIsTimerActive(false);
+      // Auto-scroll para o topo da tela
+      scrollToTop();
+    } else {
+      finishWorkout();
+    }
+  };
+
+  const finishExerciseIncomplete = () => {
+    const currentExercise = workoutData?.workoutPlan[currentExerciseIndex];
+    if (!currentExercise) return;
+
+    // Adicionar exercício à lista de incompletos no localStorage
+    const incompleteExercises = JSON.parse(localStorage.getItem('incompleteExercises') || '[]');
+    const exerciseData = {
+      ...currentExercise,
+      actualWeight: currentWeight,
+      effortLevel: effortLevel,
+      status: 'incomplete',
+      completedSeries: currentSeries - 1, // Séries que foram feitas antes de parar
+      totalSeries: currentExercise.series,
+      timestamp: new Date().toISOString()
+    };
+    
+    incompleteExercises.push(exerciseData);
+    localStorage.setItem('incompleteExercises', JSON.stringify(incompleteExercises));
+
+    // Passar para o próximo exercício
+    if (currentExerciseIndex < workoutData.workoutPlan.length - 1) {
+      setCurrentExerciseIndex(prev => prev + 1);
+      setCurrentSeries(1);
+      setIsResting(false);
+      setIsTimerActive(false);
+      scrollToTop();
+    } else {
+      finishWorkout();
+    }
+  };
+
+  const finishWorkoutEarly = async () => {
+    if (!workoutData) return;
+
+    // Calcular duração total em minutos
+    const endTime = new Date();
+    const durationMs = endTime.getTime() - startTime.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
+
+    // Exercícios completados até agora
+    const completedExercises = workoutData.workoutPlan.slice(0, currentExerciseIndex);
+    const remainingExercises = workoutData.workoutPlan.slice(currentExerciseIndex);
+
+    // Calcular calorias dos exercícios completados
+    const totalCalories = completedExercises.reduce((sum, exercise) => sum + (exercise.calories || 0), 0);
+
+    // Criar exercícios completados com formato adequado
+    const completedExercisesList = completedExercises.map(exercise => ({
+      exercise: exercise.exercise,
+      muscleGroup: exercise.muscleGroup,
+      type: exercise.type,
+      instructions: exercise.instructions,
+      time: exercise.time || exercise.timeExec || 0,
+      series: exercise.series,
+      repetitions: exercise.repetitions || 0,
+      restBetweenSeries: exercise.restBetweenSeries,
+      restBetweenExercises: exercise.restBetweenExercises,
+      weight: exercise.weight || 0,
+      calories: exercise.calories,
+      actualWeight: currentWeight,
+      actualTime: exercise.timeExec || exercise.time || 0,
+      actualCalories: exercise.calories,
+      effortLevel: effortLevel || 8,
+      completed: true,
+      notes: null
+    }));
+
+    // Criar objeto de sessão de treino parcial
+    const workoutSession = {
+      scheduledWorkoutId: null,
+      workoutName: `${workoutData.workoutName} (Parcial)`,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      duration: durationMinutes,
+      totalCalories: totalCalories,
+      exercisesCompleted: completedExercises.length,
+      status: 'partial',
+      notes: `Treino finalizado antecipadamente. ${remainingExercises.length} exercícios restantes disponíveis para execução individual.`,
+      exercises: completedExercisesList
+    };
+
+    try {
+      // Salvar treino parcial no histórico
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('/api/workout-sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(workoutSession),
+      });
+
+      if (response.ok) {
+        console.log('Treino parcial salvo no histórico com sucesso');
+        
+        // Criar treinos individuais para os exercícios restantes
+        if (remainingExercises.length > 0) {
+          const remainingWorkouts = remainingExercises.map(exercise => ({
+            userId: 1, // Will be set by backend
+            name: exercise.exercise,
+            exercises: [exercise],
+            totalCalories: exercise.calories,
+            totalDuration: 1,
+            status: 'pending',
+            scheduledFor: new Date().toISOString()
+          }));
+
+          // Salvar exercícios restantes como treinos individuais
+          for (const workout of remainingWorkouts) {
+            try {
+              await fetch('/api/scheduled-workouts', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(workout),
+              });
+            } catch (error) {
+              console.error('Erro ao salvar exercício individual:', error);
+            }
+          }
+        }
+      } else {
+        throw new Error('Erro ao salvar no backend');
+      }
+    } catch (error) {
+      console.error('Erro ao finalizar treino antecipadamente:', error);
+      
+      // Fallback: salvar no localStorage
+      const sessionWithId = {
+        ...workoutSession,
+        id: Date.now(),
+        userId: 1,
+        createdAt: endTime.toISOString(),
+        updatedAt: endTime.toISOString()
+      };
+
+      const existingSessions = JSON.parse(localStorage.getItem('workoutSessions') || '[]');
+      existingSessions.unshift(sessionWithId);
+      localStorage.setItem('workoutSessions', JSON.stringify(existingSessions));
+      console.log('Treino parcial salvo no localStorage como fallback');
+    }
+
+    // Limpar dados e redirecionar
+    localStorage.removeItem('activeWorkout');
+    setLocation('/history');
+  };
+
+  const finishWorkout = async () => {
+    if (!workoutData) return;
+
+    // Calcular duração total em minutos
+    const endTime = new Date();
+    const durationMs = endTime.getTime() - startTime.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
+
+    // Recuperar exercícios incompletos do localStorage
+    const incompleteExercises = JSON.parse(localStorage.getItem('incompleteExercises') || '[]');
+    
+    // Calcular calorias totais (apenas dos completados)
+    const completedExercisesCalories = workoutData.workoutPlan
+      .slice(0, currentExerciseIndex)
+      .reduce((sum, exercise) => sum + (exercise.calories || 0), 0);
+
+    // Criar exercícios com status adequado
+    const allExercises = workoutData.workoutPlan.map((exercise, index) => {
+      // Verificar se o exercício está na lista de incompletos
+      const incompleteExercise = incompleteExercises.find(
+        (inc: any) => inc.exercise === exercise.exercise && inc.timestamp
+      );
+
+      if (incompleteExercise) {
+        return {
+          exercise: exercise.exercise,
+          muscleGroup: exercise.muscleGroup,
+          type: exercise.type,
+          instructions: exercise.instructions,
+          time: exercise.time || exercise.timeExec || 0,
+          series: exercise.series,
+          repetitions: exercise.repetitions || 0,
+          restBetweenSeries: exercise.restBetweenSeries,
+          restBetweenExercises: exercise.restBetweenExercises,
+          weight: exercise.weight || 0,
+          calories: exercise.calories,
+          actualWeight: incompleteExercise.actualWeight || exercise.weight || 0,
+          actualTime: exercise.timeExec || exercise.time || 0,
+          actualCalories: 0, // Não contar calorias de exercícios incompletos
+          effortLevel: incompleteExercise.effortLevel || 8,
+          completed: false,
+          status: 'incomplete',
+          notes: `Exercício finalizado como incompleto. ${incompleteExercise.completedSeries || 0} de ${exercise.series} séries completadas.`
+        };
+      } else if (index < currentExerciseIndex) {
+        // Exercício completado
+        return {
+          exercise: exercise.exercise,
+          muscleGroup: exercise.muscleGroup,
+          type: exercise.type,
+          instructions: exercise.instructions,
+          time: exercise.time || exercise.timeExec || 0,
+          series: exercise.series,
+          repetitions: exercise.repetitions || 0,
+          restBetweenSeries: exercise.restBetweenSeries,
+          restBetweenExercises: exercise.restBetweenExercises,
+          weight: exercise.weight || 0,
+          calories: exercise.calories,
+          actualWeight: exercise.weight || 0,
+          actualTime: exercise.timeExec || exercise.time || 0,
+          actualCalories: exercise.calories,
+          effortLevel: exerciseIntensity || 8,
+          completed: true,
+          status: 'completed',
+          notes: null
+        };
+      } else {
+        // Exercício não iniciado
+        return {
+          exercise: exercise.exercise,
+          muscleGroup: exercise.muscleGroup,
+          type: exercise.type,
+          instructions: exercise.instructions,
+          time: exercise.time || exercise.timeExec || 0,
+          series: exercise.series,
+          repetitions: exercise.repetitions || 0,
+          restBetweenSeries: exercise.restBetweenSeries,
+          restBetweenExercises: exercise.restBetweenExercises,
+          weight: exercise.weight || 0,
+          calories: exercise.calories,
+          actualWeight: 0,
+          actualTime: 0,
+          actualCalories: 0,
+          effortLevel: 0,
+          completed: false,
+          status: 'not-started',
+          notes: null
+        };
+      }
+    });
+
+    // Criar objeto de sessão de treino
+    const workoutSession = {
+      scheduledWorkoutId: null,
+      workoutName: workoutData.workoutName,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      duration: durationMinutes,
+      totalCalories: completedExercisesCalories,
+      exercisesCompleted: allExercises.filter(ex => ex.completed).length,
+      status: 'completed',
+      notes: null,
+      exercises: allExercises
+    };
+
+    try {
+      // Tentar salvar no backend
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('/api/workout-sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(workoutSession),
+      });
+
+      if (response.ok) {
+        console.log('Treino salvo no histórico com sucesso');
+      } else {
+        throw new Error('Erro ao salvar no backend');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar treino no backend:', error);
+
+      // Fallback: salvar no localStorage
+      const sessionWithId = {
+        ...workoutSession,
+        id: Date.now(),
+        userId: 1,
+        createdAt: endTime.toISOString(),
+        updatedAt: endTime.toISOString()
+      };
+
+      const existingSessions = JSON.parse(localStorage.getItem('workoutSessions') || '[]');
+      existingSessions.unshift(sessionWithId);
+      localStorage.setItem('workoutSessions', JSON.stringify(existingSessions));
+      console.log('Treino salvo no localStorage como fallback');
+    }
+
+    // Limpar dados temporários
+    localStorage.removeItem('activeWorkout');
+    localStorage.removeItem('incompleteExercises');
+
+    // Redirecionar para home
+    setLocation('/');
+  };
+
+  if (isLoading) {
     return (
-      <div className="px-4 py-6 space-y-6">
-        {/* Workout Complete Header */}
-        <div className="text-center space-y-4">
-          <div className="w-20 h-20 mx-auto bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-            <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground">Treino Concluído!</h1>
-          <p className="text-muted-foreground">Parabéns por completar seu treino</p>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-slate-100 mx-auto mb-4"></div>
+          <p className="text-lg text-slate-900 dark:text-slate-100">Preparando seu treino...</p>
         </div>
-
-        {/* Workout Summary */}
-        <Card className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-          <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4 text-center">Resumo do Treino</h2>
-            <div className="space-y-4">
-              {completedSets.map((set, index) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-700 last:border-0">
-                  <div>
-                    <span className="font-medium">{exercises[set.exerciseIndex]?.exercise}</span>
-                    <p className="text-sm text-muted-foreground">Série {set.set}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">{set.weight > 0 ? `${set.weight}kg` : 'Peso corporal'}</p>
-                    <p className="text-sm text-muted-foreground">Esforço: {set.effort}/10</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Button 
-          onClick={handleFinishWorkout}
-          className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-        >
-          Finalizar Treino
-          <CheckCircle2 className="ml-2 h-5 w-5" />
-        </Button>
       </div>
     );
   }
 
-  const updateWeight = (newWeight: number) => {
-    setWeight(newWeight);
-  };
+  if (!workoutData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Erro ao carregar treino. Redirecionando...</p>
+      </div>
+    );
+  }
+
+  const currentExercise = workoutData.workoutPlan[currentExerciseIndex];
+  const progress = ((currentExerciseIndex + (currentSeries / currentExercise.series)) / workoutData.workoutPlan.length) * 100;
 
   return (
-    <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
-      {/* Fixed Header - Always visible */}
-      <div className="flex-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-lg dark:shadow-2xl dark:shadow-black/50 border-b border-slate-200 dark:border-slate-700">
-        <div className="px-4 py-6">
-          <div className="text-center space-y-2">
-            <Badge variant="secondary" className="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
-              Exercício {currentExerciseIndex + 1}/{totalExercises}
-            </Badge>
-            <h1 className="text-2xl font-bold">{currentExercise.exercise}</h1>
-            <div className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">
-              Série {currentSet} de {currentExercise.series}
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4">
+      <div className="max-w-md mx-auto space-y-4">
+        {/* Header */}
+        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+          <CardHeader className="text-center py-4">
+            <CardTitle className="text-xl text-slate-900 dark:text-white">{workoutData.workoutName}</CardTitle>
+            <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400 mb-2">
+              <span>Exercício {currentExerciseIndex + 1} de {workoutData.workoutPlan.length}</span>
+              <span>{formatTime(elapsedTime)}</span>
             </div>
-            <p className="text-slate-600 dark:text-slate-300 text-lg">
-              {currentExercise.repetitions > 0 ? `${currentExercise.repetitions} repetições` : `${currentExercise.time} minutos`}
-            </p>
-          </div>
+            <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400 mb-2">
+              <span>Progresso do treino</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="w-full h-2" />
+          </CardHeader>
+        </Card>
 
-          {/* Progress Bar */}
-          <div className="mt-4">
-            <Progress value={progressPercentage} className="h-2 bg-slate-300 dark:bg-slate-700" />
-          </div>
-        </div>
-      </div>
+        {/* Current Exercise */}
+        <Card id="current-exercise-card" className="bg-primary dark:bg-primary border-0">
+          <CardHeader className="py-3">
+            <CardTitle className="text-lg text-primary-foreground">{currentExercise.exercise}</CardTitle>
+            <p className="text-sm text-primary-foreground/80">{currentExercise.muscleGroup}</p>
+          </CardHeader>
+          <CardContent className="space-y-3 pb-4">
+            <p className="text-sm text-primary-foreground/80">{currentExercise.instructions}</p>
 
-      {/* Content Area - Fixed height, no scroll jump */}
-      <div className="flex-1 px-4 py-0 flex items-start justify-center">
-        <div className="w-full max-w-md mt-2">
-          {/* During Exercise Phase */}
-          {!isResting && !showSetFeedback && (
-            <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-              <CardContent className="p-8 text-center">
-                <Timer className="h-12 w-12 mx-auto mb-4 text-cyan-600" />
-                <h2 className="text-xl font-semibold mb-2">Execute o exercício</h2>
-                <p className="text-muted-foreground mb-6">
-                  Concentre-se na execução correta dos movimentos
+            <div className="text-center mb-4">
+              <h3 className="text-xl font-semibold text-primary-foreground mb-2">Série {currentSeries} de {currentExercise.series}</h3>
+            </div>
+            
+
+
+
+            {/* Card de controle de peso */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
+              <div className="text-center mb-3">
+                <p className="text-sm text-primary-foreground/80">Peso utilizado</p>
+              </div>
+              <div className="flex items-center justify-between mb-2 text-xs text-blue-200">
+                <span>0 kg</span>
+                <span>200 kg</span>
+              </div>
+              <div className="relative mb-3">
+                <input
+                  type="range"
+                  min="0"
+                  max="200"
+                  step="2.5"
+                  value={currentWeight}
+                  onChange={(e) => setCurrentWeight(Number(e.target.value))}
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                />
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-medium text-primary-foreground">{currentWeight}</span>
+                <p className="text-xs text-primary-foreground/80 mt-1">kg</p>
+              </div>
+            </div>
+
+            {/* Card de nível de esforço */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <div className="text-center mb-3">
+                <p className="text-sm text-primary-foreground/80">Nível de esforço</p>
+              </div>
+              <div className="flex items-center justify-between mb-2 text-xs text-blue-200">
+                <span>Suave</span>
+                <span>Intenso</span>
+              </div>
+              <div className="relative mb-3">
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={effortLevel}
+                  onChange={(e) => setEffortLevel(Number(e.target.value))}
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                />
+              </div>
+              <div className="text-center">
+                <span className="text-lg font-medium text-primary-foreground">Esforço: {effortLevel}/10</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-center mt-4">
+              <div className="bg-white/10 p-3 rounded-lg">
+                <p className="text-lg font-bold text-primary-foreground">
+                  {currentExercise.repetitions && currentExercise.repetitions > 0 
+                    ? currentExercise.repetitions
+                    : formatExerciseTime(currentExercise.timeExec || currentExercise.time || 30)}
                 </p>
-
-                <div className="space-y-2">
-                  <Button 
-                    onClick={() => setShowSetFeedback(true)}
-                    className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
-                  >
-                    Concluir Série
-                    <CheckCircle2 className="ml-2 h-5 w-5" />
-                  </Button>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      onClick={skipExercise}
-                      className="py-2 text-sm font-semibold bg-orange-500 dark:bg-orange-600 text-white hover:bg-orange-600 dark:hover:bg-orange-700"
-                    >
-                      <SkipForward className="mr-1 h-4 w-4" />
-                      Pular Exercício
-                    </Button>
-                    <Button 
-                      onClick={() => setIsWorkoutComplete(true)}
-                      className="py-2 text-sm font-semibold bg-red-500 dark:bg-red-600 text-white hover:bg-red-600 dark:hover:bg-red-700"
-                    >
-                      <AlertCircle className="mr-1 h-4 w-4" />
-                      Finalizar Treino
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Rest Timer Phase */}
-          {isResting && (
-            <Card className="bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-              <CardContent className="p-8 text-center">
-                <div className="text-6xl font-bold text-orange-600 dark:text-orange-400 mb-4">
-                  {formatTime(restTime)}
-                </div>
-                <h2 className="text-xl font-semibold mb-2">Tempo de Descanso</h2>
-                <p className="text-muted-foreground mb-6">
-                  Relaxe e prepare-se para a próxima série
+                <p className="text-xs text-primary-foreground/80">
+                  {currentExercise.repetitions && currentExercise.repetitions > 0 ? 'Repetições' : 'Tempo'}
                 </p>
+              </div>
+              <div className="bg-white/10 p-3 rounded-lg">
+                <p className="text-lg font-bold text-primary-foreground">{currentExercise.calories}</p>
+                <p className="text-xs text-primary-foreground/80">Calorias</p>
+              </div>
+            </div>
 
-                <div className="flex justify-center space-x-4 mb-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsTimerRunning(!isTimerRunning)} 
-                    size="lg"
-                    className="border-orange-300 dark:border-orange-700"
-                  >
-                    {isTimerRunning ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setRestTime(currentExercise.restBetweenSeries)} 
-                    size="lg"
-                    className="border-orange-300 dark:border-orange-700"
-                  >
-                    <RotateCcw className="h-5 w-5" />
-                  </Button>
+          </CardContent>
+        </Card>
+
+        {/* Timer de Descanso Integrado */}
+        {isResting && (
+          <Card className="bg-orange-500 dark:bg-orange-600 border-0 animate-in slide-in-from-top duration-300">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white/20 rounded-full p-2">
+                    <Timer className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      {isRestingBetweenSeries ? 'Descanso entre séries' : 'Pausa'}
+                    </p>
+                    <p className="text-2xl font-bold text-white">{formatTime(restTime)}</p>
+                  </div>
                 </div>
-
-                <Button 
-                  onClick={startNextSet}
-                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700"
-                >
-                  Começar Próxima Série
-                  <ChevronRight className="ml-2 h-5 w-5" />
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Set Feedback Phase */}
-          {showSetFeedback && (
-            <div className="space-y-1">
-
-              {/* Weight Selection */}
-              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-                <CardContent className="p-2">
-                  <h3 className="font-semibold mb-2 text-center text-sm">Peso utilizado</h3>
-                  <div className="flex items-center justify-center space-x-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setWeight(Math.max(0, weight - 2.5))}
-                      disabled={weight <= 2.5}
-                      className="h-8 w-8"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{weight}</div>
-                      <div className="text-xs text-muted-foreground">kg</div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setWeight(weight + 2.5)}
-                      className="h-8 w-8"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Effort Level */}
-              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/30">
-                <CardContent className="p-2">
-                  <h3 className="font-semibold mb-2 text-center text-sm">Nível de esforço</h3>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Suave</span>
-                      <span>Intenso</span>
-                    </div>
-                    <Slider
-                      value={effortLevel}
-                      onValueChange={setEffortLevel}
-                      max={10}
-                      min={1}
-                      step={1}
-                      className="w-full"
-                    />
-                    <div className="text-center">
-                      <span className="text-base font-semibold text-cyan-600">
-                        Esforço: {effortLevel[0]}/10
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Action Buttons */}
-              <div className="space-y-1">
-                <Button 
-                  onClick={completeSet}
-                  className="w-full py-2 font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
-                >
-                  {currentSet < currentExercise.series ? "Começar próxima série" : 
-                   currentExerciseIndex < totalExercises - 1 ? "Próximo exercício" : "Finalizar treino"}
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-
-                <div className="grid grid-cols-2 gap-1">
+                
+                <div className="flex space-x-2">
                   <Button 
-                    onClick={skipExercise}
-                    className="py-1 text-sm font-semibold bg-orange-500 dark:bg-orange-600 text-white hover:bg-orange-600 dark:hover:bg-orange-700"
+                    onClick={pauseResumeTimer}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
                   >
-                    <SkipForward className="mr-1 h-3 w-3" />
-                    Pular
+                    {isTimerActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </Button>
                   <Button 
-                    onClick={() => setIsWorkoutComplete(true)}
-                    className="py-1 text-sm font-semibold bg-red-500 dark:bg-red-600 text-white hover:bg-red-600 dark:hover:bg-red-700"
+                    onClick={skipToNextSeries}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:bg-white/20 rounded-full"
                   >
-                    <AlertCircle className="mr-1 h-3 w-3" />
-                    Finalizar
+                    <SkipForward className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-            </div>
+              
+
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Action Buttons */}
+        <div className="space-y-2">
+          {!isResting && (
+            <Button 
+              onClick={completeSeries} 
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              size="lg"
+            >
+              <CheckCircle2 className="h-5 w-5 mr-2" />
+              Concluir Série
+            </Button>
           )}
+
+
+
+          <div className="grid grid-cols-3 gap-2">
+            <Button 
+              variant="outline" 
+              onClick={skipExercise}
+              className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <SkipForward className="h-4 w-4 mr-2" />
+              Pular
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={finishWorkoutEarly}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Finalizar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                localStorage.removeItem('activeWorkout');
+                setLocation('/');
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Sair
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -17,7 +17,9 @@ export const { users, workouts, workoutSessions } = schema;
 export function initializeDatabase() {
   try {
     console.log("PostgreSQL database initialized successfully");
+    console.log("Database URL configured:", process.env.DATABASE_URL ? "Yes" : "No");
   } catch (error) {
     console.error("Error initializing PostgreSQL database:", error);
+    throw error;
   }
 }

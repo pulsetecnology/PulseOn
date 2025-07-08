@@ -1,10 +1,12 @@
 import type { N8NWorkoutRequest, AIExercise } from "@shared/schema";
 
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://n8n.example.com/webhook/pulseon-workout";
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://example.com/webhook/default";
 
 export interface AIWorkoutResponse {
   userId: number;
   workoutPlan: AIExercise[];
+  workoutName?: string;
+  workoutObs?: string;
 }
 
 export interface N8NWorkoutResponse {
@@ -20,6 +22,8 @@ export interface N8NWorkoutResponse {
     scheduledFor: string;
   };
   output?: string;
+  workoutName?: string;
+  workoutPlan?: AIExercise[];
 }
 
 export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIWorkoutResponse> {
@@ -48,7 +52,17 @@ export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIW
       console.log("Found savedWorkout in N8N response, using it directly");
       return {
         userId: n8nResponse.savedWorkout.userId,
-        workoutPlan: n8nResponse.savedWorkout.exercises
+        workoutPlan: n8nResponse.savedWorkout.exercises,
+        workoutName: n8nResponse.savedWorkout.name
+      };
+    }
+    
+    // Check if we have direct workoutPlan in response
+    if (n8nResponse.workoutPlan) {
+      return {
+        userId: data.userId,
+        workoutPlan: n8nResponse.workoutPlan,
+        workoutName: n8nResponse.workoutName
       };
     }
     
@@ -62,7 +76,9 @@ export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIW
           if (parsed.workoutPlan) {
             return {
               userId: parsed.userId || data.userId,
-              workoutPlan: parsed.workoutPlan
+              workoutPlan: parsed.workoutPlan,
+              workoutName: parsed.workoutName,
+              workoutObs: parsed.workoutObs
             };
           }
         }

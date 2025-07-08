@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGlobalNotification } from "@/components/NotificationProvider";
-import { Calendar, Activity, Target, Dumbbell, Camera, Scale, User, Settings, Check, X, AlertCircle } from "lucide-react";
+import { Calendar, Activity, Target, Dumbbell, Camera, Scale, User, Settings, Check, X, AlertCircle, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -63,13 +62,23 @@ const formatDate = (dateString: string): string => {
 const fitnessGoals = {
   lose_weight: "Perda de peso",
   gain_muscle: "Ganho de massa",
-  improve_conditioning: "Condicionamento geral"
+  improve_conditioning: "Condicionamento geral",
+  maintain_weight: "Manter peso",
+  increase_flexibility: "Aumentar flexibilidade",
+  stress_relief: "Alívio do estresse",
+  improve_posture: "Melhorar postura",
+  general_fitness: "Fitness geral",
+  athletic_performance: "Performance atlética",
+  injury_recovery: "Recuperação de lesão"
 };
 
 const experienceLevels = {
   beginner: "Iniciante",
   intermediate: "Intermediário", 
-  advanced: "Avançado"
+  advanced: "Avançado",
+  expert: "Expert",
+  professional: "Profissional",
+  competitive_athlete: "Atleta competitivo"
 };
 
 const lifestyleMappings = {
@@ -308,39 +317,48 @@ export default function Profile() {
   const avatarUploadMutation = useMutation({
     mutationFn: async (file: File) => {
       console.log('Starting avatar upload for file:', file.name, 'size:', file.size);
-      
+
       const formData = new FormData();
       formData.append('avatar', file);
 
       const token = localStorage.getItem("authToken");
-      const response = await fetch("/api/profile/avatar", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      console.log('Avatar upload response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Avatar upload error response:', errorText);
-        
-        let errorMessage = "Erro ao fazer upload da imagem";
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.message || errorMessage;
-        } catch {
-          // Fallback to default message if parsing fails
-        }
-        
-        throw new Error(errorMessage);
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado");
       }
-      
-      const result = await response.json();
-      console.log('Avatar upload success:', result);
-      return result;
+
+      try {
+        const response = await fetch("/api/profile/avatar", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        console.log('Avatar upload response status:', response.status);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Avatar upload error response:', errorText);
+
+          let errorMessage = "Erro ao fazer upload da imagem";
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorMessage;
+          } catch {
+            // Fallback to default message if parsing fails
+          }
+
+          throw new Error(errorMessage);
+        }
+
+        const result = await response.json();
+        console.log('Avatar upload success:', result);
+        return result;
+      } catch (error) {
+        console.error('Network error during avatar upload:', error);
+        throw new Error("Erro de rede. Verifique sua conexão e tente novamente.");
+      }
     },
     onSuccess: (data) => {
       console.log('Avatar upload mutation success:', data);
@@ -411,13 +429,81 @@ export default function Profile() {
     sendToN8NMutation.mutate();
   };
 
+  // Mutação para limpar todos os dados de treinos
+  const clearWorkoutDataMutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/clear-workout-data", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao limpar dados: ${response.status}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidar todas as queries relacionadas a treinos
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workout-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["scheduled-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["workout-sessions"] });
+      
+      // Forçar refresh completo da página para garantir que todos os cards sejam atualizados
+      window.location.reload();
+      
+      showSuccess("Todos os dados de treinos foram limpos com sucesso!");
+    },
+    onError: (error: Error) => {
+      console.error('Erro ao limpar dados:', error);
+      showError("Erro ao limpar dados. Tente novamente.");
+    }
+  });
+
+  const handleClearWorkoutData = () => {
+    if (confirm("Tem certeza que deseja limpar todos os treinos executados, histórico e treino sugerido ativo? Esta ação não pode ser desfeita.")) {
+      clearWorkoutDataMutation.mutate();
+    }
+  };
+
   const handleCancelEdit = () => {
     setEditingCard(null);
     setFormData(user || {});
   };
 
-  const handleSaveEdit = () => {
-    updateMutation.mutate(formData);
+  const handleSaveEdit = async () => {
+    try {
+      // Filter out empty or unchanged values
+      const updatesToSend = Object.fromEntries(
+        Object.entries(formData).filter(([key, value]) => {
+          // Skip if value is empty, null, undefined, or unchanged from original
+          if (value === null || value === undefined || value === '') {
+            return false;
+          }
+          // Check if value is different from current user data
+          const currentValue = user[key as keyof typeof user];
+          return value !== currentValue;
+        })
+      );
+
+      console.log("Sending update payload:", updatesToSend);
+
+      // Only send request if there are actual changes
+      if (Object.keys(updatesToSend).length > 0) {
+        await updateMutation.mutateAsync(updatesToSend);
+      } else {
+        console.log("No changes detected, skipping update");
+      }
+
+      setEditingCard(null);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
   };
 
   if (isLoading) {
@@ -503,7 +589,7 @@ export default function Profile() {
               </span>
             </div>
           </div>
-          
+
         </div>
       </div>
 
@@ -871,7 +957,7 @@ export default function Profile() {
               </CardTitle>
               <div className="flex gap-2">
                 {editingCard === 'equipment' ? (
-                  <>
+                                    <>
                     <Button
                       size="sm"
                       variant="outline"
@@ -1173,7 +1259,7 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        
+
 
         {/* Restrições Físicas */}
         <Card>
@@ -1236,6 +1322,85 @@ export default function Profile() {
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Configurações */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Configurações
+              </div>
+              {editingCard !== "settings" && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditingCard("settings")}
+                  className="h-8 w-8 p-0"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              )}
+              {editingCard === "settings" && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingCard(null)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Gerencie os dados do seu aplicativo
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {editingCard === "settings" ? (
+              <div className="bg-destructive/10 dark:bg-destructive/20 border border-destructive/20 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-destructive">Zona de Perigo</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Esta ação irá apagar permanentemente todos os seus treinos executados, 
+                      histórico de exercícios e treino sugerido ativo. Esta ação não pode ser desfeita.
+                    </p>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleClearWorkoutData}
+                      disabled={clearWorkoutDataMutation.isPending}
+                      className="mt-2"
+                    >
+                      {clearWorkoutDataMutation.isPending ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Limpando dados...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Limpar todos os dados de treinos
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Settings className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  Clique no ícone de configurações para acessar opções avançadas
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

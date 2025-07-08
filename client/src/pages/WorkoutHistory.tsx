@@ -136,7 +136,7 @@ export default function WorkoutHistory() {
     switch (status) {
       case "completed": return "Completo";
       case "partial": return "Parcial";
-      case "skipped": return "Pulado";
+      case "skipped": return "Não executado";
       default: return "Desconhecido";
     }
   };

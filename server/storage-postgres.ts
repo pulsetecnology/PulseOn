@@ -44,6 +44,7 @@ export interface IStorage {
   getWorkoutSession(id: number): Promise<WorkoutSession | undefined>;
   createWorkoutSession(session: InsertWorkoutSession): Promise<WorkoutSession>;
   updateWorkoutSession(id: number, updates: Partial<InsertWorkoutSession>): Promise<WorkoutSession | undefined>;
+  deleteWorkoutSession(id: number): Promise<void>;
   completeWorkoutSession(id: number, exercises: CompletedExercise[], totalDuration: number, totalCalories: number, notes?: string): Promise<WorkoutSession | undefined>;
 
   // Statistics methods
@@ -83,9 +84,26 @@ export class DatabaseStorage implements IStorage {
 
   async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
     try {
+      // Check if there are any values to update
+      if (!updates || Object.keys(updates).length === 0) {
+        console.log("No updates provided, returning current user");
+        return await this.getUser(id);
+      }
+
+      // Filter out undefined values
+      const filteredUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([_, value]) => value !== undefined)
+      );
+
+      // Check again after filtering
+      if (Object.keys(filteredUpdates).length === 0) {
+        console.log("No valid updates after filtering, returning current user");
+        return await this.getUser(id);
+      }
+
       const [user] = await db
         .update(users)
-        .set(updates)
+        .set(filteredUpdates)
         .where(eq(users.id, id))
         .returning();
       return user || undefined;
@@ -142,6 +160,7 @@ export class DatabaseStorage implements IStorage {
       const workoutData = {
         userId: insertWorkout.userId,
         name: insertWorkout.name,
+        description: insertWorkout.description,
         exercises: insertWorkout.exercises as any,
         totalCalories: insertWorkout.totalCalories || 0,
         totalDuration: insertWorkout.totalDuration || 0,
@@ -201,20 +220,28 @@ export class DatabaseStorage implements IStorage {
 
   async createWorkoutSession(insertSession: InsertWorkoutSession): Promise<WorkoutSession> {
     try {
+      console.log("Creating workout session with data:", JSON.stringify(insertSession, null, 2));
+      
+      const sessionData = {
+        userId: insertSession.userId,
+        name: insertSession.name || "Treino Personalizado",
+        startedAt: insertSession.startedAt ? new Date(insertSession.startedAt) : new Date(),
+        completedAt: insertSession.completedAt ? new Date(insertSession.completedAt) : new Date(),
+        scheduledWorkoutId: insertSession.scheduledWorkoutId || null,
+        exercises: insertSession.exercises as any,
+        totalDuration: insertSession.totalDuration || 0,
+        totalCalories: insertSession.totalCalories || 0,
+        notes: insertSession.notes || ""
+      };
+      
+      console.log("Processed session data for DB:", JSON.stringify(sessionData, null, 2));
+      
       const [session] = await db
         .insert(workoutSessions)
-        .values({
-          userId: insertSession.userId,
-          name: insertSession.name,
-          startedAt: new Date(),
-          scheduledWorkoutId: insertSession.scheduledWorkoutId,
-          exercises: insertSession.exercises as any,
-          totalDuration: insertSession.totalDuration,
-          totalCalories: insertSession.totalCalories,
-          notes: insertSession.notes,
-          completedAt: insertSession.completedAt
-        })
+        .values(sessionData)
         .returning();
+        
+      console.log("Workout session created successfully:", session);
       return session;
     } catch (error) {
       console.error("Error creating workout session:", error);
@@ -234,6 +261,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(workoutSessions.id, id))
       .returning();
     return session || undefined;
+  }
+
+  async deleteWorkoutSession(id: number): Promise<void> {
+    await db
+      .delete(workoutSessions)
+      .where(eq(workoutSessions.id, id));
   }
 
   async completeWorkoutSession(

@@ -47,6 +47,7 @@ export const scheduledWorkouts = pgTable("scheduled_workouts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
   name: text("name").notNull(),
+  description: text("description"), // workout observations from AI
   exercises: jsonb("exercises").$type<AIExercise[]>(),
   totalCalories: integer("total_calories"),
   totalDuration: integer("total_duration"), // in minutes
@@ -92,6 +93,7 @@ export interface CompletedExercise extends AIExercise {
   actualCalories?: number;
   effortLevel: number; // 1-10 scale
   completed: boolean;
+  status?: "completed" | "incomplete" | "not-started"; // Status para diferenciar exercícios incompletos
   notes?: string;
 }
 
@@ -104,8 +106,26 @@ export const insertUserSchema = z.object({
   weight: z.number().optional(),
   height: z.number().optional(),
   gender: z.enum(["male", "female", "other", "not_specified"]).optional(),
-  fitnessGoal: z.enum(["lose_weight", "gain_muscle", "improve_conditioning"]).optional(),
-  experienceLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  fitnessGoal: z.enum([
+    "lose_weight", 
+    "gain_muscle", 
+    "improve_conditioning", 
+    "maintain_weight", 
+    "increase_flexibility", 
+    "stress_relief", 
+    "improve_posture", 
+    "general_fitness",
+    "athletic_performance",
+    "injury_recovery"
+  ]).optional(),
+  experienceLevel: z.enum([
+    "beginner", 
+    "intermediate", 
+    "advanced", 
+    "expert", 
+    "professional", 
+    "competitive_athlete"
+  ]).optional(),
   weeklyFrequency: z.number().min(1).max(7).optional(),
   availableEquipment: z.array(z.string()).optional(),
   customEquipment: z.string().optional(),
@@ -146,8 +166,26 @@ export const onboardingSchema = z.object({
   weight: z.number().min(30).max(300),
   height: z.number().min(120).max(250),
   gender: z.enum(["male", "female", "other"]),
-  fitnessGoal: z.enum(["lose_weight", "gain_muscle", "improve_conditioning"]),
-  experienceLevel: z.enum(["beginner", "intermediate", "advanced"]),
+  fitnessGoal: z.enum([
+    "lose_weight", 
+    "gain_muscle", 
+    "improve_conditioning", 
+    "maintain_weight", 
+    "increase_flexibility", 
+    "stress_relief", 
+    "improve_posture", 
+    "general_fitness",
+    "athletic_performance",
+    "injury_recovery"
+  ]),
+  experienceLevel: z.enum([
+    "beginner", 
+    "intermediate", 
+    "advanced", 
+    "expert", 
+    "professional", 
+    "competitive_athlete"
+  ]),
   weeklyFrequency: z.number().min(1).max(7),
   availableEquipment: z.array(z.string()),
   physicalRestrictions: z.string().optional(),
@@ -170,8 +208,26 @@ export const profileUpdateSchema = z.object({
   weight: z.number().optional(),
   height: z.number().optional(),
   gender: z.enum(["male", "female", "other", "not_specified"]).optional(),
-  fitnessGoal: z.enum(["lose_weight", "gain_muscle", "improve_conditioning"]).optional(),
-  experienceLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  fitnessGoal: z.enum([
+    "lose_weight", 
+    "gain_muscle", 
+    "improve_conditioning", 
+    "maintain_weight", 
+    "increase_flexibility", 
+    "stress_relief", 
+    "improve_posture", 
+    "general_fitness",
+    "athletic_performance",
+    "injury_recovery"
+  ]).optional(),
+  experienceLevel: z.enum([
+    "beginner", 
+    "intermediate", 
+    "advanced", 
+    "expert", 
+    "professional", 
+    "competitive_athlete"
+  ]).optional(),
   weeklyFrequency: z.number().min(1).max(7).optional(),
   availableEquipment: z.array(z.string()).optional(),
   customEquipment: z.string().optional(),

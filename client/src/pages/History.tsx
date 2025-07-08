@@ -1,678 +1,504 @@
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarIcon, Clock, Dumbbell, ChevronDown, ChevronUp, X, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format, parseISO } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Flame, Trophy, Clock, ChevronDown, ChevronUp, Target, Dumbbell, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, subMonths, addMonths, startOfWeek, endOfWeek, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface CompletedExercise {
   exercise: string;
   muscleGroup: string;
   type: string;
+  instructions: string;
+  time: number;
+  series: number;
+  repetitions: number;
+  restBetweenSeries: number;
+  restBetweenExercises: number;
+  weight: number;
+  calories: number;
   actualWeight?: number;
   actualTime?: number;
   actualCalories?: number;
   effortLevel: number;
   completed: boolean;
+  status?: "completed" | "incomplete" | "not-started";
   notes?: string;
-  series?: number;
-  repetitions?: number;
-  weight?: number;
 }
 
 interface WorkoutSession {
   id: number;
   userId: number;
+  scheduledWorkoutId?: number;
   name: string;
   startedAt: string;
-  completedAt: string | null;
+  completedAt: string;
   exercises: CompletedExercise[];
   totalDuration: number;
   totalCalories: number;
   notes?: string;
-  createdAt: string;
 }
 
 // Fetch workout sessions
 const fetchWorkoutSessions = async (): Promise<WorkoutSession[]> => {
-  const token = localStorage.getItem('authToken');
-  const response = await fetch('/api/workout-sessions', {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error('Erro ao carregar histórico de treinos');
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch('/api/workout-sessions', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao carregar histórico de treinos');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao carregar do backend, tentando localStorage:', error);
+    
+    // Fallback: carregar do localStorage
+    const localSessions = localStorage.getItem('workoutSessions');
+    if (localSessions) {
+      const sessions = JSON.parse(localSessions);
+      
+      // Converter formato localStorage para formato esperado pela tela
+      return sessions.map((session: any) => ({
+        id: session.id,
+        userId: session.userId,
+        scheduledWorkoutId: session.scheduledWorkoutId,
+        name: session.workoutName || session.name,
+        startedAt: session.startTime || session.startedAt,
+        completedAt: session.endTime || session.completedAt,
+        exercises: session.exercises || [],
+        totalDuration: session.duration || session.totalDuration,
+        totalCalories: session.totalCalories,
+        notes: session.notes
+      }));
+    }
+    
+    return [];
   }
-  
-  return response.json();
-};
-
-const mockHistory = [
-  {
-    id: 1,
-    name: "Treino de Pernas",
-    date: "Hoje",
-    duration: 42,
-    exercises: 5,
-    status: "completed",
-    completionRate: 100,
-    exerciseDetails: [
-      { name: "Agachamento", sets: 4, reps: 12, weight: "80kg", completed: true, completedSets: 4, totalSets: 4 },
-      { name: "Leg Press", sets: 3, reps: 15, weight: "120kg", completed: true, completedSets: 3, totalSets: 3 },
-      { name: "Extensão de Pernas", sets: 3, reps: 12, weight: "40kg", completed: true, completedSets: 3, totalSets: 3 },
-      { name: "Flexão de Pernas", sets: 3, reps: 12, weight: "35kg", completed: true, completedSets: 3, totalSets: 3 },
-      { name: "Panturrilha em Pé", sets: 4, reps: 20, weight: "60kg", completed: true, completedSets: 4, totalSets: 4 }
-    ]
-  },
-  {
-    id: 2,
-    name: "Treino de Peito",
-    date: "Ontem",
-    duration: 38,
-    exercises: 6,
-    status: "partial",
-    completionRate: 75,
-    exerciseDetails: [
-      { name: "Supino Reto", sets: 4, reps: 10, weight: "70kg", completed: true, completedSets: 4, totalSets: 4 },
-      { name: "Supino Inclinado", sets: 3, reps: 12, weight: "60kg", completed: true, completedSets: 3, totalSets: 3 },
-      { name: "Flexão de Braços", sets: 3, reps: 15, weight: "Peso Corporal", completed: "partial", completedSets: 2, totalSets: 3 },
-      { name: "Voador", sets: 3, reps: 12, weight: "25kg", completed: true, completedSets: 3, totalSets: 3 },
-      { name: "Crucifixo", sets: 3, reps: 12, weight: "20kg", completed: false, completedSets: 0, totalSets: 3 },
-      { name: "Paralelas", sets: 3, reps: 10, weight: "Peso Corporal", completed: false, completedSets: 0, totalSets: 3 }
-    ]
-  },
-  {
-    id: 3,
-    name: "Treino de Costas",
-    date: "3 dias atrás",
-    duration: 45,
-    exercises: 7,
-    status: "completed",
-    completionRate: 100,
-    exerciseDetails: [
-      { name: "Barra Fixa", sets: 4, reps: 8, weight: "Peso Corporal", completed: true, completedSets: 4, totalSets: 4 },
-      { name: "Remada Curvada", sets: 4, reps: 10, weight: "65kg", completed: true, completedSets: 4, totalSets: 4 },
-      { name: "Puxada Frontal", sets: 3, reps: 12, weight: "55kg", completed: true, completedSets: 3, totalSets: 3 },
-      { name: "Remada Sentado", sets: 3, reps: 12, weight: "50kg", completed: true, completedSets: 3, totalSets: 3 },
-      { name: "Levantamento Terra", sets: 4, reps: 8, weight: "90kg", completed: true, completedSets: 4, totalSets: 4 },
-      { name: "Pullover", sets: 3, reps: 12, weight: "25kg", completed: true, completedSets: 3, totalSets: 3 },
-      { name: "Encolhimento", sets: 3, reps: 15, weight: "30kg", completed: true, completedSets: 3, totalSets: 3 }
-    ]
-  },
-  {
-    id: 4,
-    name: "Treino de Ombros",
-    date: "5 dias atrás",
-    duration: 35,
-    exercises: 5,
-    status: "partial",
-    completionRate: 60,
-    exerciseDetails: [
-      { name: "Desenvolvimento", sets: 4, reps: 10, weight: "45kg", completed: true, completedSets: 4, totalSets: 4 },
-      { name: "Elevação Lateral", sets: 3, reps: 12, weight: "15kg", completed: "partial", completedSets: 2, totalSets: 3 },
-      { name: "Elevação Frontal", sets: 3, reps: 12, weight: "12kg", completed: true, completedSets: 3, totalSets: 3 },
-      { name: "Remada Alta", sets: 3, reps: 12, weight: "30kg", completed: false, completedSets: 0, totalSets: 3 },
-      { name: "Crucifixo Inverso", sets: 3, reps: 15, weight: "10kg", completed: false, completedSets: 0, totalSets: 3 }
-    ]
-  }
-];
-
-// Calendar workout data - maps dates to workout IDs with consistent status
-const workoutCalendarData = {
-  // Janeiro 2025 - Semana atual (sincronizando com status do mockHistory)
-  "2025-01-13": { workoutId: 1, status: "completed" }, // Hoje - Treino de Pernas (completed)
-  "2025-01-12": { workoutId: 2, status: "partial" },   // Ontem - Treino de Peito (partial)
-  "2025-01-11": { workoutId: 3, status: "completed" }, // Treino de Costas (completed)
-  "2025-01-10": { workoutId: 4, status: "partial" },   // Treino de Ombros (partial)
-  "2025-01-09": { workoutId: 1, status: "completed" },
-  "2025-01-08": { workoutId: 2, status: "partial" },   
-  "2025-01-07": { workoutId: 3, status: "completed" },
-
-  // Semana passada
-  "2025-01-06": { workoutId: 4, status: "partial" },
-  "2025-01-05": { workoutId: 1, status: "completed" },
-  "2025-01-04": { workoutId: 2, status: "partial" },
-  "2025-01-03": { workoutId: 3, status: "completed" },
-  "2025-01-02": { workoutId: 4, status: "partial" },
-  "2025-01-01": { workoutId: 1, status: "completed" }, // Ano novo
-
-  // Dezembro 2024 - Final do ano passado
-  "2024-12-31": { workoutId: 2, status: "partial" },
-  "2024-12-30": { workoutId: 3, status: "completed" },
-  "2024-12-29": { workoutId: 4, status: "partial" },
-  "2024-12-28": { workoutId: 1, status: "completed" },
-  "2024-12-27": { workoutId: 2, status: "partial" },
-  "2024-12-26": { workoutId: 3, status: "completed" }, // Boxing Day
-  "2024-12-25": { workoutId: 4, status: "partial" }, // Natal
-  "2024-12-24": { workoutId: 1, status: "completed" },   // Véspera de Natal
-  "2024-12-23": { workoutId: 2, status: "partial" }, 
-  "2024-12-22": { workoutId: 3, status: "completed" },
-  "2024-12-21": { workoutId: 4, status: "partial" },
-  "2024-12-20": { workoutId: 1, status: "completed" },
-
-  // Algumas datas espalhadas para teste
-  "2025-01-15": { workoutId: 3, status: "completed" }, // Futura
-  "2025-01-17": { workoutId: 1, status: "completed" }, // Futura
-  "2025-01-20": { workoutId: 2, status: "partial" },   // Futura
-  "2025-01-22": { workoutId: 4, status: "partial" }, // Futura
-  "2025-01-25": { workoutId: 3, status: "completed" }, // Futura
-  "2025-01-27": { workoutId: 1, status: "completed" },   // Futura
-  "2025-01-30": { workoutId: 2, status: "partial" }  // Final do mês
 };
 
 export default function History() {
-  const [expandedCard, setExpandedCard] = useState<number | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
-  const [expandedCalendarWorkout, setExpandedCalendarWorkout] = useState<boolean>(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [selectedWorkout, setSelectedWorkout] = useState<WorkoutSession | null>(null);
 
-  // Fetch real workout sessions
-  const { data: workoutSessions = [], isLoading: sessionsLoading } = useQuery({
-    queryKey: ['workout-sessions'],
+  const formatExerciseTime = (timeExec: number) => {
+    if (timeExec >= 60) {
+      const minutes = Math.floor(timeExec / 60);
+      const seconds = timeExec % 60;
+      return seconds > 0 ? `${minutes}min ${seconds}s` : `${minutes}min`;
+    }
+    return `${timeExec}s`;
+  };
+
+  const { data: workoutSessions = [], isLoading, error } = useQuery({
+    queryKey: ["/api/workout-sessions"],
     queryFn: fetchWorkoutSessions,
   });
 
-  // Convert workout sessions to history format matching the original design
-  const workoutHistory = workoutSessions
-    .filter(session => session.completedAt)
-    .map(session => {
-      const completedAt = parseISO(session.completedAt!);
-      const completedExercises = session.exercises.filter(ex => ex.completed);
-      const totalExercises = session.exercises.length;
-      
-      // Calculate relative date
-      const now = new Date();
-      const diffDays = Math.floor((now.getTime() - completedAt.getTime()) / (1000 * 60 * 60 * 24));
-      let dateText = "";
-      if (diffDays === 0) dateText = "Hoje";
-      else if (diffDays === 1) dateText = "Ontem";
-      else if (diffDays <= 7) dateText = `${diffDays} dias atrás`;
-      else dateText = format(completedAt, "dd/MM/yyyy", { locale: ptBR });
+  // Process workout data for calendar and stats
+  const processedData = useMemo(() => {
+    const workoutsByDate: Record<string, WorkoutSession[]> = {};
+    let totalWorkouts = 0;
+    let totalCalories = 0;
+    let totalMinutes = 0;
+    let currentStreak = 0;
 
-      const completionRate = totalExercises > 0 ? Math.round((completedExercises.length / totalExercises) * 100) : 0;
-      
-      return {
-        id: session.id,
-        name: session.name,
-        date: dateText,
-        duration: session.totalDuration,
-        exercises: totalExercises,
-        status: completionRate === 100 ? "completed" : completionRate > 0 ? "partial" : "skipped",
-        completionRate,
-        exerciseDetails: session.exercises.map(ex => ({
-          name: ex.exercise,
-          sets: ex.series || 1,
-          reps: ex.repetitions || 0,
-          weight: ex.actualWeight ? `${ex.actualWeight}kg` : (ex.weight ? `${ex.weight}kg` : "Peso Corporal"),
-          completed: ex.completed,
-          completedSets: ex.completed ? (ex.series || 1) : 0,
-          totalSets: ex.series || 1
-        }))
-      };
-    })
-    .sort((a, b) => b.id - a.id); // Sort by most recent first
-
-  // Create calendar data from real workout sessions
-  const calendarData: { [key: string]: { workoutId: number; status: string } } = {};
-  workoutSessions
-    .filter(session => session.completedAt)
-    .forEach(session => {
-      const dateKey = formatDateKey(parseISO(session.completedAt!));
-      const completedExercises = session.exercises.filter(ex => ex.completed);
-      const totalExercises = session.exercises.length;
-      const completionRate = totalExercises > 0 ? Math.round((completedExercises.length / totalExercises) * 100) : 0;
-      
-      calendarData[dateKey] = {
-        workoutId: session.id,
-        status: completionRate === 100 ? "completed" : completionRate > 0 ? "partial" : "skipped"
-      };
-    });
-
-  const toggleCard = (cardId: number) => {
-    setExpandedCard(expandedCard === cardId ? null : cardId);
-  };
-
-  const formatDateKey = (date: Date) => {
-    return date.toISOString().split('T')[0];
-  };
-
-  const hasWorkout = (date: Date) => {
-    return workoutCalendarData[formatDateKey(date)];
-  };
-
-  const handleDateSelect = (date: Date) => {
-    const dateKey = formatDateKey(date);
-    const workoutData = workoutCalendarData[dateKey];
-
-    if (workoutData) {
-      const workout = mockHistory.find(w => w.id === workoutData.workoutId);
-      // Create a workout object with the correct status from calendar data
-      const workoutWithCorrectStatus = workout ? {
-        ...workout,
-        status: workoutData.status
-      } : null;
-
-      setSelectedWorkout(workoutWithCorrectStatus);
-      setSelectedDate(date);
-      setExpandedCalendarWorkout(false); // Reset expanded state when selecting new date
-    } else {
-      setSelectedDate(date);
-      setSelectedWorkout(null);
-      setExpandedCalendarWorkout(false);
-    }
-  };
-
-  const toggleCalendarWorkoutDetails = () => {
-    setExpandedCalendarWorkout(!expandedCalendarWorkout);
-  };
-
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startDayOfWeek = firstDay.getDay();
-
-    const days = [];
-
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startDayOfWeek; i++) {
-      days.push(null);
-    }
-
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
-    }
-
-    return days;
-  };
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentMonth(prev => {
-      const newMonth = new Date(prev);
-      if (direction === 'prev') {
-        newMonth.setMonth(prev.getMonth() - 1);
-      } else {
-        newMonth.setMonth(prev.getMonth() + 1);
+    // Group workouts by date
+    workoutSessions.forEach(session => {
+      const dateKey = format(parseISO(session.completedAt), 'yyyy-MM-dd');
+      if (!workoutsByDate[dateKey]) {
+        workoutsByDate[dateKey] = [];
       }
-      return newMonth;
+      workoutsByDate[dateKey].push(session);
+
+      totalWorkouts++;
+      totalCalories += session.totalCalories;
+      totalMinutes += session.totalDuration;
     });
+
+    // Calculate current streak (consecutive days with workouts)
+    let checkDate = new Date();
+    while (true) {
+      const dateKey = format(checkDate, 'yyyy-MM-dd');
+      if (workoutsByDate[dateKey] && workoutsByDate[dateKey].length > 0) {
+        currentStreak++;
+        checkDate = subDays(checkDate, 1);
+      } else {
+        break;
+      }
+    }
+
+    return {
+      workoutsByDate,
+      totalWorkouts,
+      totalCalories,
+      totalMinutes,
+      currentStreak,
+      averageWorkoutDuration: totalWorkouts > 0 ? Math.round(totalMinutes / totalWorkouts) : 0
+    };
+  }, [workoutSessions]);
+
+  // Get current month data for calendar
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+  const startDate = startOfWeek(firstDayOfMonth, { weekStartsOn: 0 }); // Start on Sunday
+  const endDate = endOfWeek(lastDayOfMonth, { weekStartsOn: 0 });
+  const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
+
+  const formatDateKey = (date: Date) => format(date, 'yyyy-MM-dd');
+
+  const getWorkoutsForDate = (date: Date) => {
+    const dateKey = formatDateKey(date);
+    return processedData.workoutsByDate[dateKey] || [];
   };
+
+  const getWorkoutStatus = (date: Date) => {
+    const workouts = getWorkoutsForDate(date);
+    if (workouts.length === 0) return null;
+
+    const completedExercises = workouts.reduce((total, workout) => 
+      total + workout.exercises.filter(ex => ex.completed).length, 0);
+    const totalExercises = workouts.reduce((total, workout) => total + workout.exercises.length, 0);
+
+    if (completedExercises === totalExercises) return "completed";
+    if (completedExercises > 0) return "partial";
+    return "skipped";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando histórico...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">Erro ao carregar histórico: {error.message}</p>
+          <Button onClick={() => window.location.reload()}>
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show workout details view
+  if (selectedWorkout) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+        <div className="bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-700 p-4">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedWorkout(null)}
+              className="text-slate-600 dark:text-slate-400"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Voltar
+            </Button>
+            <div>
+              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
+                {selectedWorkout.name}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {format(parseISO(selectedWorkout.completedAt), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Workout Summary */}
+          <div className="grid grid-cols-3 gap-4">
+            <Card className="text-center">
+              <CardContent className="p-4">
+                <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {selectedWorkout.totalDuration}
+                </p>
+                <p className="text-sm text-muted-foreground">minutos</p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardContent className="p-4">
+                <Flame className="h-5 w-5 text-red-600 dark:text-red-400 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {selectedWorkout.totalCalories}
+                </p>
+                <p className="text-sm text-muted-foreground">kcal</p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardContent className="p-4">
+                <Dumbbell className="h-5 w-5 text-green-600 dark:text-green-400 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {selectedWorkout.exercises.filter(ex => ex.completed).length}
+                </p>
+                <p className="text-sm text-muted-foreground">exercícios</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Exercises List */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Exercícios</h3>
+            {selectedWorkout.exercises.map((exercise, index) => {
+              const getBorderColor = () => {
+                if (exercise.status === 'completed' || exercise.completed) return 'border-green-200 dark:border-green-800';
+                if (exercise.status === 'incomplete') return 'border-yellow-200 dark:border-yellow-800';
+                return 'border-red-200 dark:border-red-800';
+              };
+
+              const getBadgeVariant = () => {
+                if (exercise.status === 'completed' || exercise.completed) return "default";
+                if (exercise.status === 'incomplete') return "secondary";
+                return "destructive";
+              };
+
+              const getStatusText = () => {
+                if (exercise.status === 'completed' || exercise.completed) return "Concluído";
+                if (exercise.status === 'incomplete') return "Incompleto";
+                return "Não executado";
+              };
+
+              return (
+                <Card key={index} className={getBorderColor()}>
+                  <CardContent className="p-4">
+                    <div className="mb-2">
+                      <h4 className="font-semibold text-slate-900 dark:text-white">
+                        {exercise.exercise}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {exercise.muscleGroup}
+                      </p>
+                    </div>
+
+                    {(exercise.completed || exercise.status === 'incomplete') && (
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Séries:</span>
+                          <span className="ml-1 font-medium">{exercise.series}</span>
+                        </div>
+                        {exercise.repetitions && exercise.repetitions > 0 && (
+                          <div>
+                            <span className="text-muted-foreground">Reps:</span>
+                            <span className="ml-1 font-medium">{exercise.repetitions}</span>
+                          </div>
+                        )}
+                        {exercise.actualTime && exercise.actualTime > 0 && (
+                          <div>
+                            <span className="text-muted-foreground">Tempo:</span>
+                            <span className="ml-1 font-medium">{formatExerciseTime(exercise.actualTime)}</span>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-muted-foreground">Peso:</span>
+                          <span className="ml-1 font-medium">
+                            {exercise.actualWeight && exercise.actualWeight > 0 
+                              ? `${exercise.actualWeight}kg` 
+                              : 'Peso corporal'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Esforço:</span>
+                          <span className="ml-1 font-medium">{exercise.effortLevel}/10</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mostrar notas se existirem */}
+                    {exercise.notes && (
+                      <div className="mt-3 p-2 bg-slate-50 dark:bg-slate-800 rounded">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          <span className="font-medium">Observações:</span> {exercise.notes}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Status badge no canto inferior esquerdo */}
+                    <div className="flex justify-start mt-3">
+                      <Badge variant={getBadgeVariant()}>
+                        {getStatusText()}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="px-4 py-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Histórico de Treinos</h1>
-        <p className="text-muted-foreground">Visualize todos os treinos realizados e seu desempenho</p>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      {/* Header */}
+      <div className="bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-700 p-4">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white text-center">
+          Histórico de Treinos
+        </h1>
       </div>
 
-      {/* Workout History */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Treinos Recentes</h2>
-        {mockHistory.map((workout) => (
-          <Card 
-            key={workout.id} 
-            className="cursor-pointer transition-all duration-200"
-            onClick={() => toggleCard(workout.id)}
-          >
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-sm">{workout.name}</h3>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-muted-foreground flex items-center">
-                    <CalendarIcon className="mr-1 h-2 w-2" />
-                    {workout.date}
-                  </span>
-                  {expandedCard === workout.id ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 text-xs text-muted-foreground">
-                  <span className="flex items-center">
-                    <Clock className="mr-1 h-2 w-2" />
-                    {workout.duration} min
-                  </span>
-                  <span className="flex items-center">
-                    <Dumbbell className="mr-1 h-2 w-2" />
-                    {workout.exercises} exercícios
-                  </span>
-                </div>
-                <Badge 
-                  variant="default" 
-                  className={`text-white text-xs px-2 py-0 ${
-                    workout.status === "completed" 
-                      ? "bg-success" 
-                      : "bg-orange-500"
-                  }`}
-                >
-                  {workout.status === "completed" ? "Concluído" : "Parcial"}
-                </Badge>
-              </div>
-
-              {/* Expanded Exercise Details */}
-              {expandedCard === workout.id && (
-                <div className="mt-4 pt-3 border-t border-border">
-                  <h4 className="font-semibold text-sm mb-3 text-foreground">Detalhes dos Exercícios</h4>
-                  <div className="space-y-2">
-                    {workout.exerciseDetails.map((exercise, index) => {
-                      const isPartialSets = exercise.completed === "partial";
-                      const isNotCompleted = exercise.completed === false;
-                      const isCompleted = exercise.completed === true;
-
-                      return (
-                        <div 
-                          key={index} 
-                          className={`flex items-center justify-between py-2 px-3 rounded-md ${
-                            isCompleted 
-                              ? 'bg-muted/30' 
-                              : isPartialSets
-                              ? 'bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/50'
-                              : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50'
-                          }`}
-                        >
-                          <div className="flex items-center flex-1">
-                            {isNotCompleted && (
-                              <X className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
-                            )}
-                            {isPartialSets && (
-                              <AlertCircle className="h-4 w-4 text-orange-500 mr-2 flex-shrink-0" />
-                            )}
-                            <div className="flex-1">
-                              <div className="flex flex-col min-w-0">
-                                <h5 className={`font-medium text-sm ${
-                                  isCompleted 
-                                    ? 'text-foreground' 
-                                    : isPartialSets
-                                    ? 'text-orange-600 dark:text-orange-400'
-                                    : 'text-red-600 dark:text-red-400'
-                                }`}>
-                                  {exercise.name}
-                                </h5>
-                                <div className="flex flex-wrap items-center gap-1 mt-1">
-                                  {isNotCompleted && (
-                                    <span className="text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                      Não executado
-                                    </span>
-                                  )}
-                                  {isPartialSets && (
-                                    <span className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                      Séries incompletas
-                                    </span>
-                                  )}
-                                </div>
-                                <p className={`text-xs mt-1 ${
-                                  isCompleted 
-                                    ? 'text-muted-foreground' 
-                                    : isPartialSets
-                                    ? 'text-orange-500 dark:text-orange-400'
-                                    : 'text-red-500 dark:text-red-400'
-                                }`}>
-                                  {isPartialSets 
-                                    ? `${exercise.completedSets}/${exercise.totalSets} séries × ${exercise.reps} reps`
-                                    : `${exercise.sets} séries × ${exercise.reps} reps`
-                                  }
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className={`text-sm font-semibold ${
-                              isCompleted 
-                                ? 'text-primary' 
-                                : isPartialSets
-                                ? 'text-orange-500 dark:text-orange-400'
-                                : 'text-red-500 dark:text-red-400'
-                            }`}>
-                              {exercise.weight}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+      <div className="p-4 space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+            <CardContent className="p-4 text-center">
+              <Trophy className="h-6 w-6 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{processedData.totalWorkouts}</p>
+              <p className="text-sm opacity-90">Treinos Realizados</p>
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      {/* Workout Calendar */}
-      <Card>
-        <CardContent className="p-6">
-          <h3 className="font-semibold mb-4 flex items-center">
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            Calendário de Treinos
-          </h3>
+          <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
+            <CardContent className="p-4 text-center">
+              <Flame className="h-6 w-6 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{processedData.totalCalories.toLocaleString()}</p>
+              <p className="text-sm opacity-90">Calorias Queimadas</p>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Custom Calendar */}
-          <div className="w-full">
-            {/* Calendar Header */}
-            <div className="flex items-center justify-between mb-4">
-              <button
-                onClick={() => navigateMonth('prev')}
-                className="p-1 hover:bg-muted rounded"
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+            <CardContent className="p-4 text-center">
+              <Target className="h-6 w-6 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{processedData.currentStreak}</p>
+              <p className="text-sm opacity-90">Dias Consecutivos</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+            <CardContent className="p-4 text-center">
+              <Clock className="h-6 w-6 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{processedData.averageWorkoutDuration}</p>
+              <p className="text-sm opacity-90">Minutos Médios</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Calendar */}
+        <Card>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
               >
                 <ChevronLeft className="h-4 w-4" />
-              </button>
-              <h4 className="font-medium">
-                {currentMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-              </h4>
-              <button
-                onClick={() => navigateMonth('next')}
-                className="p-1 hover:bg-muted rounded"
+              </Button>
+              <CardTitle className="text-lg">
+                {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
               >
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
+          </CardHeader>
 
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-1">
-              {/* Week days header */}
+          <CardContent>
+            {/* Calendar Header */}
+            <div className="grid grid-cols-7 gap-2 mb-3">
               {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
-                <div key={day} className="text-center text-xs font-medium text-muted-foreground p-2">
+                <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
                   {day}
                 </div>
               ))}
+            </div>
 
-              {/* Calendar days */}
-              {getDaysInMonth(currentMonth).map((date, index) => {
-                if (!date) {
-                  return <div key={index} className="p-2"></div>;
-                }
-
-                const workoutData = hasWorkout(date);
-                const isSelected = selectedDate && formatDateKey(date) === formatDateKey(selectedDate);
-                const isToday = formatDateKey(date) === formatDateKey(new Date());
+            {/* Calendar Days */}
+            <div className="grid grid-cols-7 gap-2">
+              {calendarDays.map((day) => {
+                const workouts = getWorkoutsForDate(day);
+                const status = getWorkoutStatus(day);
+                const isCurrentMonth = day.getMonth() === currentMonth;
+                const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
                 return (
                   <button
-                    key={index}
-                    onClick={() => handleDateSelect(date)}
+                    key={day.toISOString()}
+                    onClick={() => {
+                      setSelectedDate(day);
+                      const dayWorkouts = getWorkoutsForDate(day);
+                      if (dayWorkouts && dayWorkouts.length > 0) {
+                        setSelectedWorkout(dayWorkouts[0]);
+                      } else {
+                        setSelectedWorkout(null);
+                      }
+                    }}
                     className={`
-                      p-2 text-sm rounded-full transition-colors relative
-                      ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}
-                      ${isToday && !isSelected ? 'bg-accent text-accent-foreground' : ''}
-                      ${workoutData ? 'font-semibold' : ''}
+                      p-2 rounded-lg text-center transition-all relative
+                      ${!isCurrentMonth 
+                        ? 'text-slate-300 dark:text-slate-600' 
+                        : isToday
+                          ? 'bg-blue-600 text-white font-bold'
+                          : status === 'completed'
+                            ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-800'
+                            : status === 'partial'
+                              ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 hover:bg-yellow-200 dark:hover:bg-yellow-800'
+                              : status === 'skipped'
+                                ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-800'
+                                : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }
+                      ${workouts.length > 0 ? 'cursor-pointer' : 'cursor-default'}
                     `}
+                    disabled={workouts.length === 0}
                   >
-                    {date.getDate()}
-                    {workoutData && (
-                      <div 
-                        className={`
-                          absolute inset-0 rounded-full border-2 
-                          ${workoutData.status === 'completed' ? 'border-green-500' : 'border-orange-500'}
-                        `}
-                      />
+                    <div className="text-sm">
+                      {format(day, 'd')}
+                    </div>
+                    {workouts.length > 0 && (
+                      <div className="absolute top-1 right-1 w-2 h-2 bg-current rounded-full opacity-70"></div>
                     )}
                   </button>
                 );
               })}
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Selected Date Workout Details */}
-          {selectedWorkout && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <h4 className="font-semibold text-sm mb-2">
-                Treino de {selectedDate?.toLocaleDateString('pt-BR')}
-              </h4>
-              <div 
-                className="bg-muted/50 p-3 rounded-md cursor-pointer transition-all duration-200"
-                onClick={toggleCalendarWorkoutDetails}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h5 className="font-medium text-sm">{selectedWorkout.name}</h5>
-                  <div className="flex items-center space-x-2">
-                    <Badge 
-                      variant="default" 
-                      className={`text-white text-xs px-2 py-0 ${
-                        selectedWorkout.status === "completed" 
-                          ? "bg-success" 
-                          : "bg-orange-500"
-                      }`}
-                    >
-                      {selectedWorkout.status === "completed" ? "Concluído" : "Parcial"}
-                    </Badge>
-                    {expandedCalendarWorkout ? (
-                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 text-xs text-muted-foreground">
-                  <span className="flex items-center">
-                    <Clock className="mr-1 h-2 w-2" />
-                    {selectedWorkout.duration} min
-                  </span>
-                  <span className="flex items-center">
-                    <Dumbbell className="mr-1 h-2 w-2" />
-                    {selectedWorkout.exercises} exercícios
-                  </span>
-                </div>
-
-                {/* Expanded Exercise Details for Calendar Selection */}
-                {expandedCalendarWorkout && (
-                  <div className="mt-4 pt-3 border-t border-border">
-                    <h6 className="font-semibold text-sm mb-3 text-foreground">Detalhes dos Exercícios</h6>
-                    <div className="space-y-2">
-                      {selectedWorkout.exerciseDetails.map((exercise, index) => {
-                        const isPartialSets = exercise.completed === "partial";
-                        const isNotCompleted = exercise.completed === false;
-                        const isCompleted = exercise.completed === true;
-
-                        return (
-                          <div 
-                            key={index} 
-                            className={`flex items-center justify-between py-2 px-3 rounded-md ${
-                              isCompleted 
-                                ? 'bg-muted/30' 
-                                : isPartialSets
-                                ? 'bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/50'
-                                : 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50'
-                            }`}
-                          >
-                            <div className="flex items-center flex-1">
-                              {isNotCompleted && (
-                                <X className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
-                              )}
-                              {isPartialSets && (
-                                <AlertCircle className="h-4 w-4 text-orange-500 mr-2 flex-shrink-0" />
-                              )}
-                              <div className="flex-1">
-                                <div className="flex flex-col min-w-0">
-                                  <h5 className={`font-medium text-sm ${
-                                    isCompleted 
-                                      ? 'text-foreground' 
-                                      : isPartialSets
-                                      ? 'text-orange-600 dark:text-orange-400'
-                                      : 'text-red-600 dark:text-red-400'
-                                  }`}>
-                                    {exercise.name}
-                                  </h5>
-                                  <div className="flex flex-wrap items-center gap-1 mt-1">
-                                    {isNotCompleted && (
-                                      <span className="text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                        Não executado
-                                      </span>
-                                    )}
-                                    {isPartialSets && (
-                                      <span className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                        Séries incompletas
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className={`text-xs mt-1 ${
-                                    isCompleted 
-                                      ? 'text-muted-foreground' 
-                                      : isPartialSets
-                                      ? 'text-orange-500 dark:text-orange-400'
-                                      : 'text-red-500 dark:text-red-400'
-                                  }`}>
-                                    {isPartialSets 
-                                      ? `${exercise.completedSets}/${exercise.totalSets} séries × ${exercise.reps} reps`
-                                      : `${exercise.sets} séries × ${exercise.reps} reps`
-                                    }
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <span className={`text-sm font-semibold ${
-                                isCompleted 
-                                  ? 'text-primary' 
-                                  : isPartialSets
-                                  ? 'text-orange-500 dark:text-orange-400'
-                                  : 'text-red-500 dark:text-red-400'
-                              }`}>
-                                {exercise.weight}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {selectedDate && !selectedWorkout && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-sm text-muted-foreground text-center">
-                Nenhum treino realizado em {selectedDate.toLocaleDateString('pt-BR')}
+        {processedData.totalWorkouts === 0 && (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                Nenhum treino registrado
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Complete seu primeiro treino para ver o histórico aqui
               </p>
-            </div>
-          )}
-
-          {/* Legend */}
-          <div className="mt-4 pt-4 border-t border-border">
-            <h4 className="font-semibold text-sm mb-2">Legenda</h4>
-            <div className="flex items-center space-x-4 text-xs">
-              <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 rounded-full border-2 border-green-500"></div>
-                <span>Concluído</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 rounded-full border-2 border-orange-500"></div>
-                <span>Parcial</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              <Button onClick={() => window.location.href = "/workout"}>
+                Iniciar Treino
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

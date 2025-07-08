@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { parseISO, subDays } from "date-fns";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,154 +74,7 @@ const mockTodaysWorkout = {
   ]
 };
 
-const mockUpcomingWorkouts = [
-  {
-    id: 2,
-    name: "Treino de Peito",
-    date: "Amanhã",
-    difficulty: "Intermediário",
-    exercises: [
-      {
-        id: "chest-1",
-        name: "Supino Reto",
-        sets: 4,
-        reps: 10,
-        weight: "70kg",
-        restTime: 90,
-        instructions: "Controle a barra, toque levemente no peito",
-        muscleGroups: ["peitoral", "tríceps"]
-      },
-      {
-        id: "chest-2",
-        name: "Supino Inclinado",
-        sets: 3,
-        reps: 12,
-        weight: "60kg",
-        restTime: 75,
-        instructions: "Inclinação de 45°, foco na porção superior do peitoral",
-        muscleGroups: ["peitoral superior"]
-      },
-      {
-        id: "chest-3",
-        name: "Flexão de Braços",
-        sets: 3,
-        reps: 15,
-        weight: "Peso Corporal",
-        restTime: 60,
-        instructions: "Mantenha o corpo alinhado, descida controlada",
-        muscleGroups: ["peitoral", "tríceps"]
-      },
-      {
-        id: "chest-4",
-        name: "Voador",
-        sets: 3,
-        reps: 12,
-        weight: "25kg",
-        restTime: 45,
-        instructions: "Movimento em arco, contração no final",
-        muscleGroups: ["peitoral"]
-      },
-      {
-        id: "chest-5",
-        name: "Crucifixo",
-        sets: 3,
-        reps: 12,
-        weight: "20kg",
-        restTime: 45,
-        instructions: "Leve flexão dos cotovelos, movimento controlado",
-        muscleGroups: ["peitoral"]
-      },
-      {
-        id: "chest-6",
-        name: "Paralelas",
-        sets: 3,
-        reps: 10,
-        weight: "Peso Corporal",
-        restTime: 75,
-        instructions: "Incline o tronco levemente para frente",
-        muscleGroups: ["peitoral inferior", "tríceps"]
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: "Treino de Costas",
-    date: "Quinta-feira",
-    difficulty: "Avançado",
-    exercises: [
-      {
-        id: "back-1",
-        name: "Barra Fixa",
-        sets: 4,
-        reps: 8,
-        weight: "Peso Corporal",
-        restTime: 90,
-        instructions: "Pegada pronada, puxada até o queixo",
-        muscleGroups: ["latíssimo", "bíceps"]
-      },
-      {
-        id: "back-2",
-        name: "Remada Curvada",
-        sets: 4,
-        reps: 10,
-        weight: "65kg",
-        restTime: 75,
-        instructions: "Tronco inclinado 45°, puxada até o abdômen",
-        muscleGroups: ["latíssimo", "rombóides"]
-      },
-      {
-        id: "back-3",
-        name: "Puxada Frontal",
-        sets: 3,
-        reps: 12,
-        weight: "55kg",
-        restTime: 60,
-        instructions: "Pegada aberta, puxada até a altura do peito",
-        muscleGroups: ["latíssimo", "rombóides"]
-      },
-      {
-        id: "back-4",
-        name: "Remada Sentado",
-        sets: 3,
-        reps: 12,
-        weight: "50kg",
-        restTime: 60,
-        instructions: "Tronco ereto, puxada até o abdômen",
-        muscleGroups: ["latíssimo", "rombóides"]
-      },
-      {
-        id: "back-5",
-        name: "Levantamento Terra",
-        sets: 4,
-        reps: 8,
-        weight: "90kg",
-        restTime: 120,
-        instructions: "Mantenha as costas retas, força nas pernas",
-        muscleGroups: ["lombar", "glúteos", "isquiotibiais"]
-      },
-      {
-        id: "back-6",
-        name: "Pullover",
-        sets: 3,
-        reps: 12,
-        weight: "25kg",
-        restTime: 45,
-        instructions: "Movimento em arco, abertura da caixa torácica",
-        muscleGroups: ["latíssimo", "serrátil"]
-      },
-      {
-        id: "back-7",
-        name: "Encolhimento",
-        sets: 3,
-        reps: 15,
-        weight: "30kg",
-        restTime: 45,
-        instructions: "Movimento vertical, contração no topo",
-        muscleGroups: ["trapézio"]
-      }
-    ]
-  }
-];
+
 
 // Component for expandable onboarding card
 function OnboardingCard({ user }: { user: any }) {
@@ -462,29 +316,45 @@ export default function Home() {
   const { showSuccess, showError, showWarning, showWorkoutSuccess, showWorkoutError } = useGlobalNotification();
   const queryClient = useQueryClient();
   const [expandedTodaysWorkout, setExpandedTodaysWorkout] = useState(false);
-  const [expandedUpcomingWorkout, setExpandedUpcomingWorkout] = useState<number | null>(null);
+
   const [expandedStatsCard, setExpandedStatsCard] = useState<string | null>(null);
   const [expandedWeeklyProgress, setExpandedWeeklyProgress] = useState(false);
   const [expandedCaloriesCard, setExpandedCaloriesCard] = useState(false);
 
   const hasCompletedOnboarding = user?.onboardingCompleted || false;
 
+  const formatExerciseTime = (timeExec: number) => {
+    if (timeExec >= 60) {
+      const minutes = Math.floor(timeExec / 60);
+      const seconds = timeExec % 60;
+      return seconds > 0 ? `${minutes}min ${seconds}s` : `${minutes}min`;
+    }
+    return `${timeExec}s`;
+  };
+
   // Fetch scheduled workouts from database
   const { data: scheduledWorkouts = [], isLoading: workoutsLoading } = useQuery({
     queryKey: ["scheduled-workouts"],
     queryFn: async () => {
       const token = localStorage.getItem('authToken');
+      console.log("Fetching scheduled workouts...");
       const response = await fetch('/api/scheduled-workouts', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
-      
+
       if (!response.ok) {
+        console.error("Failed to fetch scheduled workouts:", response.status);
         throw new Error('Erro ao carregar treinos programados');
       }
-      
-      return response.json();
+
+      const data = await response.json();
+      console.log("Received scheduled workouts:", data.length, "workouts");
+      if (data.length > 0) {
+        console.log("First workout data:", data[0]);
+      }
+      return data;
     },
     enabled: hasCompletedOnboarding,
   });
@@ -499,11 +369,11 @@ export default function Home() {
           'Authorization': `Bearer ${token}`,
         },
       });
-      
+
       if (!response.ok) {
         throw new Error('Erro ao carregar sessões de treino');
       }
-      
+
       return response.json();
     },
     enabled: hasCompletedOnboarding,
@@ -512,7 +382,7 @@ export default function Home() {
   // AI workout generation mutation
   const generateWorkoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/n8n/sync-user-data", "POST");
+      return await apiRequest("/api/ai/generate-workout", "POST");
     },
     onSuccess: (data) => {
       showWorkoutSuccess(5000);
@@ -526,13 +396,201 @@ export default function Home() {
   });
 
   const completedWorkouts = Array.isArray(workoutSessions) ? workoutSessions.filter((session: any) => session.completedAt).length : 0;
-  const currentStreak = 7; // Calculate based on consecutive workout days
-  const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0;
-  const todaysWorkout = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0 ? scheduledWorkouts[0] : null;
 
-  const toggleUpcomingWorkout = (workoutId: number) => {
-    setExpandedUpcomingWorkout(expandedUpcomingWorkout === workoutId ? null : workoutId);
-  };
+  // Calculate real stats from workout sessions
+  const workoutStats = useMemo(() => {
+    if (!Array.isArray(workoutSessions)) {
+      return {
+        totalCalories: 0,
+        totalMinutes: 0,
+        totalExercises: 0,
+        currentStreak: 0,
+        weeklyCalories: 0,
+        weeklyMinutes: 0,
+        weeklyExercises: 0,
+        averageWorkoutDuration: 0,
+        lastWorkoutCalories: 0,
+        yesterdayCalories: 0,
+        todayCalories: 0,
+        dailyAverage: 0,
+        maxCalories: 0,
+        longestWorkout: 0
+      };
+    }
+
+    const completedSessions = workoutSessions.filter((session: any) => 
+      session.completedAt && session.totalDuration && session.totalDuration >= 1
+    );
+    const totalCalories = completedSessions.reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
+    const totalMinutes = completedSessions.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
+    const totalExercises = completedSessions.reduce((sum: number, session: any) => 
+      sum + (session.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0);
+
+    // Calculate current streak
+    const today = new Date();
+    const sortedSessions = completedSessions
+      .map((session: any) => ({
+        ...session,
+        completedDate: parseISO(session.completedAt).toDateString()
+      }))
+      .sort((a: any, b: any) => parseISO(b.completedAt).getTime() - parseISO(a.completedAt).getTime());
+
+    let currentStreak = 0;
+    let checkDate = today;
+
+    for (let i = 0; i < 30; i++) { // Check last 30 days
+      const dateString = checkDate.toDateString();
+      const hasWorkout = sortedSessions.some((session: any) => session.completedDate === dateString);
+
+      if (hasWorkout) {
+        currentStreak++;
+      } else if (i > 0) { // Allow today to not have a workout yet
+        break;
+      }
+
+      checkDate = subDays(checkDate, 1);
+    }
+
+    // Weekly stats (last 7 days)
+    const weekAgo = subDays(today, 7);
+    const weeklySessions = completedSessions.filter((session: any) => 
+      parseISO(session.completedAt) >= weekAgo
+    );
+    const weeklyCalories = weeklySessions.reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
+    const weeklyMinutes = weeklySessions.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
+    const weeklyExercises = weeklySessions.reduce((sum: number, session: any) => 
+      sum + (session.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0);
+
+    // Today's and yesterday's calories
+    const todayString = today.toDateString();
+    const yesterdayString = subDays(today, 1).toDateString();
+    const todayCalories = completedSessions
+      .filter((session: any) => parseISO(session.completedAt).toDateString() === todayString)
+      .reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
+    const yesterdayCalories = completedSessions
+      .filter((session: any) => parseISO(session.completedAt).toDateString() === yesterdayString)
+      .reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
+
+    // Additional stats
+    const lastWorkoutCalories = sortedSessions.length > 0 ? sortedSessions[0].totalCalories || 0 : 0;
+    const dailyAverage = completedSessions.length > 0 ? Math.round(totalCalories / completedSessions.length) : 0;
+    const maxCalories = Math.max(...completedSessions.map((session: any) => session.totalCalories || 0), 0);
+    const longestWorkout = Math.max(...completedSessions.map((session: any) => session.totalDuration || 0), 0);
+    const averageWorkoutDuration = completedSessions.length > 0 ? Math.round(totalMinutes / completedSessions.length) : 0;
+
+    return {
+      totalCalories,
+      totalMinutes,
+      totalExercises,
+      currentStreak,
+      weeklyCalories,
+      weeklyMinutes,
+      weeklyExercises,
+      averageWorkoutDuration,
+      lastWorkoutCalories,
+      yesterdayCalories,
+      todayCalories,
+      dailyAverage,
+      maxCalories,
+      longestWorkout
+    };
+  }, [workoutSessions]);
+
+  // Calculate weekly workout details for the expanded view
+  const weeklyWorkoutDetails = useMemo(() => {
+    if (!Array.isArray(workoutSessions)) return { details: {}, uniqueExercises: 0, uniqueMuscleGroups: 0 };
+    
+    const completedSessions = workoutSessions.filter((session: any) => 
+      session.completedAt && session.totalDuration && session.totalDuration >= 1
+    );
+    const today = new Date();
+    
+    // Get current week's Monday
+    const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1; // Adjust Sunday to be 6 days from Monday
+    const monday = subDays(today, daysFromMonday);
+    
+    // Calculate this week's sessions (from Monday to Sunday)
+    const weekStart = new Date(monday);
+    weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(monday);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+    
+    const weeklySessions = completedSessions.filter((session: any) => {
+      const sessionDate = parseISO(session.completedAt);
+      return sessionDate >= weekStart && sessionDate <= weekEnd;
+    });
+
+
+
+    // Get workout details for each day of the week (Monday to Sunday)
+    const weekDays = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+    const weeklyDetails: Record<string, { hasWorkout: boolean; duration: number; name: string }> = {};
+    
+    // Calculate total unique exercises and muscle groups
+    const allExercises = new Set<string>();
+    const allMuscleGroups = new Set<string>();
+    
+    // Loop through each day of this week (Monday to Sunday)
+    for (let i = 0; i < 7; i++) {
+      const dayDate = new Date(monday);
+      dayDate.setDate(dayDate.getDate() + i);
+      const dayString = dayDate.toDateString();
+      const dayName = weekDays[i];
+      
+      const dayWorkouts = weeklySessions.filter((session: any) => 
+        parseISO(session.completedAt).toDateString() === dayString
+      );
+      
+      if (dayWorkouts.length > 0) {
+        const totalMinutes = dayWorkouts.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
+        const mainMuscleGroup = dayWorkouts[0].name || 'Treino'; // Use workout name
+        
+        weeklyDetails[dayName] = {
+          hasWorkout: true,
+          duration: totalMinutes,
+          name: mainMuscleGroup
+        };
+        
+        // Add exercises and muscle groups to sets
+        dayWorkouts.forEach((session: any) => {
+          if (session.exercises && Array.isArray(session.exercises)) {
+            session.exercises.forEach((exercise: any) => {
+              if (exercise.completed) {
+                allExercises.add(exercise.exercise);
+                allMuscleGroups.add(exercise.muscleGroup);
+              }
+            });
+          }
+        });
+      } else {
+        weeklyDetails[dayName] = {
+          hasWorkout: false,
+          duration: 0,
+          name: 'Descanso'
+        };
+      }
+    }
+    
+    return {
+      details: weeklyDetails,
+      uniqueExercises: allExercises.size,
+      uniqueMuscleGroups: allMuscleGroups.size
+    };
+  }, [workoutSessions]);
+
+  const hasWorkoutsAvailable = Array.isArray(scheduledWorkouts) && scheduledWorkouts.length > 0;
+  const todaysWorkout = hasWorkoutsAvailable ? scheduledWorkouts[0] : null;
+
+  // Debug logs
+  React.useEffect(() => {
+    console.log("Home component - scheduledWorkouts:", scheduledWorkouts);
+    console.log("Home component - hasWorkoutsAvailable:", hasWorkoutsAvailable);
+    console.log("Home component - todaysWorkout:", todaysWorkout);
+  }, [scheduledWorkouts, hasWorkoutsAvailable, todaysWorkout]);
+
+
 
   const toggleStatsCard = (cardId: string) => {
     setExpandedStatsCard(expandedStatsCard === cardId ? null : cardId);
@@ -553,7 +611,7 @@ export default function Home() {
         <OnboardingCard user={user} />
       )}
 
-      
+
 
       {/* Quick Stats */}
       <div className="space-y-3">
@@ -578,9 +636,9 @@ export default function Home() {
                   </div>
                 </div>
                 <span className="text-xl font-bold">{completedWorkouts}</span>
-                {completedWorkouts > 0 && (
+                {workoutStats.weeklyExercises > 0 && (
                   <Badge variant="secondary" className="mt-1 text-xs">
-                    +3 esta semana
+                    +{Math.ceil(workoutStats.weeklyExercises / 5)} esta semana
                   </Badge>
                 )}
 
@@ -589,23 +647,23 @@ export default function Home() {
                   <div className="mt-3 pt-3 border-t border-border space-y-2">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Esta semana:</span>
-                      <span className="font-medium">3 treinos</span>
+                      <span className="font-medium">{workoutStats.weeklyExercises > 0 ? Math.ceil(workoutStats.weeklyExercises / 5) : 0} treinos</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Este mês:</span>
-                      <span className="font-medium">12 treinos</span>
+                      <span className="text-muted-foreground">Total exercícios:</span>
+                      <span className="font-medium">{workoutStats.totalExercises}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Média/semana:</span>
-                      <span className="font-medium">2.8 treinos</span>
+                      <span className="text-muted-foreground">Tempo total:</span>
+                      <span className="font-medium">{Math.floor(workoutStats.totalMinutes / 60)}h {workoutStats.totalMinutes % 60}min</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Maior sequência:</span>
-                      <span className="font-medium text-orange-600">14 dias</span>
+                      <span className="font-medium text-orange-600">{workoutStats.currentStreak} dias</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Treino favorito:</span>
-                      <span className="font-medium">Pernas</span>
+                      <span className="text-muted-foreground">Média/treino:</span>
+                      <span className="font-medium">{workoutStats.averageWorkoutDuration}min</span>
                     </div>
                   </div>
                 )}
@@ -633,8 +691,8 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold">{currentStreak} dias</span>
-                  {currentStreak >= 7 && (
+                  <span className="text-xl font-bold">{workoutStats.currentStreak} dias</span>
+                  {workoutStats.currentStreak >= 7 && (
                     <Badge variant="destructive" className="text-xs">
                       Em chamas!
                     </Badge>
@@ -699,42 +757,42 @@ export default function Home() {
                     )}
                   </div>
                 </div>
-                <span className="text-xl font-bold">{hasCompletedOnboarding ? "1,845" : "0"}</span>
-                {hasCompletedOnboarding && (
+                <span className="text-xl font-bold">{workoutStats.weeklyCalories.toLocaleString()}</span>
+                {workoutStats.weeklyCalories > 0 && (
                   <Badge variant="secondary" className="mt-1 text-xs">
                     Esta semana
                   </Badge>
                 )}
 
                 {/* Expanded Content */}
-                {expandedStatsCard === 'calories' && hasCompletedOnboarding && (
+                {expandedStatsCard === 'calories' && workoutStats.totalCalories > 0 && (
                   <div className="mt-3 pt-3 border-t border-border space-y-2">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Hoje:</span>
-                      <span className="font-medium">420 kcal</span>
+                      <span className="font-medium">{workoutStats.todayCalories} kcal</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Ontem:</span>
-                      <span className="font-medium">385 kcal</span>
+                      <span className="font-medium">{workoutStats.yesterdayCalories} kcal</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Média/dia:</span>
-                      <span className="font-medium">263 kcal</span>
+                      <span className="font-medium">{workoutStats.dailyAverage} kcal</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Meta semanal:</span>
-                      <span className="font-medium text-blue-600">2,100 kcal</span>
+                      <span className="text-muted-foreground">Total geral:</span>
+                      <span className="font-medium text-blue-600">{workoutStats.totalCalories.toLocaleString()} kcal</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Maior queima:</span>
-                      <span className="font-medium text-orange-600">520 kcal</span>
+                      <span className="font-medium text-orange-600">{workoutStats.maxCalories} kcal</span>
                     </div>
                     <div className="w-full mt-2">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Meta semanal</span>
-                        <span className="font-medium">88%</span>
+                        <span className="text-muted-foreground">Meta semanal (1,500 kcal)</span>
+                        <span className="font-medium">{Math.min(100, Math.round((workoutStats.weeklyCalories / 1500) * 100))}%</span>
                       </div>
-                      <Progress value={88} className="h-1" />
+                      <Progress value={Math.min(100, Math.round((workoutStats.weeklyCalories / 1500) * 100))} className="h-1" />
                     </div>
                   </div>
                 )}
@@ -761,42 +819,42 @@ export default function Home() {
                     )}
                   </div>
                 </div>
-                <span className="text-xl font-bold">{hasCompletedOnboarding ? "18h" : "0h"}</span>
-                {hasCompletedOnboarding && (
+                <span className="text-xl font-bold">{Math.floor(workoutStats.weeklyMinutes / 60)}h {workoutStats.weeklyMinutes % 60}min</span>
+                {workoutStats.weeklyMinutes > 0 && (
                   <Badge variant="secondary" className="mt-1 text-xs">
-                    Este mês
+                    Esta semana
                   </Badge>
                 )}
 
                 {/* Expanded Content */}
-                {expandedStatsCard === 'time' && hasCompletedOnboarding && (
+                {expandedStatsCard === 'time' && workoutStats.totalMinutes > 0 && (
                   <div className="mt-3 pt-3 border-t border-border space-y-2">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Esta semana:</span>
-                      <span className="font-medium">2h 15min</span>
+                      <span className="font-medium">{Math.floor(workoutStats.weeklyMinutes / 60)}h {workoutStats.weeklyMinutes % 60}min</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Último treino:</span>
-                      <span className="font-medium">45min</span>
+                      <span className="text-muted-foreground">Total geral:</span>
+                      <span className="font-medium">{Math.floor(workoutStats.totalMinutes / 60)}h {workoutStats.totalMinutes % 60}min</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Média/treino:</span>
-                      <span className="font-medium">45min</span>
+                      <span className="font-medium">{workoutStats.averageWorkoutDuration}min</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Maior treino:</span>
-                      <span className="font-medium text-green-600">1h 20min</span>
+                      <span className="font-medium text-green-600">{Math.floor(workoutStats.longestWorkout / 60)}h {workoutStats.longestWorkout % 60}min</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Meta mensal:</span>
-                      <span className="font-medium text-blue-600">20h</span>
+                      <span className="text-muted-foreground">Meta semanal:</span>
+                      <span className="font-medium text-blue-600">300min</span>
                     </div>
                     <div className="w-full mt-2">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Meta mensal</span>
-                        <span className="font-medium">90%</span>
+                        <span className="text-muted-foreground">Meta semanal</span>
+                        <span className="font-medium">{Math.min(100, Math.round((workoutStats.weeklyMinutes / 300) * 100))}%</span>
                       </div>
-                      <Progress value={90} className="h-1" />
+                      <Progress value={Math.min(100, Math.round((workoutStats.weeklyMinutes / 300) * 100))} className="h-1" />
                     </div>
                   </div>
                 )}
@@ -829,31 +887,31 @@ export default function Home() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Meta Semanal</span>
-                <span className="text-muted-foreground">3/3 treinos</span>
+                <span className="text-muted-foreground">{Object.values(weeklyWorkoutDetails.details || {}).filter((day: any) => day.hasWorkout).length}/3 treinos</span>
               </div>
-              <Progress value={100} className="h-2" />
+              <Progress value={Math.min(100, (Object.values(weeklyWorkoutDetails.details || {}).filter((day: any) => day.hasWorkout).length / 3) * 100)} className="h-2" />
             </div>
 
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Calorias</p>
-                <p className="text-sm font-semibold">645 kcal</p>
+                <p className="text-sm font-semibold">{workoutStats.weeklyCalories} kcal</p>
                 <div className="w-full bg-muted rounded-full h-1">
-                  <div className="bg-red-500 h-1 rounded-full" style={{ width: '80%' }}></div>
+                  <div className="bg-red-500 h-1 rounded-full" style={{ width: `${Math.min(100, Math.round((workoutStats.weeklyCalories / 1500) * 100))}%` }}></div>
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Tempo</p>
-                <p className="text-sm font-semibold">2h 15min</p>
+                <p className="text-sm font-semibold">{Math.floor(workoutStats.weeklyMinutes / 60)}h {workoutStats.weeklyMinutes % 60}min</p>
                 <div className="w-full bg-muted rounded-full h-1">
-                  <div className="bg-blue-500 h-1 rounded-full" style={{ width: '75%' }}></div>
+                  <div className="bg-blue-500 h-1 rounded-full" style={{ width: `${Math.min(100, Math.round((workoutStats.weeklyMinutes / 300) * 100))}%` }}></div>
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Exercícios</p>
-                <p className="text-sm font-semibold">15</p>
+                <p className="text-sm font-semibold">{workoutStats.weeklyExercises}</p>
                 <div className="w-full bg-muted rounded-full h-1">
-                  <div className="bg-green-500 h-1 rounded-full" style={{ width: '90%' }}></div>
+                  <div className="bg-green-500 h-1 rounded-full" style={{ width: `${Math.min(100, Math.round((workoutStats.weeklyExercises / 20) * 100))}%` }}></div>
                 </div>
               </div>
             </div>
@@ -864,61 +922,26 @@ export default function Home() {
                 <h4 className="font-semibold text-sm">Detalhes Semanais</h4>
 
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Segunda-feira</span>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">Pernas - 45min</span>
+                  {Object.entries(weeklyWorkoutDetails.details || {}).map(([dayName, dayData]) => (
+                    <div key={dayName} className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">{dayName}</span>
+                      <div className="flex items-center gap-2">
+                        {dayData.hasWorkout ? (
+                          <>
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <span className="text-sm font-medium">
+                              {dayData.name} - {dayData.duration}min
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Descanso</span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Terça-feira</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Quarta-feira</span>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">Peito - 50min</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Quinta-feira</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Sexta-feira</span>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">Costas - 40min</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Sábado</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Domingo</span>
-                    <div className="flex items-center gap-2">
-                      <X className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Descanso</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
                 <div className="bg-muted/30 p-3 rounded-lg">
@@ -926,19 +949,19 @@ export default function Home() {
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Total de calorias:</span>
-                      <span className="font-medium">1,845 kcal</span>
+                      <span className="font-medium">{workoutStats.weeklyCalories.toLocaleString()} kcal</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Tempo total:</span>
-                      <span className="font-medium">2h 15min</span>
+                      <span className="font-medium">{Math.floor(workoutStats.weeklyMinutes / 60)}h {workoutStats.weeklyMinutes % 60}min</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Exercícios únicos:</span>
-                      <span className="font-medium">15</span>
+                      <span className="font-medium">{weeklyWorkoutDetails.uniqueExercises || 0}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Grupos musculares:</span>
-                      <span className="font-medium">8</span>
+                      <span className="font-medium">{weeklyWorkoutDetails.uniqueMuscleGroups || 0}</span>
                     </div>
                   </div>
                 </div>
@@ -972,7 +995,7 @@ export default function Home() {
               )}
             </Button>
           </div>
-          
+
           {workoutsLoading ? (
             <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
               <CardContent className="p-4">
@@ -992,7 +1015,7 @@ export default function Home() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg text-blue-800 dark:text-blue-200">{todaysWorkout.name}</h3>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      {todaysWorkout.exercises?.length || 0} exercícios • {todaysWorkout.totalDuration || 0} min • {todaysWorkout.totalCalories || 0} kcal
+                      {todaysWorkout.exercises?.length || 0} exercícios • {todaysWorkout.totalCalories || 0} kcal
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1005,16 +1028,23 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mb-3">
-                  <Link href="/active-workout">
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                      <Play className="mr-2 h-4 w-4" />
-                      Ir para treino
+                <div className="mb-3">
+                  <div className="flex justify-start mb-3">
+                    <Button 
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => {
+                        // Redirecionar apenas para a tela de treinos
+                        window.location.href = '/workout';
+                      }}
+                    >
+                      <Dumbbell className="mr-2 h-4 w-4" />
+                      Ir para Treino
                     </Button>
-                  </Link>
-                  <div className="text-right">
-                    <p className="text-xs text-blue-600 dark:text-blue-400">Recomendado pela IA</p>
-                    <p className="text-xs text-blue-700 dark:text-blue-300">Baseado no seu progresso</p>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                      {(todaysWorkout as any).description || "Baseado no seu perfil"}
+                    </p>
                   </div>
                 </div>
 
@@ -1034,7 +1064,7 @@ export default function Home() {
                                 {exercise.exercise}
                               </h5>
                               <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                                {exercise.series} séries × {exercise.repetitions} reps
+                                {exercise.series} séries × {exercise.repetitions > 0 ? `${exercise.repetitions} reps` : `${formatExerciseTime(exercise.timeExec || exercise.time)}`}
                               </p>
                               <p className="text-xs text-blue-600 dark:text-blue-400">
                                 {exercise.instructions}
@@ -1067,7 +1097,7 @@ export default function Home() {
                       Nenhum treino encontrado
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Clique em "Atualizar IA" para gerar um novo treino personalizado
+                      Clique em "Atualizar treino" para gerar seu treino personalizado
                     </p>
                   </div>
                 </div>
@@ -1077,73 +1107,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Upcoming Workouts */}
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Próximos Treinos</h2>
-        <div className="space-y-2">
-          {mockUpcomingWorkouts.map((workout) => (
-            <Card 
-              key={workout.id} 
-              className="cursor-pointer transition-all duration-200"
-              onClick={() => toggleUpcomingWorkout(workout.id)}
-            >
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm">{workout.name}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {workout.date} • {workout.exercises.length} exercícios • {workout.difficulty}
-                    </p>
-                  </div>
-                  {expandedUpcomingWorkout === workout.id ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </div>
 
-                {/* Expanded Exercise Details */}
-                {expandedUpcomingWorkout === workout.id && (
-                  <div className="mt-4 pt-3 border-t border-border">
-                    <h4 className="font-semibold text-sm mb-3 text-foreground">Exercícios do Treino</h4>
-                    <div className="space-y-2">
-                      {workout.exercises.map((exercise, index) => (
-                        <div 
-                          key={exercise.id} 
-                          className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/30"
-                        >
-                          <div className="flex-1">
-                            <div className="flex flex-col">
-                              <h5 className="font-medium text-sm text-foreground">
-                                {exercise.name}
-                              </h5>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {exercise.sets} séries × {exercise.reps} reps
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {exercise.instructions}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right ml-3">
-                            <span className="text-sm font-semibold text-primary">
-                              {exercise.weight}
-                            </span>
-                            <p className="text-xs text-muted-foreground flex items-center justify-end">
-                              <Clock className="mr-1 h-2 w-2" />
-                              {exercise.restTime}s
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
