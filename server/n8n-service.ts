@@ -28,8 +28,11 @@ export interface N8NWorkoutResponse {
 
 export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIWorkoutResponse> {
   try {
+    console.log("=== N8N REQUEST DEBUG ===");
     console.log("Sending request to N8N:", N8N_WEBHOOK_URL);
     console.log("N8N_WEBHOOK_URL from env:", process.env.N8N_WEBHOOK_URL || "NOT SET");
+    console.log("Request data:", JSON.stringify(data, null, 2));
+    console.log("========================");
     
     const response = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
@@ -40,9 +43,23 @@ export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIW
       signal: AbortSignal.timeout(30000) // 30 second timeout
     });
 
+    console.log("=== N8N RESPONSE DEBUG ===");
+    console.log("Response status:", response.status);
+    console.log("Response statusText:", response.statusText);
+    console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+    console.log("=========================");
+
     if (!response.ok) {
+      let errorBody = "";
+      try {
+        errorBody = await response.text();
+        console.error("N8N Error response body:", errorBody);
+      } catch (e) {
+        console.error("Could not read error response body");
+      }
+      
       console.error(`N8N API error: ${response.status} ${response.statusText}`);
-      throw new Error(`N8N API error: ${response.status}`);
+      throw new Error(`N8N API error: ${response.status} - ${errorBody || response.statusText}`);
     }
 
     const n8nResponse: N8NWorkoutResponse = await response.json();

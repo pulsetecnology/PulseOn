@@ -896,6 +896,19 @@ ${JSON.stringify(n8nResponse, null, 2)}
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  // Debug endpoint to check N8N configuration
+  app.get("/api/debug/n8n-config", authenticateToken, (req: Request, res: Response) => {
+    const n8nUrl = process.env.N8N_WEBHOOK_URL;
+    const n8nApiKey = process.env.N8N_API_KEY;
+    
+    res.json({
+      n8nWebhookUrl: n8nUrl ? `${n8nUrl.substring(0, 20)}...` : "NOT SET",
+      n8nApiKeyConfigured: !!n8nApiKey,
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // N8N Integration endpoints
   app.get("/api/n8n/users", async (req: Request, res: Response) => {
     try {
