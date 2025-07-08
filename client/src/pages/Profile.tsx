@@ -242,6 +242,10 @@ export default function Profile() {
         updatePayload.availableEquipment = data.availableEquipment;
       }
 
+      if (data.phone !== user?.phone) {
+        updatePayload.phone = data.phone;
+      }
+
       if (data.physicalRestrictions !== user?.physicalRestrictions) {
         updatePayload.physicalRestrictions = data.physicalRestrictions;
       }
@@ -472,6 +476,35 @@ export default function Profile() {
     }
   };
 
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-numeric characters
+    const cleaned = ('' + value).replace(/\D/g, '');
+    
+    // Apply formatting for Brazilian phone numbers
+    const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
+    if (match) {
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
+    }
+    
+    // Partial formatting for incomplete numbers
+    if (cleaned.length >= 2) {
+      const ddd = cleaned.slice(0, 2);
+      const remaining = cleaned.slice(2);
+      
+      if (remaining.length >= 5) {
+        const firstPart = remaining.slice(0, 5);
+        const secondPart = remaining.slice(5, 9);
+        return `(${ddd}) ${firstPart}${secondPart ? '-' + secondPart : ''}`;
+      } else if (remaining.length > 0) {
+        return `(${ddd}) ${remaining}`;
+      } else {
+        return `(${ddd}`;
+      }
+    }
+    
+    return cleaned;
+  };
+
   const handleCancelEdit = () => {
     setEditingCard(null);
     setFormData(user || {});
@@ -664,7 +697,10 @@ export default function Profile() {
                     type="tel"
                     placeholder="(11) 99999-9999"
                     value={formData.phone || ""}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => {
+                      const formattedValue = formatPhoneNumber(e.target.value);
+                      setFormData({ ...formData, phone: formattedValue });
+                    }}
                   />
                 ) : (
                   <p className="text-sm text-muted-foreground">{user.phone || "Não informado"}</p>
