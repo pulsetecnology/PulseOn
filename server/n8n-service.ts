@@ -29,6 +29,7 @@ export interface N8NWorkoutResponse {
 export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIWorkoutResponse> {
   try {
     console.log("Sending request to N8N:", N8N_WEBHOOK_URL);
+    console.log("N8N_WEBHOOK_URL from env:", process.env.N8N_WEBHOOK_URL || "NOT SET");
     
     const response = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
