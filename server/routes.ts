@@ -450,18 +450,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Prepare data for N8N AI request
+        // Prepare data for N8N AI request in the correct format
         const aiRequestData = {
           userId: user.id,
-          age: userProfile.age || 25,
-          weight: userProfile.weight || 70,
-          height: userProfile.height || 170,
-          phone: userProfile.phone || "",
-          fitnessGoal: userProfile.fitnessGoal || "improve_conditioning",
-          experienceLevel: userProfile.experienceLevel || "intermediate",
-          weeklyFrequency: userProfile.weeklyFrequency || 3,
-          availableEquipment: userProfile.availableEquipment || ["basic"],
-          physicalRestrictions: userProfile.physicalRestrictions || "",
+          timestamp: new Date().toISOString(),
+          personalInfo: {
+            name: userProfile.name || "Usuário",
+            email: userProfile.email || "",
+            birthDate: userProfile.birthDate || "1990-01-01",
+            age: userProfile.age || 25,
+            weight: userProfile.weight || 70,
+            height: userProfile.height || 170,
+            gender: userProfile.gender || "masculino"
+          },
+          fitnessProfile: {
+            fitnessGoal: userProfile.fitnessGoal || "improve_conditioning",
+            experienceLevel: userProfile.experienceLevel || "intermediate",
+            weeklyFrequency: userProfile.weeklyFrequency || 3,
+            availableEquipment: userProfile.availableEquipment || ["gym_access"],
+            customEquipment: userProfile.customEquipment || "",
+            physicalRestrictions: userProfile.physicalRestrictions || "",
+            preferredWorkoutTime: userProfile.preferredWorkoutTime || "morning",
+            availableDaysPerWeek: userProfile.availableDaysPerWeek || userProfile.weeklyFrequency || 3,
+            averageWorkoutDuration: userProfile.averageWorkoutDuration || 45,
+            preferredLocation: userProfile.preferredLocation || "gym"
+          },
+          lifestyle: {
+            smokingStatus: userProfile.smokingStatus || "non-smoker",
+            alcoholConsumption: userProfile.alcoholConsumption || "moderate",
+            dietType: userProfile.dietType || "balanced",
+            sleepHours: userProfile.sleepHours || 7,
+            stressLevel: userProfile.stressLevel || "medium"
+          },
+          metadata: {
+            onboardingCompleted: userProfile.onboardingCompleted || false,
+            avatarUrl: userProfile.avatarUrl || "",
+            lastUpdated: new Date().toISOString()
+          }
         };
 
         console.log("Requesting AI workout for user:", user.id, aiRequestData);
