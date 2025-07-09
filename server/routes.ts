@@ -24,7 +24,7 @@ import {
   sanitizeUser,
 } from "./auth";
 import { authenticateToken } from "./middleware";
-import { requestWorkoutFromAI } from "./n8n-service";
+// Removed N8N service import - using direct fetch without authentication
 import { Request, Response } from "express";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -348,33 +348,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         physicalRestrictions: updatedUser.physicalRestrictions || undefined,
       };
 
-      // Request workout from AI
-      try {
-        const aiWorkout = await requestWorkoutFromAI(aiRequestData);
-
-        // Create workout from AI response
-        const workout = await storage.createWorkout({
-          userId: updatedUser.id,
-          name: aiWorkout.workoutName,
-          description: aiWorkout.description,
-          duration: aiWorkout.duration,
-          difficulty: aiWorkout.difficulty,
-          exercises: aiWorkout.exercises,
-        });
-
-        res.json({
-          message: "Onboarding concluído com sucesso",
-          user: sanitizeUser(updatedUser),
-          firstWorkout: workout,
-        });
-      } catch (aiError) {
-        console.error("AI workout generation failed:", aiError);
-        res.json({
-          message: "Onboarding concluído com sucesso",
-          user: sanitizeUser(updatedUser),
-          note: "Treino personalizado será gerado em breve",
-        });
-      }
+      // Create user response - AI workout generation will be handled separately
+      res.json({
+        message: "Onboarding concluído com sucesso",
+        user: sanitizeUser(updatedUser),
+        note: "Use o botão 'Atualizar IA' para gerar treinos personalizados",
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res
