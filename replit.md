@@ -105,6 +105,10 @@ The system uses **PostgreSQL** with the following main entities:
 
 ```
 Changelog:
+- July 9, 2025. Removed N8N API key authentication from webhook requests
+- July 9, 2025. Fixed port conflict issue by properly killing existing processes
+- July 9, 2025. Updated N8N request format to structured JSON with personalInfo, fitnessProfile, lifestyle, and metadata
+- July 9, 2025. Configured JWT_SECRET environment variable for authentication
 - July 5, 2025. Implemented "Não Consigo Continuar" button in individual exercise execution screen (Workout.tsx)
 - July 5, 2025. Button correctly marks exercises as "incomplete" status during execution
 - July 5, 2025. Exercises can now have three statuses: completed, incomplete, not-started
