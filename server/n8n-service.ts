@@ -28,17 +28,34 @@ export interface N8NWorkoutResponse {
 
 export async function requestWorkoutFromAI(data: N8NWorkoutRequest): Promise<AIWorkoutResponse> {
   try {
+    const N8N_API_KEY = process.env.N8N_API_KEY;
+    
     console.log("=== N8N REQUEST DEBUG ===");
     console.log("Sending request to N8N:", N8N_WEBHOOK_URL);
     console.log("N8N_WEBHOOK_URL from env:", process.env.N8N_WEBHOOK_URL || "NOT SET");
+    console.log("N8N_API_KEY configured:", !!N8N_API_KEY);
+    console.log("N8N_API_KEY value (masked):", N8N_API_KEY ? `${N8N_API_KEY.substring(0, 8)}...` : "NOT SET");
     console.log("Request data:", JSON.stringify(data, null, 2));
     console.log("========================");
     
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Add API key to headers if configured
+    if (N8N_API_KEY) {
+      headers['X-API-Key'] = N8N_API_KEY;
+      headers['Authorization'] = `Bearer ${N8N_API_KEY}`;
+      console.log("API Key headers added to request");
+    } else {
+      console.log("WARNING: No N8N_API_KEY configured - request may fail");
+    }
+    
+    console.log("Request headers:", Object.keys(headers));
+    
     const response = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(data),
       signal: AbortSignal.timeout(30000) // 30 second timeout
     });

@@ -902,9 +902,13 @@ ${JSON.stringify(n8nResponse, null, 2)}
     const n8nApiKey = process.env.N8N_API_KEY;
     
     res.json({
-      n8nWebhookUrl: n8nUrl ? `${n8nUrl.substring(0, 20)}...` : "NOT SET",
+      n8nWebhookUrl: n8nUrl ? `${n8nUrl.substring(0, 50)}...` : "NOT SET",
+      n8nWebhookUrlFull: n8nUrl || "NOT SET",
       n8nApiKeyConfigured: !!n8nApiKey,
+      n8nApiKeyLength: n8nApiKey ? n8nApiKey.length : 0,
+      n8nApiKeyMasked: n8nApiKey ? `${n8nApiKey.substring(0, 8)}...` : "NOT SET",
       environment: process.env.NODE_ENV,
+      allEnvVars: Object.keys(process.env).filter(key => key.startsWith('N8N_')),
       timestamp: new Date().toISOString()
     });
   });

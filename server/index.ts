@@ -1,6 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { configDotenv } from "dotenv";
+
+configDotenv();
 
 const app = express();
 app.use(express.json());
@@ -37,6 +40,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Log environment variables on startup
+  console.log("=== ENVIRONMENT VARIABLES CHECK ===");
+  console.log("N8N_WEBHOOK_URL:", process.env.N8N_WEBHOOK_URL ? `${process.env.N8N_WEBHOOK_URL.substring(0, 30)}...` : "NOT SET");
+  console.log("N8N_API_KEY:", process.env.N8N_API_KEY ? `${process.env.N8N_API_KEY.substring(0, 8)}...` : "NOT SET");
+  console.log("JWT_SECRET:", process.env.JWT_SECRET ? "CONFIGURED" : "NOT SET");
+  console.log("NODE_ENV:", process.env.NODE_ENV || "development");
+  console.log("===================================");
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
