@@ -4,3 +4,18 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Vercel deployment files
+.vercel/
+
+# Auto-generated JavaScript files (keep only TypeScript)
+server/*.js
+shared/*.js
+
+# Database files
+*.db
+*.sqlite
+
+# Environment and config
+.env.local
+.env.production
