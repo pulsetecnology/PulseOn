@@ -238,7 +238,19 @@ export default function Profile() {
         updatePayload.weeklyFrequency = data.weeklyFrequency;
       }
 
-      if (data.availableEquipment && JSON.stringify(data.availableEquipment) !== JSON.stringify(user?.availableEquipment)) {
+      const currentUserEquipment = user?.availableEquipment 
+        ? (typeof user.availableEquipment === 'string' 
+            ? (() => {
+                try {
+                  return JSON.parse(user.availableEquipment);
+                } catch {
+                  return [user.availableEquipment];
+                }
+              })()
+            : user.availableEquipment)
+        : [];
+      
+      if (data.availableEquipment && JSON.stringify(data.availableEquipment) !== JSON.stringify(currentUserEquipment)) {
         updatePayload.availableEquipment = data.availableEquipment;
       }
 
@@ -293,10 +305,12 @@ export default function Profile() {
 
       console.log('Sending update payload:', updatePayload);
 
-      return apiRequest("/api/profile/update", "PATCH", updatePayload);
+      return apiRequest("/api/users/" + user?.id, "PATCH", updatePayload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Forçar atualização dos dados do usuário
+      queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
       setEditingCard(null);
       showSuccess();
     },
@@ -1087,9 +1101,29 @@ export default function Profile() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {user.availableEquipment && user.availableEquipment.length > 0 ? (
+                    {user.availableEquipment && (
+                       typeof user.availableEquipment === 'string' 
+                         ? (() => {
+                             try {
+                               return JSON.parse(user.availableEquipment).length > 0;
+                             } catch {
+                               return user.availableEquipment.length > 0;
+                             }
+                           })()
+                         : user.availableEquipment.length > 0
+                     ) ? (
                       <div className="grid grid-cols-2 gap-2">
-                        {user.availableEquipment.map((equipmentId) => {
+                        {(typeof user.availableEquipment === 'string' 
+                          ? (() => {
+                              try {
+                                return JSON.parse(user.availableEquipment);
+                              } catch {
+                                // Se não for JSON válido, trata como string simples
+                                return [user.availableEquipment];
+                              }
+                            })()
+                          : user.availableEquipment
+                        ).map((equipmentId) => {
                           if (equipmentId === "others") {
                             return (
                               <span key={equipmentId} className="text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">

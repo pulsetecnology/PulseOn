@@ -1,0 +1,28 @@
+{
+  "scheduledWorkoutId": null,
+  "workoutName": "Teste de Salvamento",
+  "startTime": "2025-01-08T15:00:00.000Z",
+  "endTime": "2025-01-08T15:30:00.000Z",
+  "duration": 30,
+  "totalCalories": 200,
+  "status": "completed",
+  "exercises": [
+    {
+      "exercise": "Agachamento",
+      "muscleGroup": "Pernas",
+      "type": "Força",
+      "instructions": "Teste",
+      "time": 60,
+      "series": 3,
+      "repetitions": 10,
+      "weight": 0,
+      "calories": 50,
+      "actualWeight": 0,
+      "actualTime": 60,
+      "actualCalories": 50,
+      "effortLevel": 8,
+      "completed": true,
+      "status": "completed"
+    }
+  ]
+}

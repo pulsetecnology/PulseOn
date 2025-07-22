@@ -21,7 +21,7 @@ const TOTAL_STEPS = 7;
 
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(1);
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [, setLocation] = useLocation();
   const { showSuccess, showError } = useGlobalNotification();
   const queryClient = useQueryClient();
@@ -76,7 +76,9 @@ export default function Onboarding() {
       });
     },
     onSuccess: () => {
+      // Atualizar dados do usuário no cache
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      refreshUser();
       showSuccess();
       setTimeout(() => {
         setLocation("/");

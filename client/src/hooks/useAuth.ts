@@ -69,6 +69,10 @@ export function useAuth() {
     queryClient.clear();
   }, [setToken, queryClient]);
 
+  const refreshUser = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["user", token] });
+  }, [queryClient, token]);
+
   const isAuthenticated = !!token && !!user && !error;
 
   return {
@@ -76,6 +80,7 @@ export function useAuth() {
     isAuthenticated,
     isLoading: !!token && isLoading,
     setToken,
-    logout
+    logout,
+    refreshUser
   };
 }

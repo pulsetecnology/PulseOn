@@ -81,8 +81,14 @@ function OnboardingCard({ user }: { user: any }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getMissingFields = () => {
+    // Se o onboarding foi marcado como completo, não há campos faltando
+    if (user?.onboardingCompleted) {
+      return [];
+    }
+
     const missingFields = [];
 
+    // Verificar apenas os campos essenciais do onboarding
     if (!user?.birthDate) {
       missingFields.push({
         field: "Data de nascimento",
@@ -139,7 +145,19 @@ function OnboardingCard({ user }: { user: any }) {
       });
     }
 
-    if (!user?.availableEquipment || user.availableEquipment.length === 0) {
+    const availableEquipment = user?.availableEquipment 
+      ? (typeof user.availableEquipment === 'string' 
+          ? (() => {
+              try {
+                return JSON.parse(user.availableEquipment);
+              } catch {
+                return [];
+              }
+            })()
+          : user.availableEquipment)
+      : [];
+    
+    if (!availableEquipment || availableEquipment.length === 0) {
       missingFields.push({
         field: "Equipamentos disponíveis",
         description: "Tipos de equipamentos que você tem acesso para treinar",
@@ -147,84 +165,11 @@ function OnboardingCard({ user }: { user: any }) {
       });
     }
 
-    // Adicionar validações para campos de estilo de vida se necessário
-    if (!user?.smokingStatus) {
-      missingFields.push({
-        field: "Status de tabagismo",
-        description: "Informação importante para personalizar treinos",
-        icon: Heart
-      });
-    }
-
-    if (!user?.alcoholConsumption) {
-      missingFields.push({
-        field: "Consumo de álcool",
-        description: "Influencia no planejamento de treinos",
-        icon: Heart
-      });
-    }
-
-    if (!user?.dietType) {
-      missingFields.push({
-        field: "Tipo de alimentação",
-        description: "Importante para recomendações personalizadas",
-        icon: Heart
-      });
-    }
-
-    if (!user?.sleepHours) {
-      missingFields.push({
-        field: "Horas de sono",
-        description: "Essencial para planejamento de recuperação",
-        icon: Heart
-      });
-    }
-
-    if (!user?.stressLevel) {
-      missingFields.push({
-        field: "Nível de estresse",
-        description: "Influencia na intensidade dos treinos",
-        icon: Heart
-      });
-    }
-
-    if (!user?.preferredWorkoutTime) {
-      missingFields.push({
-        field: "Horário preferido",
-        description: "Para otimizar seus treinos",
-        icon: Clock
-      });
-    }
-
-    if (!user?.availableDaysPerWeek || user.availableDaysPerWeek <= 0) {
-      missingFields.push({
-        field: "Dias disponíveis",
-        description: "Quantos dias por semana você pode treinar",
-        icon: Calendar
-      });
-    }
-
-    if (!user?.averageWorkoutDuration) {
-      missingFields.push({
-        field: "Duração dos treinos",
-        description: "Tempo médio que você tem para treinar",
-        icon: Clock
-      });
-    }
-
-    if (!user?.preferredLocation) {
-      missingFields.push({
-        field: "Local preferido",
-        description: "Onde você prefere treinar",
-        icon: Target
-      });
-    }
-
     return missingFields;
   };
 
   const missingFields = getMissingFields();
-  const totalFields = 16; // Total de campos obrigatórios
+  const totalFields = 8; // Total de campos essenciais do onboarding
   const completionPercentage = Math.round(((totalFields - missingFields.length) / totalFields) * 100);
 
   // Se não há campos faltando, não exibir o card
@@ -395,7 +340,23 @@ export default function Home() {
     },
   });
 
-  const completedWorkouts = Array.isArray(workoutSessions) ? workoutSessions.filter((session: any) => session.completedAt).length : 0;
+  // Count unique workouts by date and workout ID/name to avoid counting partial completions multiple times
+  const completedWorkouts = useMemo(() => {
+    if (!Array.isArray(workoutSessions)) return 0;
+    
+    const uniqueWorkouts = new Set();
+    
+    workoutSessions.forEach((session: any) => {
+      if (session.completedAt) {
+        const sessionDate = parseISO(session.completedAt).toDateString();
+        const workoutId = session.scheduledWorkoutId || session.name || '';
+        const uniqueKey = `${sessionDate}-${workoutId}`;
+        uniqueWorkouts.add(uniqueKey);
+      }
+    });
+    
+    return uniqueWorkouts.size;
+  }, [workoutSessions]);
 
   // Calculate real stats from workout sessions
   const workoutStats = useMemo(() => {
@@ -423,8 +384,18 @@ export default function Home() {
     );
     const totalCalories = completedSessions.reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
     const totalMinutes = completedSessions.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
-    const totalExercises = completedSessions.reduce((sum: number, session: any) => 
-      sum + (session.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0);
+    const totalExercises = completedSessions.reduce((sum: number, session: any) => {
+      // Contar apenas exercícios únicos por sessão para evitar duplicação
+      const uniqueExercises = new Set();
+      if (session.exercises && Array.isArray(session.exercises)) {
+        session.exercises.forEach((ex: any) => {
+          if (ex.completed && ex.exercise) {
+            uniqueExercises.add(ex.exercise);
+          }
+        });
+      }
+      return sum + uniqueExercises.size;
+    }, 0);
 
     // Calculate current streak
     const today = new Date();
@@ -458,8 +429,18 @@ export default function Home() {
     );
     const weeklyCalories = weeklySessions.reduce((sum: number, session: any) => sum + (session.totalCalories || 0), 0);
     const weeklyMinutes = weeklySessions.reduce((sum: number, session: any) => sum + (session.totalDuration || 0), 0);
-    const weeklyExercises = weeklySessions.reduce((sum: number, session: any) => 
-      sum + (session.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0);
+    const weeklyExercises = weeklySessions.reduce((sum: number, session: any) => {
+      // Contar apenas exercícios únicos por sessão para evitar duplicação
+      const uniqueExercises = new Set();
+      if (session.exercises && Array.isArray(session.exercises)) {
+        session.exercises.forEach((ex: any) => {
+          if (ex.completed && ex.exercise) {
+            uniqueExercises.add(ex.exercise);
+          }
+        });
+      }
+      return sum + uniqueExercises.size;
+    }, 0);
 
     // Today's and yesterday's calories
     const todayString = today.toDateString();
@@ -607,7 +588,7 @@ export default function Home() {
       </div>
 
       {/* Status Alerts */}
-      {(!hasCompletedOnboarding || (user && !user.onboardingCompleted)) && (
+      {!hasCompletedOnboarding && (
         <OnboardingCard user={user} />
       )}
 
@@ -1015,7 +996,7 @@ export default function Home() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg text-blue-800 dark:text-blue-200">{todaysWorkout.name}</h3>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      {todaysWorkout.exercises?.length || 0} exercícios • {todaysWorkout.totalCalories || 0} kcal
+                      {todaysWorkout.exercises ? todaysWorkout.exercises.length : 0} exercícios • {todaysWorkout.totalCalories || 0} kcal
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1053,7 +1034,7 @@ export default function Home() {
                   <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-700">
                     <h4 className="font-semibold text-sm mb-3 text-blue-800 dark:text-blue-200">Exercícios do Treino</h4>
                     <div className="space-y-2">
-                      {todaysWorkout.exercises?.map((exercise: any, index: number) => (
+                      {todaysWorkout.exercises && todaysWorkout.exercises?.map((exercise: any, index: number) => (
                         <div 
                           key={index} 
                           className="flex items-center justify-between py-2 px-3 rounded-md bg-blue-100 dark:bg-blue-900/30"
