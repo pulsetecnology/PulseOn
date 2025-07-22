@@ -616,7 +616,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
               userId: user.id,
               name: aiWorkoutResponse.workoutName,
               description: aiWorkoutResponse.workoutObs,
-              exercises: aiWorkoutResponse.workoutPlan,
+              exercises: JSON.stringify(aiWorkoutResponse.workoutPlan), // Converter para string JSON
               totalCalories: Math.round(totalCalories),
               totalDuration: Math.round(totalDuration / 60), // Convert seconds to minutes
               status: "pending",
@@ -669,7 +669,7 @@ ${JSON.stringify(n8nResponse, null, 2)}
           const fallbackWorkout = await storage.createScheduledWorkout({
             userId: user.id,
             name: `Treino Cardio + Força`,
-            exercises: fallbackExercises,
+            exercises: JSON.stringify(fallbackExercises), // Converter para string JSON
             totalCalories: 230,
             totalDuration: 25,
             status: "pending",

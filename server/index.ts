@@ -1,9 +1,12 @@
+import { configDotenv } from "dotenv";
+
+// Carrega as variáveis de ambiente antes de importar outros módulos
+configDotenv();
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { configDotenv } from "dotenv";
-
-configDotenv();
+import { DATABASE_TYPE } from "./database-config";
 
 const app = express();
 app.use(express.json());
@@ -40,6 +43,21 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize database based on configured type
+  try {
+    if (DATABASE_TYPE === 'postgres') {
+      import("./database-postgres").then(module => {
+        module.initializeDatabase();
+      });
+    } else {
+      import("./database").then(module => {
+        module.initializeDatabase();
+      });
+    }
+  } catch (error) {
+    console.error("Error initializing database:", error);
+  }
+
   // Log environment variables on startup
   console.log("=== ENVIRONMENT VARIABLES CHECK ===");
   console.log("N8N_WEBHOOK_URL:", process.env.N8N_WEBHOOK_URL ? `${process.env.N8N_WEBHOOK_URL.substring(0, 30)}...` : "NOT SET");
@@ -67,10 +85,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
+  // Serve the app on the configured port or default to 3000
   // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  const port = process.env.PORT || 3000;
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   });

@@ -22,6 +22,7 @@ export function initializeDatabase() {
       email TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL,
       name TEXT,
+      phone TEXT,
       birth_date TEXT,
       age INTEGER,
       weight INTEGER,

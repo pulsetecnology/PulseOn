@@ -101,7 +101,27 @@ export default function Workout() {
     },
   });
 
-  const todaysWorkout = scheduledWorkouts?.[0]; // Get the most recent workout
+  const rawTodaysWorkout = scheduledWorkouts?.[0]; // Get the most recent workout
+  
+  // Parse exercises if it's a string and create processed workout
+  const todaysWorkout = React.useMemo(() => {
+    if (!rawTodaysWorkout) return null;
+    
+    let exercises = rawTodaysWorkout.exercises;
+    if (typeof exercises === 'string') {
+      try {
+        exercises = JSON.parse(exercises);
+      } catch (error) {
+        console.error('Error parsing exercises JSON:', error);
+        exercises = [];
+      }
+    }
+    
+    return {
+      ...rawTodaysWorkout,
+      exercises: exercises || []
+    };
+  }, [rawTodaysWorkout]);
   
   // Função para gerar chave única do treino baseada na data
   const getWorkoutStorageKey = () => {
@@ -169,36 +189,43 @@ export default function Workout() {
 
   // Carregar progresso salvo quando user e todaysWorkout estão disponíveis
   useEffect(() => {
-    if (user?.id && todaysWorkout && workoutSessions) {
-      // Primeiro, verificar se já existe uma sessão completa para este treino
-      const existingSession = workoutSessions.find((session: any) => 
-        session.scheduledWorkoutId === todaysWorkout.id && 
-        (session.status === 'completed' || session.status === 'completed-partial')
-      );
-
-      if (existingSession) {
-        // Se já existe uma sessão concluída, marcar todos os exercícios como concluídos
-        const completedExerciseIds = existingSession.exercises?.map((ex: any) => ex.exerciseId || ex.exerciseName) || [];
-        setCompletedExercises(new Set(completedExerciseIds));
+    if (user?.id && todaysWorkout) {
+      // Carregar progresso do localStorage apenas
+      const progress = loadSavedProgress();
+      if (progress.workoutId === todaysWorkout.id) {
+        // Validar exercícios concluídos contra os exercícios atuais do treino
+        const validExerciseIds = todaysWorkout.exercises?.map(ex => ex.id || ex.exercise) || [];
+        const validCompletedExercises = new Set(
+          Array.from(progress.completedExercises as Set<string>).filter(id => 
+            validExerciseIds.includes(id)
+          )
+        );
+        const validIncompleteExercises = new Set(
+          Array.from(progress.incompleteExercises as Set<string>).filter(id => 
+            validExerciseIds.includes(id)
+          )
+        );
+        
+        setCompletedExercises(validCompletedExercises);
+        setIncompleteExercises(validIncompleteExercises);
+        
+        // Se houve filtragem, salvar o progresso limpo
+        if (validCompletedExercises.size !== (progress.completedExercises as Set<string>).size ||
+            validIncompleteExercises.size !== (progress.incompleteExercises as Set<string>).size) {
+          saveProgress(validCompletedExercises, {}, Array.from(validIncompleteExercises));
+        }
       } else {
-        // Se não existe sessão concluída, carregar progresso do localStorage
-        const progress = loadSavedProgress();
-        if (progress.workoutId === todaysWorkout.id) {
-          setCompletedExercises(progress.completedExercises as Set<string>);
-          setIncompleteExercises(progress.incompleteExercises as Set<string>);
-        } else {
-          // Se não há progresso ou é de outro treino, inicializar vazio
-          setCompletedExercises(new Set());
-          setIncompleteExercises(new Set());
-          // Limpar progresso antigo se for um novo treino
-          if (progress.workoutId && progress.workoutId !== todaysWorkout.id) {
-            const storageKey = getWorkoutStorageKey();
-            localStorage.removeItem(storageKey);
-          }
+        // Se não há progresso ou é de outro treino, inicializar vazio
+        setCompletedExercises(new Set());
+        setIncompleteExercises(new Set());
+        // Limpar progresso antigo se for um novo treino
+        if (progress.workoutId && progress.workoutId !== todaysWorkout.id) {
+          const storageKey = getWorkoutStorageKey();
+          localStorage.removeItem(storageKey);
         }
       }
     }
-  }, [user?.id, todaysWorkout?.id, workoutSessions]);
+  }, [user?.id, todaysWorkout?.id]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -338,16 +365,22 @@ export default function Workout() {
         if (!exercise) return null;
         
         return {
-          exerciseId: exerciseId,
-          exerciseName: exercise.exercise,
+          exercise: exercise.exercise,
           muscleGroup: exercise.muscleGroup,
-          sets: exercise.series,
-          reps: exercise.repetitions,
+          type: exercise.type || 'strength',
+          instructions: exercise.instructions || '',
+          time: exercise.timeExec || exercise.time || 0,
+          series: exercise.series || 1,
+          repetitions: exercise.repetitions || 0,
           weight: exercise.weight || 0,
+          calories: exercise.calories || 0,
+          actualWeight: exercise.weight || 0,
+          actualTime: exercise.timeExec || exercise.time || 0,
+          actualCalories: exercise.calories || 0,
           effortLevel: 7, // Valor padrão
           completed: true,
-          time: exercise.timeExec || exercise.time,
-          calories: exercise.calories || 0
+          status: 'completed',
+          notes: null
         };
       }).filter(Boolean);
 
@@ -481,9 +514,15 @@ export default function Workout() {
 
       if (response.ok) {
         console.log('Treino individual salvo no histórico com sucesso');
+        // Invalidar queries para atualizar dados
+         queryClient.invalidateQueries({ queryKey: ['/api/workout-sessions'] });
+         queryClient.invalidateQueries({ queryKey: ['scheduled-workouts'] });
+        
         showWorkoutSuccess();
-        // Redirecionar para histórico
-        window.location.href = '/history';
+        // Redirecionar para histórico usando navegação do React
+        setTimeout(() => {
+          window.location.href = '/history';
+        }, 1000);
       } else {
         throw new Error('Erro ao salvar no backend');
       }
@@ -503,6 +542,16 @@ export default function Workout() {
       existingSessions.unshift(sessionWithId);
       localStorage.setItem('workoutSessions', JSON.stringify(existingSessions));
       console.log('Treino individual salvo no localStorage como fallback');
+      
+      // Limpar progresso do localStorage
+      const storageKey = getWorkoutStorageKey();
+      localStorage.removeItem(storageKey);
+      
+      // Resetar estados
+      setCompletedExercises(new Set());
+      setIncompleteExercises(new Set());
+      setActiveExercise(null);
+      
       showWorkoutSuccess();
       // Redirecionar para histórico
       window.location.href = '/history';
@@ -650,16 +699,21 @@ export default function Workout() {
             
             {/* Botão Finalizar Treino - só aparece se há exercícios completados */}
             {(() => {
-              // Verificar se há sessões concluídas para este treino
-              const hasCompletedSession = workoutSessions?.some((session: any) => 
-                session.scheduledWorkoutId === todaysWorkout?.id && 
-                (session.status === 'completed' || session.status === 'completed-partial')
-              );
-
-              if (completedExercises.size > 0 && !hasCompletedSession) {
+              // Simplificar a lógica - mostrar botão se há exercícios completados
+              if (completedExercises.size > 0) {
                 const totalExercises = todaysWorkout.exercises?.length || 1;
                 const completedCount = completedExercises.size;
                 const progress = completedCount / totalExercises;
+                
+                // Verificar se há inconsistência na contagem (mais exercícios concluídos que o total)
+                if (completedCount > totalExercises) {
+                  console.warn('Inconsistência detectada: mais exercícios concluídos que o total. Limpando localStorage.');
+                  const storageKey = getWorkoutStorageKey();
+                  localStorage.removeItem(storageKey);
+                  setCompletedExercises(new Set());
+                  setIncompleteExercises(new Set());
+                  return null; // Não renderizar o botão até que o estado seja corrigido
+                }
                 
                 // Cores gradativas baseadas no progresso
                 let buttonClass = "";

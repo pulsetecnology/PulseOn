@@ -13,13 +13,11 @@ import {
   type InsertWorkoutSession,
   type AIExercise,
   type CompletedExercise
-} from "@shared/schema";
-import { db } from "./db";
+} from "@shared/schema-sqlite";
+import { db } from "./db.js";
 import { eq, desc, and, gte, lte } from "drizzle-orm";
 
-// Não importa mais a interface IStorage
-
-export class DatabaseStorage {
+export class SQLiteStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -62,25 +60,36 @@ export class DatabaseStorage {
         return await this.getUser(id);
       }
 
-      const [user] = await db
+      // Process special fields for SQLite
+      const processedUpdates = { ...filteredUpdates };
+      
+      // Convert availableEquipment array to JSON string for SQLite
+      if (processedUpdates.availableEquipment) {
+        processedUpdates.availableEquipment = JSON.stringify(processedUpdates.availableEquipment);
+      }
+
+      console.log("Updating user with ID:", id, "with processed values:", processedUpdates);
+
+      const [updatedUser] = await db
         .update(users)
-        .set(filteredUpdates)
+        .set(processedUpdates)
         .where(eq(users.id, id))
         .returning();
-      return user || undefined;
+
+      return updatedUser;
     } catch (error) {
       console.error("Error updating user:", error);
-      throw error;
+      return undefined;
     }
   }
 
   // Session methods
-  async createSession(insertSession: InsertSession): Promise<Session> {
-    const [session] = await db
+  async createSession(session: InsertSession): Promise<Session> {
+    const [newSession] = await db
       .insert(sessions)
-      .values(insertSession)
+      .values(session)
       .returning();
-    return session;
+    return newSession;
   }
 
   async getSessionByToken(token: string): Promise<Session | undefined> {
@@ -129,46 +138,24 @@ export class DatabaseStorage {
     };
   }
 
-  async createScheduledWorkout(insertWorkout: InsertScheduledWorkout): Promise<ScheduledWorkout> {
-    try {
-      const workoutData = {
-        userId: insertWorkout.userId,
-        name: insertWorkout.name,
-        description: insertWorkout.description,
-        exercises: insertWorkout.exercises as any,
-        totalCalories: insertWorkout.totalCalories || 0,
-        totalDuration: insertWorkout.totalDuration || 0,
-        status: insertWorkout.status || "pending",
-        scheduledFor: insertWorkout.scheduledFor || new Date()
-      };
-      
-      console.log("Creating scheduled workout with data:", JSON.stringify(workoutData, null, 2));
-      
-      const [workout] = await db
-        .insert(scheduledWorkouts)
-        .values([workoutData])
-        .returning();
-      
-      console.log("Scheduled workout created successfully:", workout.id);
-      return workout;
-    } catch (error) {
-      console.error("Error creating scheduled workout:", error);
-      throw error;
-    }
+  async createScheduledWorkout(workout: InsertScheduledWorkout): Promise<ScheduledWorkout> {
+    const [newWorkout] = await db
+      .insert(scheduledWorkouts)
+      .values(workout)
+      .returning();
+    return newWorkout;
   }
 
-  async updateScheduledWorkout(id: number, updates: Partial<InsertScheduledWorkout>): Promise<ScheduledWorkout | undefined> {
-    const updateData = {
-      ...updates,
-      exercises: updates.exercises as any
-    };
-    
-    const [workout] = await db
+  async updateScheduledWorkout(
+    id: number,
+    updates: Partial<InsertScheduledWorkout>
+  ): Promise<ScheduledWorkout | undefined> {
+    const [updatedWorkout] = await db
       .update(scheduledWorkouts)
-      .set(updateData)
+      .set(updates)
       .where(eq(scheduledWorkouts.id, id))
       .returning();
-    return workout || undefined;
+    return updatedWorkout;
   }
 
   async deleteScheduledWorkout(id: number): Promise<void> {
@@ -209,55 +196,40 @@ export class DatabaseStorage {
     };
   }
 
-  async createWorkoutSession(insertSession: InsertWorkoutSession): Promise<WorkoutSession> {
-    try {
-      console.log("Creating workout session with data:", JSON.stringify(insertSession, null, 2));
-      
-      const sessionData = {
-        userId: insertSession.userId,
-        name: insertSession.name || "Treino Personalizado",
-        startedAt: insertSession.startedAt ? new Date(insertSession.startedAt) : new Date(),
-        completedAt: insertSession.completedAt ? new Date(insertSession.completedAt) : new Date(),
-        scheduledWorkoutId: insertSession.scheduledWorkoutId || null,
-        exercises: insertSession.exercises as any,
-        totalDuration: insertSession.totalDuration || 0,
-        totalCalories: insertSession.totalCalories || 0,
-        notes: insertSession.notes || ""
-      };
-      
-      console.log("Processed session data for DB:", JSON.stringify(sessionData, null, 2));
-      
-      const [session] = await db
-        .insert(workoutSessions)
-        .values(sessionData)
-        .returning();
-        
-      console.log("Workout session created successfully:", session);
-      return session;
-    } catch (error) {
-      console.error("Error creating workout session:", error);
-      throw error;
-    }
-  }
-
-  async updateWorkoutSession(id: number, updates: Partial<InsertWorkoutSession>): Promise<WorkoutSession | undefined> {
-    const updateData = {
-      ...updates,
-      exercises: updates.exercises as any
+  async createWorkoutSession(session: InsertWorkoutSession): Promise<WorkoutSession> {
+    const sessionData = {
+      userId: session.userId,
+      scheduledWorkoutId: session.scheduledWorkoutId,
+      name: session.name,
+      startedAt: session.startedAt,
+      completedAt: session.completedAt,
+      exercises: JSON.stringify(session.exercises),
+      totalDuration: session.totalDuration,
+      totalCalories: session.totalCalories,
+      notes: session.notes
     };
     
-    const [session] = await db
+    const [newSession] = await db
+      .insert(workoutSessions)
+      .values(sessionData)
+      .returning();
+    return newSession;
+  }
+
+  async updateWorkoutSession(
+    id: number,
+    updates: Partial<InsertWorkoutSession>
+  ): Promise<WorkoutSession | undefined> {
+    const [updatedSession] = await db
       .update(workoutSessions)
-      .set(updateData)
+      .set(updates)
       .where(eq(workoutSessions.id, id))
       .returning();
-    return session || undefined;
+    return updatedSession;
   }
 
   async deleteWorkoutSession(id: number): Promise<void> {
-    await db
-      .delete(workoutSessions)
-      .where(eq(workoutSessions.id, id));
+    await db.delete(workoutSessions).where(eq(workoutSessions.id, id));
   }
 
   async completeWorkoutSession(
@@ -267,18 +239,18 @@ export class DatabaseStorage {
     totalCalories: number,
     notes?: string
   ): Promise<WorkoutSession | undefined> {
-    const [session] = await db
+    const [updatedSession] = await db
       .update(workoutSessions)
       .set({
-        exercises,
+        completedAt: new Date().toISOString(),
+        exercises: JSON.stringify(exercises),
         totalDuration,
         totalCalories,
         notes,
-        completedAt: new Date()
       })
       .where(eq(workoutSessions.id, id))
       .returning();
-    return session || undefined;
+    return updatedSession;
   }
 
   // Statistics methods
@@ -289,76 +261,77 @@ export class DatabaseStorage {
     currentStreak: number;
     averageWorkoutDuration: number;
   }> {
-    const completedSessions = await db
-      .select()
-      .from(workoutSessions)
-      .where(and(
-        eq(workoutSessions.userId, userId),
-        eq(workoutSessions.completedAt, workoutSessions.completedAt) // Only completed sessions
-      ))
-      .orderBy(desc(workoutSessions.completedAt));
+    const sessions = await this.getWorkoutSessions(userId);
+    const completedSessions = sessions.filter((s) => s.completedAt);
 
     const totalWorkouts = completedSessions.length;
-    const totalCalories = completedSessions.reduce((sum, session) => sum + (session.totalCalories || 0), 0);
-    const totalMinutes = completedSessions.reduce((sum, session) => sum + (session.totalDuration || 0), 0);
-    const averageWorkoutDuration = totalWorkouts > 0 ? totalMinutes / totalWorkouts : 0;
+    const totalCalories = completedSessions.reduce(
+      (sum, session) => sum + (session.totalCalories || 0),
+      0
+    );
+    const totalMinutes = completedSessions.reduce(
+      (sum, session) => sum + (session.totalDuration || 0),
+      0
+    );
 
-    // Calculate current streak (consecutive days with workouts)
+    // Calculate streak
     let currentStreak = 0;
-    const today = new Date();
-    const sessions = completedSessions.filter(s => s.completedAt);
-
-    if (sessions.length > 0) {
-      const sessionDates = sessions.map(s => {
-        const date = new Date(s.completedAt!);
-        return date.toDateString();
-      });
-
-      // Remove duplicates (same day workouts)
-      const uniqueDates = [...new Set(sessionDates)].sort((a, b) => 
-        new Date(b).getTime() - new Date(a).getTime()
+    if (completedSessions.length > 0) {
+      // Sort by completed date, newest first
+      const sortedSessions = [...completedSessions].sort(
+        (a, b) =>
+          new Date(b.completedAt!).getTime() -
+          new Date(a.completedAt!).getTime()
       );
 
+      // Start with the most recent workout
+      let lastDate = new Date(sortedSessions[0].completedAt!);
+      currentStreak = 1;
+
       // Check for consecutive days
-      for (let i = 0; i < uniqueDates.length; i++) {
-        const sessionDate = new Date(uniqueDates[i]);
-        const daysDiff = Math.floor((today.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (i === 0 && daysDiff <= 1) {
-          currentStreak = 1;
-        } else if (i > 0) {
-          const prevDate = new Date(uniqueDates[i - 1]);
-          const dateDiff = Math.floor((prevDate.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
-          
-          if (dateDiff === 1) {
-            currentStreak++;
-          } else {
-            break;
-          }
+      for (let i = 1; i < sortedSessions.length; i++) {
+        const currentDate = new Date(sortedSessions[i].completedAt!);
+        const dayDifference = Math.floor(
+          (lastDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (dayDifference === 1) {
+          // Consecutive day
+          currentStreak++;
+          lastDate = currentDate;
+        } else if (dayDifference > 1) {
+          // Break in streak
+          break;
         }
       }
     }
+
+    const averageWorkoutDuration =
+      totalWorkouts > 0 ? totalMinutes / totalWorkouts : 0;
 
     return {
       totalWorkouts,
       totalCalories,
       totalMinutes,
       currentStreak,
-      averageWorkoutDuration
+      averageWorkoutDuration,
     };
   }
 
-  async getWeeklyStats(userId: number, startDate: Date, endDate: Date): Promise<WorkoutSession[]> {
+  async getWeeklyStats(
+    userId: number,
+    startDate: Date,
+    endDate: Date
+  ): Promise<WorkoutSession[]> {
     return await db
       .select()
       .from(workoutSessions)
-      .where(and(
-        eq(workoutSessions.userId, userId),
-        gte(workoutSessions.startedAt, startDate),
-        lte(workoutSessions.startedAt, endDate)
-      ))
-      .orderBy(desc(workoutSessions.startedAt));
+      .where(
+        and(
+          eq(workoutSessions.userId, userId),
+          gte(workoutSessions.startedAt, startDate.toISOString()),
+          lte(workoutSessions.startedAt, endDate.toISOString())
+        )
+      );
   }
 }
-
-export const storage = new DatabaseStorage();

@@ -105,10 +105,10 @@ export default function History() {
   // Process workout data for calendar and stats
   const processedData = useMemo(() => {
     const workoutsByDate: Record<string, WorkoutSession[]> = {};
-    let totalWorkouts = 0;
     let totalCalories = 0;
     let totalMinutes = 0;
     let currentStreak = 0;
+    const uniqueWorkouts = new Set();
 
     // Group workouts by date
     workoutSessions.forEach(session => {
@@ -117,11 +117,17 @@ export default function History() {
         workoutsByDate[dateKey] = [];
       }
       workoutsByDate[dateKey].push(session);
-
-      totalWorkouts++;
+      
+      // Criar um identificador único para o treino (data + id do treino agendado)
+      const workoutIdentifier = `${dateKey}-${session.scheduledWorkoutId || session.name}`;
+      uniqueWorkouts.add(workoutIdentifier);
+      
       totalCalories += session.totalCalories;
       totalMinutes += session.totalDuration;
     });
+    
+    // Número total de treinos únicos
+    const totalWorkouts = uniqueWorkouts.size;
 
     // Calculate current streak (consecutive days with workouts)
     let checkDate = new Date();
