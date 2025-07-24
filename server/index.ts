@@ -3,6 +3,15 @@ import { configDotenv } from "dotenv";
 // Carrega as variáveis de ambiente antes de importar outros módulos
 configDotenv();
 
+import path from 'path';
+
+console.log("PATH.resolve with undefined test:");
+try {
+  path.resolve(undefined as any);
+} catch(e) {
+  console.error("Expected error:", e.message);
+}
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
