@@ -39,8 +39,9 @@ export async function setupVite(app: Express, server: Server) {
     host: true,
   };
 
+  const config = await viteConfig();
   const vite = await createViteServer({
-    ...viteConfig,
+    ...config,
     configFile: false,
     customLogger: {
       ...viteLogger,
@@ -67,8 +68,8 @@ export async function setupVite(app: Express, server: Server) {
       // Adiciona hash simples na dev para evitar cache do navegador
       if (process.env.NODE_ENV !== "production") {
         template = template.replace(
-          `src="/src/main.tsx"`,
-          `src="/src/main.tsx?v=${nanoid()}"`
+          `src="./src/main.tsx"`,
+          `src="./src/main.tsx?v=${nanoid()}"`
         );
       }
 
