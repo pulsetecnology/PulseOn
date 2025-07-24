@@ -8,7 +8,7 @@ if (!process.env.DATABASE_URL) {
 
 // PostgreSQL connection with SSL if in production
 const sql = postgres(process.env.DATABASE_URL, {
-  ssl: process.env.NODE_ENV === 'production' ? 'require' : false,
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
 // Create drizzle instance
@@ -18,8 +18,10 @@ export const db = drizzle(sql, { schema });
 export const { users, workouts, workoutSessions } = schema;
 
 // Initialize database
-export function initializeDatabase() {
+export async function initializeDatabase() {
   try {
+    // Test connection with a simple query
+    await sql`SELECT 1`;
     console.log("✅ PostgreSQL database initialized successfully");
     console.log("🌐 DATABASE_URL is configured:", !!process.env.DATABASE_URL);
   } catch (error) {

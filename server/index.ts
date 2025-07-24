@@ -1,6 +1,6 @@
 import { configDotenv } from "dotenv";
 
-// Carrega as variáveis de ambiente antes de importar outros módulos
+// Carrega variáveis de ambiente primeiro
 configDotenv();
 
 import path from 'path';
@@ -23,8 +23,8 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  const reqPath = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined;
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
@@ -34,16 +34,14 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (reqPath.startsWith("/api")) {
+      let logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-
       log(logLine);
     }
   });
@@ -52,22 +50,18 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Initialize database based on configured type
   try {
     if (DATABASE_TYPE === 'postgres') {
-      import("./database-postgres").then(module => {
-        module.initializeDatabase();
-      });
+      const module = await import("./database-postgres");
+      await module.initializeDatabase();
     } else {
-      import("./database").then(module => {
-        module.initializeDatabase();
-      });
+      const module = await import("./database");
+      await module.initializeDatabase();
     }
   } catch (error) {
     console.error("Error initializing database:", error);
   }
 
-  // Log environment variables on startup
   console.log("=== ENVIRONMENT VARIABLES CHECK ===");
   console.log("N8N_WEBHOOK_URL:", process.env.N8N_WEBHOOK_URL ? `${process.env.N8N_WEBHOOK_URL.substring(0, 30)}...` : "NOT SET");
   console.log("N8N_API_KEY:", process.env.N8N_API_KEY ? `${process.env.N8N_API_KEY.substring(0, 8)}...` : "NOT SET");
@@ -81,21 +75,24 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    log(`Error: ${message}`, "error");
+    if (!res.headersSent) {
+      res.status(status).json({ message });
+    }
+    // Não relança o erro para não quebrar a aplicação inesperadamente
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    try {
+      serveStatic(app);
+    } catch (err) {
+      console.error("ServeStatic error:", err);
+      process.exit(1); // ou lidar de outra forma
+    }
   }
 
-  // Serve the app on the configured port or default to 3000
-  // this serves both the API and the client.
   const port = process.env.PORT || 3000;
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
